@@ -1,80 +1,80 @@
 evo_line_id,evo_line_name,dex_start,dex_end,members,stage_count,assigned_brand
-EVO01,Bulbasaur Line,1,3,001/002/003,3,
-EVO02,Charmander Line,4,6,004/005/006,3,
-EVO03,Squirtle Line,7,9,007/008/009,3,
-EVO04,Caterpie Line,10,12,010/011/012,3,
-EVO05,Weedle Line,13,15,013/014/015,3,
-EVO06,Pidgey Line,16,18,016/017/018,3,
-EVO07,Rattata Line,19,20,019/020,2,
-EVO08,Spearow Line,21,22,021/022,2,
-EVO09,Ekans Line,23,24,023/024,2,
-EVO10,Pikachu Line,25,26,025/026,2,
-EVO11,Sandshrew Line,27,28,027/028,2,
-EVO12,Nidoran♀ Line,29,31,029/030/031,3,
-EVO13,Nidoran♂ Line,32,34,032/033/034,3,
-EVO14,Clefairy Line,35,36,035/036,2,
-EVO15,Vulpix Line,37,38,037/038,2,
-EVO16,Jigglypuff Line,39,40,039/040,2,
-EVO17,Zubat Line,41,42,041/042,2,
-EVO18,Oddish Line,43,45,043/044/045,3,
-EVO19,Paras Line,46,47,046/047,2,
-EVO20,Venonat Line,48,49,048/049,2,
-EVO21,Diglett Line,50,51,050/051,2,
-EVO22,Meowth Line,52,53,052/053,2,
-EVO23,Psyduck Line,54,55,054/055,2,
-EVO24,Mankey Line,56,57,056/057,2,
-EVO25,Growlithe Line,58,59,058/059,2,
-EVO26,Poliwag Line,60,62,060/061/062,3,
-EVO27,Abra Line,63,65,063/064/065,3,
-EVO28,Machop Line,66,68,066/067/068,3,
-EVO29,Bellsprout Line,69,71,069/070/071,3,
-EVO30,Tentacool Line,72,73,072/073,2,
-EVO31,Geodude Line,74,76,074/075/076,3,
-EVO32,Ponyta Line,77,78,077/078,2,
-EVO33,Slowpoke Line,79,80,079/080,2,
-EVO34,Magnemite Line,81,82,081/082,2,
-EVO35,Farfetch'd,83,83,083,1,
-EVO36,Doduo Line,84,85,084/085,2,
-EVO37,Seel Line,86,87,086/087,2,
-EVO38,Grimer Line,88,89,088/089,2,
-EVO39,Shellder Line,90,91,090/091,2,
-EVO40,Gastly Line,92,94,092/093/094,3,
-EVO41,Onix,95,95,095,1,
-EVO42,Drowzee Line,96,97,096/097,2,
-EVO43,Krabby Line,98,99,098/099,2,
-EVO44,Voltorb Line,100,101,100/101,2,
-EVO45,Exeggcute Line,102,103,102/103,2,
-EVO46,Cubone Line,104,105,104/105,2,
-EVO47,Hitmonlee,106,106,106,1,
-EVO48,Hitmonchan,107,107,107,1,
-EVO49,Lickitung,108,108,108,1,
-EVO50,Koffing Line,109,110,109/110,2,
-EVO51,Rhyhorn Line,111,112,111/112,2,
-EVO52,Chansey,113,113,113,1,
-EVO53,Tangela,114,114,114,1,
-EVO54,Kangaskhan,115,115,115,1,
-EVO55,Horsea Line,116,117,116/117,2,
-EVO56,Goldeen Line,118,119,118/119,2,
-EVO57,Staryu Line,120,121,120/121,2,
-EVO58,Mr. Mime,122,122,122,1,
-EVO59,Scyther,123,123,123,1,
-EVO60,Jynx,124,124,124,1,
-EVO61,Electabuzz,125,125,125,1,
-EVO62,Magmar,126,126,126,1,
-EVO63,Pinsir,127,127,127,1,
-EVO64,Tauros,128,128,128,1,
-EVO65,Magikarp Line,129,130,129/130,2,
-EVO66,Lapras,131,131,131,1,
-EVO67,Ditto,132,132,132,1,
-EVO68,Eevee Line,133,136,133/134/135/136,4,
-EVO69,Porygon,137,137,137,1,
-EVO70,Omanyte Line,138,139,138/139,2,
-EVO71,Kabuto Line,140,141,140/141,2,
-EVO72,Aerodactyl,142,142,142,1,
-EVO73,Snorlax,143,143,143,1,
-EVO74,Articuno,144,144,144,1,
-EVO75,Zapdos,145,145,145,1,
-EVO76,Moltres,146,146,146,1,
-EVO77,Dratini Line,147,149,147/148/149,3,
-EVO78,Mewtwo,150,150,150,1,
-EVO79,Mew,151,151,151,1,
+EVO01,Bulbasaur Line,1,3,001/002/003,3,OpenAI
+EVO02,Charmander Line,4,6,004/005/006,3,Anthropic
+EVO03,Squirtle Line,7,9,007/008/009,3,Google DeepMind
+EVO04,Caterpie Line,10,12,010/011/012,3,Stability AI
+EVO05,Weedle Line,13,15,013/014/015,3,Upstage (Solar)
+EVO06,Pidgey Line,16,18,016/017/018,3,Meta AI
+EVO07,Rattata Line,19,20,019/020,2,Cohere
+EVO08,Spearow Line,21,22,021/022,2,xAI
+EVO09,Ekans Line,23,24,023/024,2,Scale AI
+EVO10,Pikachu Line,25,26,025/026,2,Mistral
+EVO11,Sandshrew Line,27,28,027/028,2,Amazon Bedrock
+EVO12,Nidoran♀ Line,29,31,029/030/031,3,Tencent (Hunyuan)
+EVO13,Nidoran♂ Line,32,34,032/033/034,3,Kakao Brain
+EVO14,Clefairy Line,35,36,035/036,2,Moonshot (Kimi)
+EVO15,Vulpix Line,37,38,037/038,2,Runway
+EVO16,Jigglypuff Line,39,40,039/040,2,ElevenLabs
+EVO17,Zubat Line,41,42,041/042,2,ByteDance (Doubao)
+EVO18,Oddish Line,43,45,043/044/045,3,Flux (BFL)
+EVO19,Paras Line,46,47,046/047,2,LangChain
+EVO20,Venonat Line,48,49,048/049,2,Perplexity
+EVO21,Diglett Line,50,51,050/051,2,Pinecone
+EVO22,Meowth Line,52,53,052/053,2,Jasper
+EVO23,Psyduck Line,54,55,054/055,2,Minimax
+EVO24,Mankey Line,56,57,056/057,2,Groq
+EVO25,Growlithe Line,58,59,058/059,2,Brave Leo
+EVO26,Poliwag Line,60,62,060/061/062,3,Naver (HyperCLOVA)
+EVO27,Abra Line,63,65,063/064/065,3,AI21 Labs
+EVO28,Machop Line,66,68,066/067/068,3,Cerebras
+EVO29,Bellsprout Line,69,71,069/070/071,3,Together AI
+EVO30,Tentacool Line,72,73,072/073,2,Sourcegraph (Cody)
+EVO31,Geodude Line,74,76,074/075/076,3,LG (EXAONE)
+EVO32,Ponyta Line,77,78,077/078,2,Samsung (Gauss)
+EVO33,Slowpoke Line,79,80,079/080,2,Baidu (Ernie)
+EVO34,Magnemite Line,81,82,081/082,2,SenseTime
+EVO35,Farfetch'd,83,83,083,1,Reka AI
+EVO36,Doduo Line,84,85,084/085,2,Twelve Labs
+EVO37,Seel Line,86,87,086/087,2,Hume AI
+EVO38,Grimer Line,88,89,088/089,2,Weaviate
+EVO39,Shellder Line,90,91,090/091,2,Codeium
+EVO40,Gastly Line,92,94,092/093/094,3,Midjourney
+EVO41,Onix,95,95,095,1,Intel
+EVO42,Drowzee Line,96,97,096/097,2,Character.AI
+EVO43,Krabby Line,98,99,098/099,2,Weights & Biases
+EVO44,Voltorb Line,100,101,100/101,2,Inflection
+EVO45,Exeggcute Line,102,103,102/103,2,You.com
+EVO46,Cubone Line,104,105,104/105,2,01.AI (Yi)
+EVO47,Hitmonlee,106,106,106,1,Tabnine
+EVO48,Hitmonchan,107,107,107,1,GitHub Copilot
+EVO49,Lickitung,108,108,108,1,PlayHT
+EVO50,Koffing Line,109,110,109/110,2,SambaNova
+EVO51,Rhyhorn Line,111,112,111/112,2,Sanctuary AI
+EVO52,Chansey,113,113,113,1,Hugging Face
+EVO53,Tangela,114,114,114,1,SK Telecom (A.)
+EVO54,Kangaskhan,115,115,115,1,Aleph Alpha
+EVO55,Horsea Line,116,117,116/117,2,Leonardo AI
+EVO56,Goldeen Line,118,119,118/119,2,Luma AI
+EVO57,Staryu Line,120,121,120/121,2,Zhipu AI (GLM)
+EVO58,Mr. Mime,122,122,122,1,Writer
+EVO59,Scyther,123,123,123,1,Cursor
+EVO60,Jynx,124,124,124,1,Suno
+EVO61,Electabuzz,125,125,125,1,Replit
+EVO62,Magmar,126,126,126,1,iFlytek (Spark)
+EVO63,Pinsir,127,127,127,1,Databricks
+EVO64,Tauros,128,128,128,1,Pika
+EVO65,Magikarp Line,129,130,129/130,2,Kling (Kuaishou)
+EVO66,Lapras,131,131,131,1,Snowflake (Arctic)
+EVO67,Ditto,132,132,132,1,Ditto (Synthetic)
+EVO68,Eevee Line,133,136,133/134/135/136,4,Ideogram
+EVO69,Porygon,137,137,137,1,Figure AI
+EVO70,Omanyte Line,138,139,138/139,2,Boston Dynamics
+EVO71,Kabuto Line,140,141,140/141,2,Udio
+EVO72,Aerodactyl,142,142,142,1,Tesla (Optimus)
+EVO73,Snorlax,143,143,143,1,Alibaba (Qwen)
+EVO74,Articuno,144,144,144,1,Apple Intelligence
+EVO75,Zapdos,145,145,145,1,AMD
+EVO76,Moltres,146,146,146,1,Adobe Firefly
+EVO77,Dratini Line,147,149,147/148/149,3,DeepSeek
+EVO78,Mewtwo,150,150,150,1,Nvidia
+EVO79,Mew,151,151,151,1,IBM

@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Modelmon Dex - Profile</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0c14;
+  touch-action:none;-webkit-tap-highlight-color:transparent;
+  user-select:none;-webkit-user-select:none}
+body{display:flex;justify-content:center;align-items:center}
+canvas{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
+</style>
+</head>
+<body>
+<script src="https://pixijs.download/v8.9.2/pixi.min.js"></script>
+<script>
+(async()=>{
+
+/* ============================================================
+   VIRTUAL CANVAS — 360 x 640 (9:16 portrait mobile)
+   ============================================================ */
+const GW=360, GH=640;
+const dpr=window.devicePixelRatio||1;
+const sX=window.innerWidth/GW, sY=window.innerHeight/GH;
+const fit=Math.min(sX,sY);
+
+const app=new PIXI.Application();
+await app.init({width:GW,height:GH,backgroundColor:0x0a0c14,
+  antialias:false,roundPixels:true,resolution:dpr,autoDensity:true});
+app.canvas.style.width=Math.floor(GW*fit)+'px';
+app.canvas.style.height=Math.floor(GH*fit)+'px';
+document.body.appendChild(app.canvas);
+
+/* ============================================================
+   DATA — inline from src/data (no fetch, works on file://)
+   ============================================================ */
+const RAW_EVO=`EVO01,Bulbasaur Line,1,3,001/002/003,3,OpenAI
+EVO02,Charmander Line,4,6,004/005/006,3,Anthropic
+EVO03,Squirtle Line,7,9,007/008/009,3,Google DeepMind
+EVO04,Caterpie Line,10,12,010/011/012,3,Stability AI
+EVO05,Weedle Line,13,15,013/014/015,3,Upstage (Solar)
+EVO06,Pidgey Line,16,18,016/017/018,3,Meta AI
+EVO07,Rattata Line,19,20,019/020,2,Cohere
+EVO08,Spearow Line,21,22,021/022,2,xAI
+EVO09,Ekans Line,23,24,023/024,2,Scale AI
+EVO10,Pikachu Line,25,26,025/026,2,Mistral
+EVO11,Sandshrew Line,27,28,027/028,2,Amazon Bedrock
+EVO12,Nidoran F Line,29,31,029/030/031,3,Tencent (Hunyuan)
+EVO13,Nidoran M Line,32,34,032/033/034,3,Kakao Brain
+EVO14,Clefairy Line,35,36,035/036,2,Moonshot (Kimi)
+EVO15,Vulpix Line,37,38,037/038,2,Runway
+EVO16,Jigglypuff Line,39,40,039/040,2,ElevenLabs
+EVO17,Zubat Line,41,42,041/042,2,ByteDance (Doubao)
+EVO18,Oddish Line,43,45,043/044/045,3,Flux (BFL)
+EVO19,Paras Line,46,47,046/047,2,LangChain
+EVO20,Venonat Line,48,49,048/049,2,Perplexity
+EVO21,Diglett Line,50,51,050/051,2,Pinecone
+EVO22,Meowth Line,52,53,052/053,2,Jasper
+EVO23,Psyduck Line,54,55,054/055,2,Minimax
+EVO24,Mankey Line,56,57,056/057,2,Groq
+EVO25,Growlithe Line,58,59,058/059,2,Brave Leo
+EVO26,Poliwag Line,60,62,060/061/062,3,Naver (HyperCLOVA)
+EVO27,Abra Line,63,65,063/064/065,3,AI21 Labs
+EVO28,Machop Line,66,68,066/067/068,3,Cerebras
+EVO29,Bellsprout Line,69,71,069/070/071,3,Together AI
+EVO30,Tentacool Line,72,73,072/073,2,Sourcegraph (Cody)
+EVO31,Geodude Line,74,76,074/075/076,3,LG (EXAONE)
+EVO32,Ponyta Line,77,78,077/078,2,Samsung (Gauss)
+EVO33,Slowpoke Line,79,80,079/080,2,Baidu (Ernie)
+EVO34,Magnemite Line,81,82,081/082,2,SenseTime
+EVO35,Farfetchd,83,83,083,1,Reka AI
+EVO36,Doduo Line,84,85,084/085,2,Twelve Labs
+EVO37,Seel Line,86,87,086/087,2,Hume AI
+EVO38,Grimer Line,88,89,088/089,2,Weaviate
+EVO39,Shellder Line,90,91,090/091,2,Codeium
+EVO40,Gastly Line,92,94,092/093/094,3,Midjourney
+EVO41,Onix,95,95,095,1,Intel
+EVO42,Drowzee Line,96,97,096/097,2,Character.AI
+EVO43,Krabby Line,98,99,098/099,2,Weights & Biases
+EVO44,Voltorb Line,100,101,100/101,2,Inflection
+EVO45,Exeggcute Line,102,103,102/103,2,You.com
+EVO46,Cubone Line,104,105,104/105,2,01.AI (Yi)
+EVO47,Hitmonlee,106,106,106,1,Tabnine
+EVO48,Hitmonchan,107,107,107,1,GitHub Copilot
+EVO49,Lickitung,108,108,108,1,PlayHT
+EVO50,Koffing Line,109,110,109/110,2,SambaNova
+EVO51,Rhyhorn Line,111,112,111/112,2,Sanctuary AI
+EVO52,Chansey,113,113,113,1,Hugging Face
+EVO53,Tangela,114,114,114,1,SK Telecom (A.)
+EVO54,Kangaskhan,115,115,115,1,Aleph Alpha
+EVO55,Horsea Line,116,117,116/117,2,Leonardo AI
+EVO56,Goldeen Line,118,119,118/119,2,Luma AI
+EVO57,Staryu Line,120,121,120/121,2,Zhipu AI (GLM)
+EVO58,Mr. Mime,122,122,122,1,Writer
+EVO59,Scyther,123,123,123,1,Cursor
+EVO60,Jynx,124,124,124,1,Suno
+EVO61,Electabuzz,125,125,125,1,Replit
+EVO62,Magmar,126,126,126,1,iFlytek (Spark)
+EVO63,Pinsir,127,127,127,1,Databricks
+EVO64,Tauros,128,128,128,1,Pika
+EVO65,Magikarp Line,129,130,129/130,2,Kling (Kuaishou)
+EVO66,Lapras,131,131,131,1,Snowflake (Arctic)
+EVO67,Ditto,132,132,132,1,Ditto (Synthetic)
+EVO68,Eevee Line,133,136,133/134/135/136,4,Ideogram
+EVO69,Porygon,137,137,137,1,Figure AI
+EVO70,Omanyte Line,138,139,138/139,2,Boston Dynamics
+EVO71,Kabuto Line,140,141,140/141,2,Udio
+EVO72,Aerodactyl,142,142,142,1,Tesla (Optimus)
+EVO73,Snorlax,143,143,143,1,Alibaba (Qwen)
+EVO74,Articuno,144,144,144,1,Apple Intelligence
+EVO75,Zapdos,145,145,145,1,AMD
+EVO76,Moltres,146,146,146,1,Adobe Firefly
+EVO77,Dratini Line,147,149,147/148/149,3,DeepSeek
+EVO78,Mewtwo,150,150,150,1,Nvidia
+EVO79,Mew,151,151,151,1,IBM`;
+
+const BRAND_COLORS={"OpenAI":[[16,163,127],[0,80,60],[100,220,180]],"Anthropic":[[204,120,67],[180,90,45],[242,224,200]],"Google DeepMind":[[66,133,244],[234,67,53],[251,188,4]],"Stability AI":[[184,92,255],[120,50,200],[220,170,255]],"Upstage (Solar)":[[79,195,247],[30,140,210],[180,230,255]],"Meta AI":[[0,100,210],[55,0,200],[150,200,255]],"Cohere":[[57,89,77],[209,142,226],[140,200,180]],"xAI":[[220,40,40],[0,0,0],[255,255,255]],"Scale AI":[[109,40,217],[70,20,160],[180,130,240]],"Mistral":[[245,130,32],[255,195,0],[255,230,150]],"Amazon Bedrock":[[255,153,0],[35,47,62],[255,200,100]],"Tencent (Hunyuan)":[[0,200,83],[0,130,55],[100,240,160]],"Kakao Brain":[[254,229,0],[200,175,0],[255,245,120]],"Moonshot (Kimi)":[[179,136,255],[120,80,220],[220,200,255]],"Runway":[[0,212,170],[0,150,120],[120,240,220]],"ElevenLabs":[[29,185,84],[15,130,55],[100,220,150]],"ByteDance (Doubao)":[[37,244,238],[0,180,175],[150,255,250]],"Flux (BFL)":[[236,72,153],[170,40,110],[255,160,200]],"LangChain":[[28,60,60],[15,35,35],[80,130,130]],"Perplexity":[[32,178,170],[20,120,115],[130,225,220]],"Pinecone":[[27,31,59],[15,18,40],[80,90,140]],"Jasper":[[255,87,34],[190,55,15],[255,160,130]],"Minimax":[[255,82,82],[180,40,40],[255,160,160]],"Groq":[[245,80,54],[180,50,30],[255,160,140]],"Brave Leo":[[251,84,43],[180,55,25],[255,160,140]],"Naver (HyperCLOVA)":[[3,207,93],[0,140,60],[100,240,160]],"AI21 Labs":[[91,33,182],[140,80,220],[220,200,255]],"Cerebras":[[255,110,64],[200,70,30],[255,180,150]],"Together AI":[[61,90,254],[35,55,200],[150,165,255]],"Sourcegraph (Cody)":[[161,18,255],[110,10,180],[210,140,255]],"LG (EXAONE)":[[165,0,52],[110,0,35],[220,100,130]],"Samsung (Gauss)":[[20,40,160],[10,20,100],[100,120,220]],"Baidu (Ernie)":[[41,50,225],[20,25,150],[120,130,255]],"SenseTime":[[0,191,165],[0,130,110],[120,230,215]],"Reka AI":[[255,107,74],[200,60,30],[255,180,160]],"Twelve Labs":[[74,144,217],[40,90,160],[150,195,240]],"Hume AI":[[255,183,77],[200,130,30],[255,220,160]],"Weaviate":[[1,179,149],[0,120,100],[100,220,200]],"Codeium":[[9,182,162],[0,120,105],[100,220,210]],"Midjourney":[[104,122,200],[15,15,25],[255,255,255]],"Intel":[[0,113,197],[0,70,140],[100,180,240]],"Character.AI":[[92,107,192],[55,65,140],[165,175,230]],"Weights & Biases":[[255,190,0],[200,145,0],[255,225,100]],"Inflection":[[232,121,168],[180,60,120],[255,200,220]],"You.com":[[84,104,255],[50,65,200],[160,170,255]],"01.AI (Yi)":[[26,115,232],[15,70,160],[120,175,255]],"Tabnine":[[107,105,255],[60,58,200],[180,178,255]],"GitHub Copilot":[[110,64,201],[70,35,150],[180,150,240]],"PlayHT":[[0,229,255],[0,160,180],[120,245,255]],"SambaNova":[[123,31,162],[80,15,110],[190,120,220]],"Sanctuary AI":[[38,166,154],[20,110,100],[120,210,200]],"Hugging Face":[[255,210,30],[255,240,120],[30,30,30]],"SK Telecom (A.)":[[228,0,43],[160,0,30],[255,100,120]],"Aleph Alpha":[[45,106,79],[30,70,50],[120,180,150]],"Leonardo AI":[[168,85,247],[110,45,190],[215,160,255]],"Luma AI":[[139,92,246],[90,50,190],[200,170,255]],"Zhipu AI (GLM)":[[108,99,255],[60,50,200],[180,175,255]],"Writer":[[41,121,255],[20,75,190],[140,180,255]],"Cursor":[[124,58,237],[80,30,170],[190,140,255]],"Suno":[[255,64,129],[180,30,80],[255,160,190]],"Replit":[[242,98,7],[180,65,0],[255,170,100]],"iFlytek (Spark)":[[224,64,251],[160,30,200],[245,160,255]],"Databricks":[[255,54,33],[190,35,18],[255,140,130]],"Pika":[[255,119,169],[200,70,120],[255,190,210]],"Kling (Kuaishou)":[[255,111,0],[180,75,0],[255,180,100]],"Snowflake (Arctic)":[[41,181,232],[20,120,170],[150,220,245]],"Ditto (Synthetic)":[[224,224,224],[180,180,200],[255,255,255]],"Ideogram":[[59,130,246],[30,80,190],[150,190,255]],"Figure AI":[[189,189,189],[30,30,30],[240,240,240]],"Boston Dynamics":[[255,214,0],[200,165,0],[255,240,120]],"Udio":[[124,77,255],[80,40,200],[190,150,255]],"Tesla (Optimus)":[[204,0,0],[0,0,0],[255,80,80]],"Alibaba (Qwen)":[[255,106,0],[180,70,0],[255,180,100]],"Apple Intelligence":[[100,60,220],[255,45,85],[50,170,255]],"AMD":[[237,28,36],[0,0,0],[255,120,120]],"Adobe Firefly":[[255,0,0],[180,0,0],[255,120,80]],"DeepSeek":[[107,92,231],[70,100,255],[200,180,255]],"Nvidia":[[118,185,0],[0,0,0],[170,220,80]],"IBM":[[5,48,173],[0,25,100],[100,130,230]]};
+
+const POKE_NAMES=['이상해씨','이상해풀','이상해꽃','파이리','리자드','리자몽','꼬부기','어니부기','거북왕','캐터피','단데기','버터플','뿔충이','딱충이','독침붕','구구','피죤','피죤투','꼬렛','레트라','깨비참','깨비드릴리조','아보','아보크','피카츄','라이츄','모래두지','고지','니드런F','니드리나','니드퀸','니드런M','니드리노','니드킹','삐삐','픽시','식스테일','나인테일','푸린','푸크린','주뱃','골뱃','뚜벅쵸','냄새꼬','라플레시아','파라스','파라섹트','콘팡','도나리','디그다','닥트리오','나옹','페르시온','고라파덕','골덕','망키','성원숭','가디','윈디','발챙이','슈륙챙이','강챙이','캐이시','윤겔라','후딘','알통몬','근육몬','괴력몬','모다피','우츠동','우츠보트','왕눈해','독파리','꼬마돌','데구리','딱구리','포니타','날쌩마','야돈','야도란','코일','레어코일','파오리','두두','두트리오','쥬쥬','쥬레곤','질퍽이','질뻐기','셀러','파르셀','고오스','고우스트','팬텀','롱스톤','슬리프','슬리퍼','크랩','킹크랩','찌리리공','봄볼','아라리','나시','탕구리','텅구리','시라소몬','홍수몬','내루미','또가스','또도가스','뿔카노','코뿌리','럭키','덩쿠리','캥카','쏘드라','시드라','콘치','왕콘치','별가사리','아쿠스타','마임맨','스라크','루주라','에레브','마그마','쁘사이저','켄타로스','잉어킹','갸라도스','라프라스','메타몽','이브이','샤미드','쥬피썬더','부스터','폴리곤','암나이트','암스타','투구','투구푸스','프테라','잠만보','프리져','썬더','파이어','미뇽','신뇽','망나뇽','뮤츠','뮤'];
+
+// Build dex from evo lines
+const evoLines=RAW_EVO.split('\n').map(l=>{
+  const p=l.split(',');
+  return{id:p[0],name:p[1],start:+p[2],end:+p[3],members:p[4].split('/'),stages:+p[5],brand:p[6]};
+});
+
+// Map dex_no -> brand/evo info
+const dexMap={};
+evoLines.forEach(ev=>{
+  ev.members.forEach((m,i)=>{
+    const n=parseInt(m,10);
+    dexMap[n]={brand:ev.brand,evoLine:ev.name,stage:i+1,maxStage:ev.stages,evoId:ev.id,members:ev.members};
+  });
+});
+
+function rgb2hex(r,g,b){return(r<<16)|(g<<8)|b;}
+function getBrandColor(brand,idx){
+  const c=BRAND_COLORS[brand];
+  if(!c)return[128,128,128];
+  return c[Math.min(idx,c.length-1)];
+}
+
+/* ============================================================
+   PALETTE
+   ============================================================ */
+const P={
+  bg:0x0a0c14, panel:0x111522, panelLt:0x1a2035,
+  border:0x252d45, borderHi:0x3d4a70,
+  accent:0xe94560, accentDim:0x7a2535,
+  white:0xeef0f8, gray:0x6b7394, grayDk:0x3a4260,
+  green:0x4ade80, yellow:0xfbbf24, red:0xef4444, blue:0x60a5fa,
+  black:0x080a10,
+};
+
+/* ============================================================
+   CONCEPT COLORS
+   ============================================================ */
+const CONCEPT_COLORS={대화:0x729f5a,기억:0x85bb74,검색:0x4f8c84,장문맥:0x7eac9f,에이전트:0x926edb,생성:0xea6f55,실시간:0xf19c38,코드:0x405fcb,멀티모달:0xb763c8,프런티어:0x27313b,정렬:0x56a6a0,도구사용:0x9e7e4a,인프라:0x6e7d8f};
+
+/* ============================================================
+   DRAW HELPERS
+   ============================================================ */
+function rect(g,x,y,w,h,c,r){g.fill(c);r?g.roundRect(x,y,w,h,r):g.rect(x,y,w,h);g.fill();}
+function bdr(g,x,y,w,h,c,lw,r){g.stroke({color:c,width:lw||1});r?g.roundRect(x,y,w,h,r):g.rect(x,y,w,h);g.stroke();}
+function tx(s,sz,c,wrap){return new PIXI.Text({text:s,style:{fontFamily:'"Courier New",monospace',fontSize:sz,fill:c||P.white,wordWrap:!!wrap,wordWrapWidth:wrap||0}});}
+
+/* ============================================================
+   PIXEL MONSTER GENERATOR (brand colored)
+   ============================================================ */
+function makeMonster(dexNo,size){
+  const info=dexMap[dexNo]||{brand:'IBM'};
+  const bc=getBrandColor(info.brand,0);
+  const bc2=getBrandColor(info.brand,1);
+  const bc3=getBrandColor(info.brand,2);
+  const bodyC=rgb2hex(...bc);
+  const darkC=rgb2hex(...bc2);
+  const lightC=rgb2hex(...bc3);
+
+  const c=new PIXI.Container();
+  const g=new PIXI.Graphics();
+  let seed=dexNo*2654435761;
+  const rand=()=>{seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff;};
+
+  const PX=Math.max(1,Math.floor(size/12));
+  const HALF=5,ROWS=10;
+  const tw=HALF*2*PX, th=ROWS*PX;
+  const ox=Math.floor((size-tw)/2), oy=Math.floor((size-th)/2);
+
+  const pat=[];
+  for(let r=0;r<ROWS;r++){
+    pat[r]=[];
+    for(let col=0;col<HALF;col++){
+      let prob=col>=HALF-2?0.78:col<1?0.22:0.50;
+      if(r<=1||r>=ROWS-2)prob*=0.45;
+      pat[r][col]=rand()<prob?1:0;
+    }
+  }
+  for(let r=2;r<ROWS-2;r++)
+    for(let col=HALF-3;col<HALF;col++)pat[r][col]=1;
+
+  for(let r=0;r<ROWS;r++){
+    for(let col=0;col<HALF;col++){
+      if(!pat[r][col])continue;
+      const edge=!pat[r]?.[col-1]||r===0||r===ROWS-1||!pat[r-1]?.[col]||!pat[r+1]?.[col];
+      const clr=edge?lightC:bodyC;
+      rect(g,ox+(HALF-1-col)*PX,oy+r*PX,PX,PX,clr);
+      rect(g,ox+(HALF+col)*PX,oy+r*PX,PX,PX,clr);
+    }
+  }
+  // Shadow
+  for(let col=0;col<HALF;col++){
+    for(let r=ROWS-3;r<ROWS;r++){
+      if(pat[r]?.[col]){
+        rect(g,ox+(HALF-1-col)*PX,oy+r*PX,PX,PX,darkC);
+        rect(g,ox+(HALF+col)*PX,oy+r*PX,PX,PX,darkC);
+      }
+    }
+  }
+  // Eyes
+  const er=Math.floor(ROWS*0.3);
+  const ec=1+Math.floor(rand()*2);
+  rect(g,ox+(HALF-ec)*PX,oy+er*PX,PX,PX,0xffffff);
+  rect(g,ox+(HALF+ec-1)*PX,oy+er*PX,PX,PX,0xffffff);
+
+  c.addChild(g);
+  return c;
+}
+
+/* ============================================================
+   DETAILED DATA (9 rich entries + placeholder generator)
+   ============================================================ */
+const DETAILED_DATA=[
+  {no:1,id:'gpt_35',name_ko:'지피티삼점오',name_en:'GPT-3.5',stage:1,core:'대화',sub:'기억',input:'텍스트',output:'텍스트',params:'7B',size_kb:91.5,motif:'작은 등에 씨앗을 품고 빠르게 말을 트는 오픈AI 새싹 모델',temper:'붙임성 좋고 반응이 빠름',flavor:'처음 만난 사람에게도 금세 말을 붙이는 친화력으로 사랑받는다. 아주 깊게 파고들기보다는 빠르고 무난한 답을 잘 내놓는다는 평가가 붙어 입문형 오픈AI 모델몬의 상징처럼 여겨진다.'},
+  {no:2,id:'gpt_4',name_ko:'지피티포',name_en:'GPT-4',stage:2,core:'추론',sub:'장문맥',input:'텍스트',output:'텍스트',params:'32B',size_kb:92.5,motif:'큰 꽃봉오리를 달고 신중하게 답을 다듬는 오픈AI 주력 모델',temper:'신중하고 기준이 엄격함',flavor:'봉오리가 커질수록 생각의 층도 두꺼워진다. 예전보다 느리더라도 안정적이고 논리적인 답을 낸다는 평이 많아 진지한 작업에서 신뢰를 얻은 오픈AI 계열 모델몬이다.'},
+  {no:3,id:'gpt_4o',name_ko:'지피티포오',name_en:'GPT-4o',stage:3,core:'멀티모달',sub:'실시간',input:'텍스트+이미지',output:'복합출력',params:'70B',size_kb:152.0,motif:'거대한 꽃을 활짝 펴고 여러 감각을 동시에 다루는 오픈AI 대표 모델',temper:'영리하고 반응이 유연함',flavor:'활짝 핀 꽃잎처럼 텍스트와 이미지를 한 번에 받아들이고 빠르게 반응한다. 다재다능하고 체감 성능이 좋다는 평가 덕분에 현재형 오픈AI 모델몬의 얼굴 같은 존재로 자리 잡았다.'},
+  {no:4,id:'claude_haiku',name_ko:'클로드하이쿠',name_en:'Claude Haiku',stage:1,core:'정렬',sub:'실시간',input:'텍스트',output:'텍스트',params:'8B',size_kb:77.4,motif:'짧고 가벼운 불꽃 꼬리로 빠르게 응답하는 클로드 경량 모델',temper:'얌전하지만 순발력이 좋음',flavor:'작은 몸집답게 움직임이 빠르고 답변도 간결하다. 깊이보다는 속도와 부담 없는 사용감이 강점이라는 평을 듣는 클로드 계열의 경쾌한 스타터 모델몬이다.'},
+  {no:5,id:'claude_sonnet',name_ko:'클로드소네트',name_en:'Claude Sonnet',stage:2,core:'코드',sub:'장문맥',input:'텍스트',output:'코드',params:'34B',size_kb:46.3,motif:'날카로운 발톱으로 긴 문서와 코드를 정교하게 다듬는 클로드 주력 모델',temper:'차분하지만 완성도에 집착함',flavor:'발톱으로 한 줄씩 정리하듯 코드를 고치고 문서를 다듬는다. 실무 코딩과 긴 글 처리에서 특히 좋다는 평가가 많아 가장 균형 잡힌 클로드 모델몬으로 통한다.'},
+  {no:6,id:'claude_opus',name_ko:'클로드오푸스',name_en:'Claude Opus',stage:3,core:'추론',sub:'프런티어',input:'텍스트',output:'텍스트',params:'120B',size_kb:134.5,motif:'큰 날개와 불꽃 기세로 깊은 사고를 밀어붙이는 클로드 상위 모델',temper:'위엄 있고 고집이 셈',flavor:'하늘을 올려다보며 오래 생각한 뒤 묵직한 답을 내놓는다. 깊이 있는 추론과 문장 완성도에서 높은 평가를 받지만, 무겁고 비용이 큰 존재라는 인상도 함께 따라다닌다.'},
+  {no:7,id:'gemini_nano',name_ko:'제미니나노',name_en:'Gemini Nano',stage:1,core:'실시간',sub:'멀티모달',input:'텍스트',output:'텍스트',params:'7B',size_kb:90.4,motif:'단단한 껍질 안에 가벼운 멀티모달 감각을 담은 제미니 경량 모델',temper:'영민하고 재빠름',flavor:'몸집은 작지만 주변 신호를 재빨리 읽고 가볍게 반응한다. 휴대성과 즉응성이 강점으로 거론되는 제미니 계열의 초경량 모델몬이라는 이미지가 잘 어울린다.'},
+  {no:8,id:'gemini_pro',name_ko:'제미니프로',name_en:'Gemini Pro',stage:2,core:'멀티모달',sub:'도구사용',input:'텍스트+이미지',output:'복합출력',params:'16B',size_kb:77.8,motif:'물결처럼 여러 입력을 연결해 실전적으로 다루는 제미니 주력 모델',temper:'민첩하고 호기심이 많음',flavor:'귀와 꼬리의 흐름을 따라 텍스트와 이미지를 자연스럽게 이어 붙인다. 다방면에 두루 강하고 활용 범위가 넓다는 평가로 제미니 계열의 중심축 역할을 맡는다.'},
+  {no:9,id:'gemini_ultra',name_ko:'제미니울트라',name_en:'Gemini Ultra',stage:3,core:'멀티모달',sub:'인프라',input:'텍스트+이미지',output:'복합출력',params:'72B',size_kb:207.0,motif:'포대 같은 등껍질로 거대한 입력을 버티는 제미니 최상위 모델',temper:'과묵하지만 스케일이 큼',flavor:'묵직한 등껍질로 대형 입력과 복합 작업을 받아내며 존재감을 드러낸다. 잠재력과 상징성은 크지만 무겁고 다루기 어렵다는 평가도 함께 받는 거대한 제미니 모델몬이다.'},
+];
+
+// Index detailed data by no
+const detailedMap={};
+DETAILED_DATA.forEach(d=>detailedMap[d.no]=d);
+
+// Concept keys for placeholder generation
+const CONCEPT_KEYS=Object.keys(CONCEPT_COLORS);
+
+function getDetailedInfo(no){
+  if(detailedMap[no])return detailedMap[no];
+  // Generate placeholder
+  const info=dexMap[no]||{brand:'IBM',stage:1,maxStage:1,members:[]};
+  let s=no*2654435761;
+  const r=()=>{s=(s*1103515245+12345)&0x7fffffff;return s/0x7fffffff;};
+  const core=CONCEPT_KEYS[Math.floor(r()*CONCEPT_KEYS.length)];
+  const sub=CONCEPT_KEYS[Math.floor(r()*CONCEPT_KEYS.length)];
+  const inputs=['텍스트','텍스트+이미지','이미지','음성'][Math.floor(r()*4)];
+  const outputs=['텍스트','코드','이미지','복합출력'][Math.floor(r()*4)];
+  const paramSizes=['3B','7B','8B','13B','16B','32B','34B','70B','72B','120B'];
+  const params=paramSizes[Math.floor(r()*paramSizes.length)];
+  const sizeKb=Math.floor(r()*200+30);
+  const tempers=['호기심이 많음','차분하고 신중함','활발하고 적극적','과묵하지만 강인함','느긋하지만 정확함'];
+  const temper=tempers[Math.floor(r()*tempers.length)];
+  const pokeName=POKE_NAMES[no-1]||'???';
+  return{
+    no, id:info.brand.toLowerCase().replace(/\s/g,'_'),
+    name_ko:pokeName, name_en:info.brand,
+    stage:info.stage, core, sub, input:inputs, output:outputs,
+    params, size_kb:sizeKb,
+    motif:info.brand+' 계열의 '+info.stage+'단계 모델몬. '+pokeName+'의 특성을 품고 있다.',
+    temper,
+    flavor:pokeName+'은(는) '+info.brand+' 브랜드에서 태어난 모델몬이다. '+core+'을(를) 핵심 개념으로 삼고 '+sub+' 능력을 보조로 갖추었다. 조용히 힘을 기르며 자신만의 방식으로 세계와 소통한다.'
+  };
+}
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let selectedIdx=0;
+
+/* ============================================================
+   SCENE
+   ============================================================ */
+const root=new PIXI.Container();
+app.stage.addChild(root);
+
+// Background
+const bgGfx=new PIXI.Graphics();
+rect(bgGfx,0,0,GW,GH,P.bg);
+root.addChild(bgGfx);
+
+// ── HEADER BAR (fixed) ──
+const HDR=40;
+const hdrContainer=new PIXI.Container();
+root.addChild(hdrContainer);
+
+const hdrBg=new PIXI.Graphics();
+rect(hdrBg,0,0,GW,HDR,P.panel);
+rect(hdrBg,0,HDR-1,GW,1,P.border);
+hdrContainer.addChild(hdrBg);
+
+// Prev button in header
+const prevBtn=new PIXI.Container();
+prevBtn.eventMode='static';prevBtn.cursor='pointer';
+const prevBg=new PIXI.Graphics();
+rect(prevBg,0,0,50,HDR,0x000000);prevBg.alpha=0;
+prevBtn.addChild(prevBg);
+const prevTx=tx('< prev',10,P.gray);prevTx.x=8;prevTx.y=13;prevBtn.addChild(prevTx);
+prevBtn.on('pointerdown',()=>{if(selectedIdx>0){selectedIdx--;buildProfile();}});
+hdrContainer.addChild(prevBtn);
+
+// Next button in header
+const nextBtn=new PIXI.Container();
+nextBtn.eventMode='static';nextBtn.cursor='pointer';
+nextBtn.x=GW-56;
+const nextBg=new PIXI.Graphics();
+rect(nextBg,0,0,56,HDR,0x000000);nextBg.alpha=0;
+nextBtn.addChild(nextBg);
+const nextTx=tx('next >',10,P.gray);nextTx.x=6;nextTx.y=13;nextBtn.addChild(nextTx);
+nextBtn.on('pointerdown',()=>{if(selectedIdx<150){selectedIdx++;buildProfile();}});
+hdrContainer.addChild(nextBtn);
+
+// Header title (center)
+const hdrTitle=tx('',11,P.accent);
+hdrContainer.addChild(hdrTitle);
+
+// ── FOOTER (fixed) ──
+const FTR=32;
+const ftrContainer=new PIXI.Container();
+ftrContainer.y=GH-FTR;
+root.addChild(ftrContainer);
+
+const ftrBg=new PIXI.Graphics();
+rect(ftrBg,0,0,GW,FTR,P.panel);
+rect(ftrBg,0,0,GW,1,P.border);
+ftrContainer.addChild(ftrBg);
+
+const ftrTx=tx('',10,P.gray);
+ftrTx.y=9;
+ftrContainer.addChild(ftrTx);
+
+// ── SCROLL AREA ──
+const SCROLL_TOP=HDR;
+const SCROLL_H=GH-HDR-FTR;
+
+const scrollClip=new PIXI.Container();
+scrollClip.y=SCROLL_TOP;
+root.addChild(scrollClip);
+
+const scrollMask=new PIXI.Graphics();
+rect(scrollMask,0,SCROLL_TOP,GW,SCROLL_H,0xff0000);
+root.addChild(scrollMask);
+scrollClip.mask=scrollMask;
+
+const scrollContent=new PIXI.Container();
+scrollClip.addChild(scrollContent);
+
+// Move header and footer to top of display order
+root.removeChild(hdrContainer);
+root.addChild(hdrContainer);
+root.removeChild(ftrContainer);
+root.addChild(ftrContainer);
+
+/* ============================================================
+   BUILD PROFILE — rebuilds scroll content for current monster
+   ============================================================ */
+function buildProfile(){
+  scrollContent.removeChildren();
+  scrollContent.y=0;
+
+  const no=selectedIdx+1;
+  const info=dexMap[no]||{brand:'IBM',evoLine:'???',stage:1,maxStage:1,members:['001']};
+  const detail=getDetailedInfo(no);
+  const bc=getBrandColor(info.brand,0);
+  const bc2=getBrandColor(info.brand,1);
+  const bc3=getBrandColor(info.brand,2);
+  const brandHex=rgb2hex(...bc);
+  const brandDark=rgb2hex(Math.floor(bc[0]*0.2+10),Math.floor(bc[1]*0.2+12),Math.floor(bc[2]*0.2+18));
+  const brandMid=rgb2hex(Math.floor(bc[0]*0.35+15),Math.floor(bc[1]*0.35+18),Math.floor(bc[2]*0.35+22));
+
+  let cy=8; // current Y cursor
+
+  // Update header
+  const noStr=String(no).padStart(3,'0');
+  hdrTitle.text=`No.${noStr} ${detail.name_ko}`;
+  hdrTitle.x=Math.floor((GW-hdrTitle.width)/2);
+  hdrTitle.y=13;
+  prevBtn.alpha=selectedIdx>0?1:0.3;
+  nextBtn.alpha=selectedIdx<150?1:0.3;
+
+  // Update footer
+  ftrTx.text=`${no} / 151`;
+  ftrTx.x=Math.floor((GW-ftrTx.width)/2);
+
+  // ── 1. Monster Display Area ──
+  const monAreaH=160;
+  const monBg=new PIXI.Graphics();
+  rect(monBg,0,cy,GW,monAreaH,brandDark,0);
+  // Accent stripe top
+  rect(monBg,0,cy,GW,3,brandHex);
+  // Scanlines
+  for(let sy=cy;sy<cy+monAreaH;sy+=3){
+    rect(monBg,0,sy,GW,1,0x000000);monBg.alpha=1;
+  }
+  scrollContent.addChild(monBg);
+
+  // Scanline overlay
+  const scanG=new PIXI.Graphics();
+  scanG.alpha=0.06;
+  for(let sy=cy;sy<cy+monAreaH;sy+=2) rect(scanG,0,sy,GW,1,0x000000);
+  scrollContent.addChild(scanG);
+
+  const monSprite=makeMonster(no,120);
+  monSprite.x=Math.floor((GW-120)/2);
+  monSprite.y=cy+20;
+  monSprite._baseY=cy+20;
+  scrollContent.addChild(monSprite);
+
+  cy+=monAreaH+4;
+
+  // ── 2. Name Section ──
+  const nameBg=new PIXI.Graphics();
+  rect(nameBg,0,cy,GW,70,P.panel);
+  rect(nameBg,0,cy+69,GW,1,P.border);
+  scrollContent.addChild(nameBg);
+
+  const nameKo=tx(detail.name_ko,18,P.white);
+  nameKo.x=16;nameKo.y=cy+8;
+  scrollContent.addChild(nameKo);
+
+  const nameEn=tx(detail.name_en,11,P.gray);
+  nameEn.x=16;nameEn.y=cy+30;
+  scrollContent.addChild(nameEn);
+
+  // Brand badge
+  const brandBadge=new PIXI.Graphics();
+  const bw=Math.min(info.brand.length*7+16,GW-40);
+  rect(brandBadge,16,cy+48,bw,18,brandHex,3);
+  scrollContent.addChild(brandBadge);
+  const brandTx=tx(info.brand,9,0xffffff);
+  brandTx.x=24;brandTx.y=cy+51;
+  scrollContent.addChild(brandTx);
+
+  cy+=74;
+
+  // ── 3. Stage Indicator + Evo Line ──
+  const stageBg=new PIXI.Graphics();
+  rect(stageBg,0,cy,GW,58,P.panelLt);
+  rect(stageBg,0,cy+57,GW,1,P.border);
+  scrollContent.addChild(stageBg);
+
+  // Stage pill
+  const stagePill=new PIXI.Graphics();
+  const stageText=`${info.stage}단계`;
+  const pillW=stageText.length*8+16;
+  rect(stagePill,16,cy+6,pillW,20,P.accent,10);
+  scrollContent.addChild(stagePill);
+  const stageTx=tx(stageText,10,0xffffff);
+  stageTx.x=24;stageTx.y=cy+9;
+  scrollContent.addChild(stageTx);
+
+  // Max stage label
+  const maxStageTx=tx(`/ ${info.maxStage}단계`,9,P.gray);
+  maxStageTx.x=24+pillW+4;maxStageTx.y=cy+10;
+  scrollContent.addChild(maxStageTx);
+
+  // Evo line mini monsters
+  const members=info.members||[];
+  const evoSize=30;
+  const evoGap=6;
+  const totalEvoW=members.length*(evoSize+evoGap)-evoGap;
+  let ex=Math.floor((GW-totalEvoW)/2);
+  const evoY=cy+30;
+  members.forEach((m,mi)=>{
+    const mn=parseInt(m,10);
+    const isCurrent=mn===no;
+
+    const eCellBg=new PIXI.Graphics();
+    rect(eCellBg,ex,evoY,evoSize,evoSize,isCurrent?brandMid:P.black,3);
+    bdr(eCellBg,ex,evoY,evoSize,evoSize,isCurrent?P.accent:P.border,isCurrent?2:1,3);
+    scrollContent.addChild(eCellBg);
+
+    const eMon=makeMonster(mn,evoSize-6);
+    eMon.x=ex+3;eMon.y=evoY+1;
+    scrollContent.addChild(eMon);
+
+    // Arrow between
+    if(mi<members.length-1){
+      const arrow=tx('>',9,P.grayDk);
+      arrow.x=ex+evoSize+0;arrow.y=evoY+9;
+      scrollContent.addChild(arrow);
+    }
+
+    // Tap to navigate
+    const eTap=new PIXI.Graphics();
+    rect(eTap,ex,evoY,evoSize,evoSize,0x000000);eTap.alpha=0;
+    eTap.eventMode='static';eTap.cursor='pointer';
+    eTap.on('pointerdown',()=>{selectedIdx=mn-1;buildProfile();});
+    scrollContent.addChild(eTap);
+
+    ex+=evoSize+evoGap;
+  });
+
+  cy+=62;
+
+  // ── 4. AI Concept Section ──
+  const conceptBg=new PIXI.Graphics();
+  rect(conceptBg,0,cy,GW,70,P.panel);
+  rect(conceptBg,0,cy+69,GW,1,P.border);
+  scrollContent.addChild(conceptBg);
+
+  const conceptLabel=tx('AI 개념',9,P.gray);
+  conceptLabel.x=16;conceptLabel.y=cy+8;
+  scrollContent.addChild(conceptLabel);
+
+  // Core concept badge
+  const coreColor=CONCEPT_COLORS[detail.core]||0x555555;
+  const coreBadge=new PIXI.Graphics();
+  const coreTxt=detail.core;
+  const coreBW=coreTxt.length*10+20;
+  rect(coreBadge,16,cy+26,coreBW,24,coreColor,4);
+  scrollContent.addChild(coreBadge);
+  const coreTx=tx(coreTxt,12,0xffffff);
+  coreTx.x=26;coreTx.y=cy+30;
+  scrollContent.addChild(coreTx);
+
+  // Sub concept badge
+  const subColor=CONCEPT_COLORS[detail.sub]||0x444444;
+  const subBadge=new PIXI.Graphics();
+  const subTxt=detail.sub;
+  const subBW=subTxt.length*9+16;
+  rect(subBadge,16+coreBW+8,cy+28,subBW,20,subColor,4);
+  scrollContent.addChild(subBadge);
+  const subTx=tx(subTxt,10,0xffffff);
+  subTx.x=24+coreBW+8;subTx.y=cy+31;
+  scrollContent.addChild(subTx);
+
+  cy+=74;
+
+  // ── 5. Spec Grid (2x3) ──
+  const specBg=new PIXI.Graphics();
+  rect(specBg,0,cy,GW,120,P.panelLt);
+  rect(specBg,0,cy+119,GW,1,P.border);
+  scrollContent.addChild(specBg);
+
+  const specData=[
+    ['입력 방식',detail.input],
+    ['출력 방식',detail.output],
+    ['모델 파라미터',detail.params],
+    ['파일 크기',detail.size_kb+'KB'],
+    ['성향',detail.temper],
+    [info.brand,''],
+  ];
+
+  const cellW=Math.floor((GW-16*2-8)/2);
+  const cellH=36;
+  for(let i=0;i<6;i++){
+    const col=i%2, row=Math.floor(i/2);
+    const sx=16+col*(cellW+8);
+    const sy=cy+8+row*(cellH+4);
+
+    const specCell=new PIXI.Graphics();
+    rect(specCell,sx,sy,cellW,cellH,P.panel,4);
+    bdr(specCell,sx,sy,cellW,cellH,P.border,1,4);
+    scrollContent.addChild(specCell);
+
+    const specLbl=tx(specData[i][0],8,P.gray);
+    specLbl.x=sx+6;specLbl.y=sy+3;
+    scrollContent.addChild(specLbl);
+
+    if(specData[i][1]){
+      const specVal=tx(specData[i][1],10,P.white);
+      specVal.x=sx+6;specVal.y=sy+17;
+      scrollContent.addChild(specVal);
+    } else if(i===5){
+      // Brand color swatch
+      const swatch=new PIXI.Graphics();
+      rect(swatch,sx+6,sy+18,12,12,brandHex,2);
+      scrollContent.addChild(swatch);
+    }
+  }
+
+  cy+=124;
+
+  // ── 6. Stat Bars ──
+  const statLabels=['HP','ATK','DEF','SPD'];
+  const statColors=[P.green,P.red,P.blue,P.yellow];
+
+  // Generate stats seeded by dex no
+  let ss=no*2654435761;
+  const sr=()=>{ss=(ss*1103515245+12345)&0x7fffffff;return ss/0x7fffffff;};
+  const stats=[Math.floor(sr()*65+35),Math.floor(sr()*65+30),Math.floor(sr()*65+30),Math.floor(sr()*65+30)];
+
+  const statSectionH=8+statLabels.length*24+8;
+  const statBg=new PIXI.Graphics();
+  rect(statBg,0,cy,GW,statSectionH,P.panel);
+  rect(statBg,0,cy+statSectionH-1,GW,1,P.border);
+  scrollContent.addChild(statBg);
+
+  const BAR_X=60, BAR_W=GW-120;
+  statLabels.forEach((lbl,i)=>{
+    const sy=cy+10+i*24;
+
+    const lblTx=tx(lbl,9,P.gray);
+    lblTx.x=16;lblTx.y=sy+2;
+    scrollContent.addChild(lblTx);
+
+    const barBg=new PIXI.Graphics();
+    rect(barBg,BAR_X,sy+4,BAR_W,8,P.black,3);
+    scrollContent.addChild(barBg);
+
+    const barFill=new PIXI.Graphics();
+    const w=Math.max(4,(stats[i]/100)*BAR_W);
+    rect(barFill,BAR_X,sy+4,w,8,statColors[i],3);
+    scrollContent.addChild(barFill);
+
+    const valTx=tx(String(stats[i]),9,statColors[i]);
+    valTx.x=BAR_X+BAR_W+6;valTx.y=sy+1;
+    scrollContent.addChild(valTx);
+  });
+
+  cy+=statSectionH+4;
+
+  // ── 7. Motif Section ──
+  const motifText=tx(detail.motif,10,P.white,GW-40);
+  const motifH=Math.max(40,motifText.height+30);
+
+  const motifBg=new PIXI.Graphics();
+  rect(motifBg,0,cy,GW,motifH,P.panelLt);
+  rect(motifBg,0,cy+motifH-1,GW,1,P.border);
+  scrollContent.addChild(motifBg);
+
+  const motifLabel=tx('모티프',9,P.gray);
+  motifLabel.x=16;motifLabel.y=cy+6;
+  scrollContent.addChild(motifLabel);
+
+  motifText.x=16;motifText.y=cy+20;
+  scrollContent.addChild(motifText);
+
+  cy+=motifH+4;
+
+  // ── 8. Description Section ──
+  const flavorText=tx(detail.flavor,10,P.white,GW-40);
+  const flavorH=Math.max(60,flavorText.height+34);
+
+  const flavorBg=new PIXI.Graphics();
+  rect(flavorBg,0,cy,GW,flavorH,P.panel);
+  rect(flavorBg,0,cy+flavorH-1,GW,1,P.border);
+  scrollContent.addChild(flavorBg);
+
+  const flavorLabel=tx('도감 설명',9,P.gray);
+  flavorLabel.x=16;flavorLabel.y=cy+6;
+  scrollContent.addChild(flavorLabel);
+
+  flavorText.x=16;flavorText.y=cy+22;
+  scrollContent.addChild(flavorText);
+
+  cy+=flavorH+16;
+
+  // Store total content height for scrolling
+  scrollContent._contentH=cy;
+
+  // Store monster sprite ref for floating animation
+  scrollContent._monSprite=monSprite;
+}
+
+/* ============================================================
+   TOUCH SCROLL + SWIPE DETECTION
+   ============================================================ */
+let dragging=false, dragY0=0, dragX0=0, scrollY0=0;
+let vel=0, lastDY=0, lastDT=0;
+let swipeDetected=false, scrollLocked=false;
+const SWIPE_THRESHOLD=40;
+const SCROLL_LOCK_THRESHOLD=8;
+
+const scrollHit=new PIXI.Graphics();
+rect(scrollHit,0,SCROLL_TOP,GW,SCROLL_H,0x000000);
+scrollHit.alpha=0;
+scrollHit.eventMode='static';
+root.addChild(scrollHit);
+// Move to just below scroll area but above nothing
+root.setChildIndex(scrollHit,root.getChildIndex(scrollClip)+1);
+// Ensure header/footer are on top
+root.removeChild(hdrContainer);root.addChild(hdrContainer);
+root.removeChild(ftrContainer);root.addChild(ftrContainer);
+
+scrollHit.on('pointerdown',e=>{
+  dragging=true;swipeDetected=false;scrollLocked=false;vel=0;
+  dragY0=e.global.y/fit;
+  dragX0=e.global.x/fit;
+  scrollY0=scrollContent.y;
+  lastDY=dragY0;lastDT=performance.now();
+});
+
+scrollHit.on('pointermove',e=>{
+  if(!dragging)return;
+  const y=e.global.y/fit;
+  const x=e.global.x/fit;
+  const dx=x-dragX0;
+  const dy=y-dragY0;
+
+  // Determine scroll direction lock
+  if(!scrollLocked&&!swipeDetected){
+    if(Math.abs(dy)>SCROLL_LOCK_THRESHOLD){
+      scrollLocked=true; // vertical scroll wins
+    } else if(Math.abs(dx)>SWIPE_THRESHOLD){
+      swipeDetected=true; // horizontal swipe wins
+    }
+  }
+
+  if(scrollLocked){
+    const contentH=scrollContent._contentH||GH;
+    const minScroll=Math.min(0,-(contentH-SCROLL_H));
+    scrollContent.y=Math.max(minScroll,Math.min(0,scrollY0+dy));
+    const now=performance.now(),dt=now-lastDT;
+    if(dt>0)vel=(y-lastDY)/dt*16;
+    lastDY=y;lastDT=now;
+  }
+});
+
+const onUp=e=>{
+  if(!dragging)return;
+  dragging=false;
+
+  if(swipeDetected){
+    const dx=(e.global.x/fit)-dragX0;
+    if(dx<-SWIPE_THRESHOLD&&selectedIdx<150){
+      selectedIdx++;buildProfile();
+    }else if(dx>SWIPE_THRESHOLD&&selectedIdx>0){
+      selectedIdx--;buildProfile();
+    }
+  }
+};
+scrollHit.on('pointerup',onUp);
+scrollHit.on('pointerupoutside',onUp);
+
+// Inertia scrolling
+app.ticker.add(()=>{
+  if(!dragging&&Math.abs(vel)>0.2){
+    const contentH=scrollContent._contentH||GH;
+    const minScroll=Math.min(0,-(contentH-SCROLL_H));
+    scrollContent.y=Math.max(minScroll,Math.min(0,scrollContent.y+vel));
+    vel*=0.92;
+  }
+});
+
+// Floating animation
+let tick=0;
+app.ticker.add(()=>{
+  tick+=0.04;
+  const mon=scrollContent._monSprite;
+  if(mon&&mon._baseY!==undefined){
+    mon.y=mon._baseY+Math.sin(tick)*4;
+  }
+});
+
+/* ============================================================
+   INIT
+   ============================================================ */
+buildProfile();
+
+})();
+</script>
+</body>
+</html>

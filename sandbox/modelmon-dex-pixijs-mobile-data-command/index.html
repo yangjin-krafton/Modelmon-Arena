@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>모델몬 도감 커맨드형</title>
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #0f1320; }
+    #app { width: 100vw; height: 100vh; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/pixi.js@8.13.0/dist/pixi.min.js"></script>
+</head>
+<body>
+  <div id="app"></div>
+  <script id="evo-data" type="text/plain">
+dex_no,line_id,line_name,dex_range,members,stage_count,stage_index,assigned_brand
+001,EVO01,Bulbasaur Line,001-003,001/002/003,3,1,OpenAI
+002,EVO01,Bulbasaur Line,001-003,001/002/003,3,2,OpenAI
+003,EVO01,Bulbasaur Line,001-003,001/002/003,3,3,OpenAI
+004,EVO02,Charmander Line,004-006,004/005/006,3,1,Anthropic
+005,EVO02,Charmander Line,004-006,004/005/006,3,2,Anthropic
+006,EVO02,Charmander Line,004-006,004/005/006,3,3,Anthropic
+007,EVO03,Squirtle Line,007-009,007/008/009,3,1,Google DeepMind
+008,EVO03,Squirtle Line,007-009,007/008/009,3,2,Google DeepMind
+009,EVO03,Squirtle Line,007-009,007/008/009,3,3,Google DeepMind
+  </script>
+  <script id="skill-data" type="text/plain">
+skill_no,skill_name_ko,ai_element,ai_pattern,ai_status_family_ko,ai_status_element_ko,power,accuracy,pp,effect_ko
+001,기억 흡수,메모리,흡수,회복,메모리,20,100,25,준 피해의 절반만큼 자신을 회복한다.
+002,오염 산성,정렬,단일 공격,노출,검색,40,100,30,피해와 함께 추가 상태이상을 남길 가능성이 있다.
+003,오염 산성 갑주,정렬,버프,증폭,학습,—,—,20,자신의 핵심 성능을 크게 끌어올린다.
+004,추론 가속,시스템,버프,증폭,학습,—,—,30,자신의 핵심 성능을 크게 끌어올린다.
+005,추론 망각,메모리,버프,증폭,학습,—,—,20,자신의 핵심 성능을 크게 끌어올린다.
+006,정렬 오로라 빔,정렬,단일 공격,없음,없음,65,100,20,피해와 함께 추가 상태이상을 남길 가능성이 있다.
+007,프롬프트 연사,대화,연타,없음,없음,15,85,20,한 번에 여러 차례 연속 타격한다.
+008,추론 장벽,정렬,보호막,보호,정렬,—,—,20,자신의 핵심 성능을 크게 끌어올린다.
+009,프롬프트 비축,추론,충전 후 발동,없음,없음,—,—,10,원작 기술의 역할을 참고해 전투 리듬을 조정하는 재해석 스킬이다.
+  </script>
+  <script>
+    const NAMES={001:"지피티삼점오",002:"지피티포",003:"지피티포오",004:"클로드하이쿠",005:"클로드소네트",006:"클로드오푸스",007:"제미니나노",008:"제미니프로",009:"제미니울트라"};
+    const COLORS={001:0x78d971,002:0x59b96f,003:0x2e8c66,004:0xff9862,005:0xf07a4e,006:0xc45432,007:0x79a6ff,008:0x607aff,009:0x4855dc};
+    const host=document.getElementById("app");
+    function parseCsv(text){const rows=[];let row=[],value="",inside=false;for(let i=0;i<text.length;i+=1){const c=text[i],n=text[i+1];if(c==='"'){if(inside&&n==='"'){value+='"';i+=1;}else inside=!inside;continue;}if(c===','&&!inside){row.push(value);value="";continue;}if((c==='\n'||c==='\r')&&!inside){if(c==='\r'&&n==='\n')i+=1;row.push(value);if(row.some(cell=>cell.length>0))rows.push(row);row=[];value="";continue;}value+=c;}if(value.length||row.length){row.push(value);rows.push(row);}const [headers,...records]=rows;return records.map(record=>Object.fromEntries(headers.map((h,idx)=>[h,record[idx]??""])));}
+    const evo=parseCsv(document.getElementById("evo-data").textContent.trim());
+    const skills=Object.fromEntries(parseCsv(document.getElementById("skill-data").textContent.trim()).map(r=>[r.skill_no,r]));
+    const entries=evo.map(r=>({...r,name_ko:NAMES[r.dex_no],accent:COLORS[r.dex_no],skill:skills[r.dex_no]}));
+    function txt(text,size,fill,x,y,ax=0,ay=0){const n=new PIXI.Text({text,style:{fontFamily:"Courier New",fontSize:size,fontWeight:"700",fill,letterSpacing:1,lineHeight:size+4}});n.anchor.set(ax,ay);n.position.set(Math.round(x),Math.round(y));n.roundPixels=true;return n;}
+    function box(root,x,y,w,h,fill,line=0xffffff,alpha=0.08){const g=new PIXI.Graphics();g.rect(x,y,w,h).fill(fill).stroke({color:line,width:2,alpha,alignment:1});root.addChild(g);return g;}
+    function glyph(root,x,y,size,accent,id){box(root,x,y,size,size,0x1b2137,0xffffff,0.04);box(root,x+6,y+6,size-12,size-12,0x262f4c,0xffffff,0.02);box(root,x+size*0.24,y+size*0.2,size*0.52,size*0.52,accent,0xffffff,0.04);root.addChild(txt(id,Math.max(10,Math.floor(size*0.12)),0xeef5ff,x+size/2,y+size/2,0.5,0.5));}
+    async function main(){const app=new PIXI.Application();await app.init({resizeTo:host,backgroundAlpha:0,antialias:false,autoDensity:true,resolution:Math.min(window.devicePixelRatio||1,2)});app.canvas.style.imageRendering="pixelated";host.appendChild(app.canvas);const state={selected:"004"};function render(){const w=app.screen.width,h=app.screen.height;app.stage.removeChildren();const root=new PIXI.Container();root.roundPixels=true;app.stage.addChild(root);box(root,0,0,w,h,0x10141f,0x10141f,0);box(root,10,10,w-20,h-20,0x232b45,0x000000,0.08);box(root,16,16,w-32,h-32,0x121828,0xffffff,0.03);const e=entries.find(v=>v.dex_no===state.selected)||entries[0];const innerX=28,innerW=w-56;box(root,innerX,28,innerW,78,0x182039,0xffffff,0.04);root.addChild(txt("COMMAND DEX",18,0xf4f8ff,innerX+14,42));root.addChild(txt("작전 콘솔형 정보 화면",11,0xa7b2d3,innerX+14,64));root.addChild(txt(e.assigned_brand,12,0xffcf74,innerX+innerW-14,42,1,0));root.addChild(txt(e.line_id,11,e.accent,innerX+innerW-14,64,1,0));
+      box(root,innerX,120,innerW,204,0x19213b,0xffffff,0.04); glyph(root,innerX+16,138,112,e.accent,e.dex_no); root.addChild(txt(e.name_ko,20,0xf4f8ff,innerX+146,136)); root.addChild(txt(`계열 ${e.line_name}`,12,0xa7b2d3,innerX+146,164)); root.addChild(txt(`범위 ${e.dex_range}`,12,0xa7b2d3,innerX+146,188)); root.addChild(txt(`진화 ${e.stage_index}/${e.stage_count}`,12,0xa7b2d3,innerX+146,212)); root.addChild(txt(`멤버 ${e.members}`,11,0xa7b2d3,innerX+146,236)); root.addChild(txt("원작 계열 정보를 HUD처럼 재배치",11,0xffcf74,innerX+146,264));
+      box(root,innerX,338,innerW,154,0x152037,0xffffff,0.04); root.addChild(txt("ACTIVE SKILL",13,0xffcf74,innerX+12,352)); root.addChild(txt(e.skill.skill_name_ko,18,e.accent,innerX+12,376)); root.addChild(txt(`원소 ${e.skill.ai_element}`,11,0xd7def0,innerX+12,404)); root.addChild(txt(`패턴 ${e.skill.ai_pattern}`,11,0xd7def0,innerX+12,426)); root.addChild(txt(`상태 ${e.skill.ai_status_family_ko}`,11,0xd7def0,innerX+12,448)); root.addChild(txt(`PWR ${e.skill.power}  ACC ${e.skill.accuracy}  PP ${e.skill.pp}`,11,0xd7def0,innerX+12,470));
+      root.addChild(txt("ROSTER",13,0xf4f8ff,innerX,518)); const leftW=92; entries.forEach((item,index)=>{const y=540+index*42; const hit=box(root,innerX,y,leftW,34,item.dex_no===state.selected?0x273256:0x172038,0xffffff,item.dex_no===state.selected?0.08:0.03); hit.eventMode="static"; hit.cursor="pointer"; hit.on("pointertap",()=>{state.selected=item.dex_no;render();}); root.addChild(txt(item.dex_no,10,item.dex_no===state.selected?item.accent:0xa7b2d3,innerX+8,y+10)); root.addChild(txt(item.name_ko,10,item.dex_no===state.selected?0xf4f8ff:0xd7def0,innerX+38,y+10)); });
+      const sideX=innerX+leftW+12, sideW=innerW-leftW-12; box(root,sideX,540,sideW,202,0x152037,0xffffff,0.04); root.addChild(txt("DETAIL FEED",13,0xf4f8ff,sideX+12,554)); const lines=[`브랜드 ${e.assigned_brand}`,`계열 ID ${e.line_id}`,`전투 원소 ${e.skill.ai_element}`,`상태 원소 ${e.skill.ai_status_element_ko}`,`효과 ${e.skill.effect_ko}`]; lines.forEach((line,idx)=>root.addChild(txt(line,11,idx===4?0xffcf74:0xd7def0,sideX+12,582+idx*28)));
+    } render(); window.addEventListener("resize",render);} main();
+  </script>
+</body>
+</html>

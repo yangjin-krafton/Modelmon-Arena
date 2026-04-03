@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>모델몬 연구소 도감</title>
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #171211;
+    }
+    #app {
+      width: 100vw;
+      height: 100vh;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/pixi.js@8.13.0/dist/pixi.min.js"></script>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+    const host = document.getElementById("app");
+    const subjects = [
+      { no: "001", name: "지피티삼점오", lane: "대화실", color: 0x84d86e },
+      { no: "004", name: "클로드하이쿠", lane: "정렬실", color: 0x67d3b5 },
+      { no: "007", name: "제미니나노", lane: "멀티실", color: 0x7b8dff },
+      { no: "131", name: "메모리스포어", lane: "기억실", color: 0xbad965 }
+    ];
+
+    function box(root, x, y, w, h, fill, stroke = 0x000000, alpha = 0.16) {
+      const g = new PIXI.Graphics();
+      g.rect(x, y, w, h).fill(fill).stroke({ color: stroke, width: 2, alpha, alignment: 1 });
+      root.addChild(g);
+      return g;
+    }
+
+    function text(text, size, color, x, y, anchorX = 0, anchorY = 0) {
+      const node = new PIXI.Text({
+        text,
+        style: {
+          fontFamily: "Courier New",
+          fontSize: size,
+          fontWeight: "700",
+          fill: color,
+          letterSpacing: 1
+        }
+      });
+      node.anchor.set(anchorX, anchorY);
+      node.position.set(Math.round(x), Math.round(y));
+      node.roundPixels = true;
+      return node;
+    }
+
+    function capsule(root, x, y, w, h, accent, id) {
+      const g = new PIXI.Graphics();
+      g.rect(x, y, w, h).fill(0x29211e).stroke({ color: 0xf6e7cf, width: 2, alpha: 0.08 });
+      g.rect(x + 8, y + 8, w - 16, h - 16).fill(0xefe0c6).stroke({ color: 0x3c312d, width: 2, alpha: 0.08 });
+      g.rect(x + w * 0.24, y + h * 0.2, w * 0.52, h * 0.52).fill({ color: accent, alpha: 0.18 }).stroke({ color: accent, width: 2, alpha: 0.42 });
+      g.rect(x + w * 0.34, y + h * 0.3, w * 0.32, h * 0.32).fill(0xfff8ea).stroke({ color: 0x3c312d, width: 2, alpha: 0.06 });
+      root.addChild(g);
+      root.addChild(text(id, Math.max(10, Math.floor(w * 0.12)), 0x5c4d45, x + w / 2, y + h / 2, 0.5, 0.5));
+    }
+
+    async function main() {
+      const app = new PIXI.Application();
+      await app.init({
+        resizeTo: host,
+        backgroundAlpha: 0,
+        antialias: false,
+        autoDensity: true,
+        resolution: Math.min(window.devicePixelRatio || 1, 2)
+      });
+      app.canvas.style.imageRendering = "pixelated";
+      host.appendChild(app.canvas);
+
+      function render() {
+        const w = app.screen.width;
+        const h = app.screen.height;
+        app.stage.removeChildren();
+        const root = new PIXI.Container();
+        root.roundPixels = true;
+        app.stage.addChild(root);
+
+        const bg = new PIXI.Graphics();
+        bg.rect(0, 0, w, h).fill(0x1a1412);
+        bg.rect(0, 0, w, 220).fill(0x2b2220);
+        root.addChild(bg);
+
+        box(root, 14, 14, w - 28, h - 28, 0x2a221f, 0xf6e7cf, 0.08);
+        box(root, 22, 22, w - 44, h - 44, 0x1d1715, 0xf6e7cf, 0.03);
+
+        root.addChild(text("LAB RECORD", 12, 0xd8c7ab, 32, 34));
+        root.addChild(text("MODELMON SPECIMEN DEX", 18, 0xfff7ea, 32, 54));
+        root.addChild(text("ROUND 01", 12, 0xe39b67, w - 32, 34, 1, 0));
+
+        const tankY = 92;
+        const tankH = 270;
+        box(root, 32, tankY, w - 64, tankH, 0x382d28, 0xf6e7cf, 0.08);
+        box(root, 44, tankY + 14, w - 88, tankH - 28, 0xeadbc2, 0x3f332e, 0.08);
+
+        capsule(root, 70, tankY + 38, 122, 158, subjects[0].color, subjects[0].no);
+        root.addChild(text(subjects[0].name, 20, 0x2b221d, 214, tankY + 54));
+        root.addChild(text(subjects[0].lane, 12, 0x6f6056, 214, tankY + 84));
+        root.addChild(text("연구소 표본 카드", 13, 0xe39b67, 214, tankY + 118));
+        root.addChild(text("도감을 육성 연구실 UI처럼 연출", 12, 0x6f6056, 214, tankY + 144));
+
+        const bars = [
+          { label: "분석률", value: 0.76, color: 0x84d86e },
+          { label: "안정도", value: 0.64, color: 0x67d3b5 },
+          { label: "희소성", value: 0.41, color: 0xe39b67 }
+        ];
+        bars.forEach((bar, index) => {
+          const y = tankY + 178 + index * 26;
+          root.addChild(text(bar.label, 11, 0x6f6056, 214, y));
+          box(root, 270, y, w - 322, 10, 0xd8c8af, 0x3f332e, 0.04);
+          box(root, 270, y, (w - 322) * bar.value, 10, bar.color, 0x3f332e, 0.04);
+        });
+
+        root.addChild(text("ACTIVE CELLS", 13, 0xfff7ea, 32, 390));
+        subjects.forEach((item, index) => {
+          const y = 418 + index * 82;
+          box(root, 32, y, w - 64, 68, 0x2d2420, 0xf6e7cf, 0.06);
+          capsule(root, 44, y + 8, 52, 52, item.color, item.no);
+          root.addChild(text(item.name, 13, 0xfff7ea, 110, y + 16));
+          root.addChild(text(item.lane, 11, 0xc2b29a, 110, y + 36));
+          root.addChild(text(index === 0 ? "MAIN" : "CELL", 10, index === 0 ? 0xe39b67 : 0xd8c7ab, w - 48, y + 24, 1, 0));
+        });
+
+        box(root, 32, h - 76, w - 64, 42, 0x382d28, 0xf6e7cf, 0.06);
+        ["표본", "연구", "기록", "저장"].forEach((item, index) => {
+          root.addChild(text(item, 12, index === 0 ? 0xe39b67 : 0xfff7ea, 58 + index * ((w - 116) / 3), h - 61, index === 0 ? 0 : 0.5, 0));
+        });
+      }
+
+      render();
+      window.addEventListener("resize", render);
+    }
+
+    main();
+  </script>
+</body>
+</html>

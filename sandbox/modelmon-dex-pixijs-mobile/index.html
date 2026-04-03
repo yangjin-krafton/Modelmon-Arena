@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>모델몬 모바일 도감 픽셀 샘플</title>
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #201a16;
+      font-family: "Courier New", monospace;
+    }
+
+    #app {
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .badge {
+      position: fixed;
+      left: 12px;
+      bottom: 12px;
+      z-index: 10;
+      padding: 6px 10px;
+      background: rgba(16, 14, 12, 0.84);
+      border: 2px solid rgba(255, 245, 222, 0.18);
+      color: #fff2d6;
+      font-size: 11px;
+      line-height: 1;
+      letter-spacing: 0.04em;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/pixi.js@8.13.0/dist/pixi.min.js"></script>
+</head>
+<body>
+  <div id="app"></div>
+  <div class="badge">모바일 세로형 샘플 · 기능 없음</div>
+
+  <script>
+    const appHost = document.getElementById("app");
+    const entries = [
+      { no: "001", name: "지피티삼점오", element: "대화", accent: 0x77c16f },
+      { no: "004", name: "클로드하이쿠", element: "정렬", accent: 0x5ec3b2 },
+      { no: "007", name: "제미니나노", element: "멀티", accent: 0x7f8cff },
+      { no: "025", name: "프롬프트킥", element: "코드", accent: 0x4e8fff },
+      { no: "039", name: "토큰팝", element: "생성", accent: 0xff8a5b },
+      { no: "052", name: "가드레일", element: "정렬", accent: 0x5ec3b2 },
+      { no: "094", name: "오염스모그", element: "오염", accent: 0xc676ff },
+      { no: "131", name: "메모리스포어", element: "메모리", accent: 0xa3d66d },
+      { no: "150", name: "울트라볼트", element: "시스템", accent: 0xf4cc54 }
+    ];
+
+    function pixelRect(container, x, y, w, h, fill, border = 0x000000, borderAlpha = 0.35) {
+      const g = new PIXI.Graphics();
+      g.rect(x, y, w, h).fill(fill).stroke({ color: border, width: 2, alpha: borderAlpha, alignment: 1 });
+      container.addChild(g);
+      return g;
+    }
+
+    function pixelText(text, style, x, y, anchorX = 0, anchorY = 0) {
+      const node = new PIXI.Text({ text, style });
+      node.anchor.set(anchorX, anchorY);
+      node.position.set(Math.round(x), Math.round(y));
+      node.roundPixels = true;
+      return node;
+    }
+
+    function uiText(size, color = 0x241b16, align = "left") {
+      return new PIXI.TextStyle({
+        fontFamily: "Courier New",
+        fontSize: size,
+        fontWeight: "700",
+        fill: color,
+        lineHeight: size + 4,
+        letterSpacing: 1,
+        align
+      });
+    }
+
+    function drawGlyph(container, x, y, size, accent, id) {
+      pixelRect(container, x, y, size, size, 0xe9d8bd, 0x2f241d, 0.2);
+      pixelRect(container, x + 6, y + 6, size - 12, size - 12, 0xf6ecd9, 0x2f241d, 0.08);
+      pixelRect(container, x + size * 0.28, y + size * 0.18, size * 0.44, size * 0.44, accent, 0x2f241d, 0.2);
+      pixelRect(container, x + size * 0.34, y + size * 0.24, size * 0.32, size * 0.32, 0xf8f0e2, 0x2f241d, 0.12);
+      pixelRect(container, x + size * 0.22, y + size * 0.72, size * 0.56, 8, 0xbaa487, 0x2f241d, 0.08);
+      container.addChild(pixelText(id, uiText(Math.max(10, Math.floor(size * 0.12)), 0x5b4a3e), x + size / 2, y + size / 2, 0.5, 0.5));
+    }
+
+    function drawCard(container, x, y, w, h, item) {
+      pixelRect(container, x, y, w, h, 0xf3e5ca, 0x2f241d, 0.2);
+      pixelRect(container, x + 4, y + 4, w - 8, h - 8, 0xfaefd9, 0x2f241d, 0.06);
+      pixelRect(container, x + 10, y + 10, 54, 18, item.accent, 0x2f241d, 0.18);
+      drawGlyph(container, x + 12, y + 38, 66, item.accent, item.no);
+      container.addChild(pixelText(item.no, uiText(12, 0xfff4db), x + 37, y + 19, 0.5, 0.5));
+      container.addChild(pixelText(item.name, uiText(14, 0x241b16), x + 88, y + 40));
+      container.addChild(pixelText(item.element, uiText(11, 0x7a6654), x + 88, y + 62));
+      pixelRect(container, x + 88, y + 86, w - 100, 10, 0xdfd0b6, 0x2f241d, 0.08);
+      pixelRect(container, x + 88, y + 86, Math.max(24, (w - 100) * 0.62), 10, item.accent, 0x2f241d, 0.1);
+    }
+
+    function drawGridCell(container, x, y, size, item) {
+      pixelRect(container, x, y, size, size + 22, 0xf7ecd8, 0x2f241d, 0.16);
+      drawGlyph(container, x + 8, y + 8, size - 16, item.accent, item.no);
+      container.addChild(pixelText(item.no, uiText(10, 0x5f5145), x + size / 2, y + size + 11, 0.5, 0.5));
+    }
+
+    async function main() {
+      const app = new PIXI.Application();
+      await app.init({
+        resizeTo: appHost,
+        backgroundAlpha: 0,
+        antialias: false,
+        autoDensity: true,
+        resolution: Math.min(window.devicePixelRatio || 1, 2)
+      });
+      app.canvas.style.imageRendering = "pixelated";
+      appHost.appendChild(app.canvas);
+
+      function render() {
+        const width = app.screen.width;
+        const height = app.screen.height;
+        const stage = app.stage;
+        stage.removeChildren();
+
+        const root = new PIXI.Container();
+        root.roundPixels = true;
+        stage.addChild(root);
+
+        pixelRect(root, 0, 0, width, height, 0x2a2019, 0x2a2019, 0);
+        pixelRect(root, 10, 10, width - 20, height - 20, 0xc5ab7d, 0x000000, 0.12);
+        pixelRect(root, 16, 16, width - 32, height - 32, 0xf0dfbe, 0x2f241d, 0.2);
+
+        const safeTop = 26;
+        const innerX = 28;
+        const innerW = width - 56;
+
+        pixelRect(root, innerX, safeTop, innerW, 86, 0x2f241d, 0x000000, 0.2);
+        root.addChild(pixelText("MODELMON DEX", uiText(18, 0xfff4db), innerX + 14, safeTop + 16));
+        root.addChild(pixelText("모바일 세로형 픽셀 목업", uiText(12, 0xdcc8a9), innerX + 14, safeTop + 42));
+        root.addChild(pixelText("151 ARCHIVE", uiText(12, 0xf4cc54), innerX + innerW - 14, safeTop + 16, 1, 0));
+        root.addChild(pixelText("STATIC VIEW", uiText(12, 0xc6b59c), innerX + innerW - 14, safeTop + 42, 1, 0));
+
+        const heroY = safeTop + 100;
+        const heroH = 192;
+        pixelRect(root, innerX, heroY, innerW, heroH, 0xe4d0aa, 0x2f241d, 0.18);
+        pixelRect(root, innerX + 8, heroY + 8, innerW - 16, heroH - 16, 0xf8edd6, 0x2f241d, 0.08);
+
+        const hero = entries[0];
+        drawGlyph(root, innerX + 20, heroY + 24, 118, hero.accent, hero.no);
+        root.addChild(pixelText("오늘의 표본", uiText(12, 0x7d6958), innerX + 154, heroY + 26));
+        root.addChild(pixelText(hero.name, uiText(20, 0x241b16), innerX + 154, heroY + 50));
+        root.addChild(pixelText(`원소 ${hero.element}`, uiText(12, 0x7d6958), innerX + 154, heroY + 80));
+        root.addChild(pixelText("도감 중심 MVP 화면", uiText(13, 0x594b40), innerX + 154, heroY + 110));
+        root.addChild(pixelText("큰 표본 카드와 목록 벽을 세로 비율로 재배치", uiText(11, 0x7d6958), innerX + 154, heroY + 136));
+        pixelRect(root, innerX + 154, heroY + 162, innerW - 178, 8, 0xd9c6a4, 0x2f241d, 0.08);
+        pixelRect(root, innerX + 154, heroY + 162, Math.max(48, (innerW - 178) * 0.74), 8, hero.accent, 0x2f241d, 0.08);
+
+        const sectionY = heroY + heroH + 14;
+        pixelRect(root, innerX, sectionY, innerW, 38, 0x2f241d, 0x000000, 0.2);
+        root.addChild(pixelText("대표 표본", uiText(14, 0xfff4db), innerX + 12, sectionY + 10));
+
+        const cardTop = sectionY + 48;
+        const cardGap = 10;
+        const cardH = 118;
+        const cardW = Math.floor((innerW - cardGap) / 2);
+        drawCard(root, innerX, cardTop, cardW, cardH, entries[1]);
+        drawCard(root, innerX + cardW + cardGap, cardTop, cardW, cardH, entries[2]);
+
+        const gridTitleY = cardTop + cardH + 16;
+        pixelRect(root, innerX, gridTitleY, innerW, 38, 0x2f241d, 0x000000, 0.2);
+        root.addChild(pixelText("도감 벽", uiText(14, 0xfff4db), innerX + 12, gridTitleY + 10));
+
+        const gridTop = gridTitleY + 48;
+        const cols = 3;
+        const gap = 10;
+        const cellSize = Math.floor((innerW - gap * (cols - 1)) / cols);
+        const rows = 3;
+        const pool = entries;
+
+        for (let row = 0; row < rows; row += 1) {
+          for (let col = 0; col < cols; col += 1) {
+            const item = pool[row * cols + col];
+            const x = innerX + col * (cellSize + gap);
+            const y = gridTop + row * (cellSize + 30 + gap);
+            drawGridCell(root, x, y, cellSize, item);
+          }
+        }
+
+        const footerY = height - 82;
+        pixelRect(root, innerX, footerY, innerW, 44, 0xdbc49b, 0x2f241d, 0.16);
+        root.addChild(pixelText("스크롤·선택·상세 기능은 아직 연결하지 않았습니다.", uiText(11, 0x5f5145), innerX + 10, footerY + 14));
+      }
+
+      render();
+      window.addEventListener("resize", render);
+    }
+
+    main().catch((error) => {
+      appHost.innerHTML = `<div style="padding:20px;color:#fff2d6;font:14px/1.6 monospace">PixiJS 샘플을 그리지 못했습니다.<br>${error.message}</div>`;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "modelmon-arena",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "cd src && python -m http.server 8080",
+    "build": "echo 'No build step required for static site'",
+    "deploy": "gh-pages -d src"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.1.1"
+  }
+}

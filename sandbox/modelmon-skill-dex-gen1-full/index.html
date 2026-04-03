@@ -16,7 +16,7 @@
       <div class="hero-copy">
         <p class="eyebrow">샌드박스 풀 버전</p>
         <h1>모델몬 1기 스킬 도감</h1>
-        <p class="hero-text">포켓몬 1기 기술 165개 전체를 기준으로, 각 기술을 모델몬 전투용 AI 원소 12개와 상태군 체계로 다시 정리한 전용 도감입니다.</p>
+        <p class="hero-text">포켓몬 1기 기술 165개 전체를 기준으로, 실제 게임에 넣을 전투 스킬 데이터만 남긴 모델몬 스킬 도감입니다.</p>
       </div>
       <div class="hero-stats">
         <div class="stat-card"><span class="stat-label">총 스킬 수</span><strong id="skill-count">0</strong></div>
@@ -26,12 +26,10 @@
     </header>
 
     <section class="toolbar">
-      <label class="control"><span>검색</span><input id="search-input" type="search" placeholder="스킬명, 키워드, 원본 기술명 검색"></label>
-      <label class="control"><span>AI 개념</span><select id="concept-filter"><option value="">전체 개념</option></select></label>
+      <label class="control"><span>검색</span><input id="search-input" type="search" placeholder="스킬명, 원소, 패턴, 상태군 검색"></label>
       <label class="control"><span>전투 원소</span><select id="element-filter"><option value="">전체 원소</option></select></label>
       <label class="control"><span>상태군</span><select id="status-filter"><option value="">전체 상태군</option></select></label>
       <label class="control"><span>능력 패턴</span><select id="pattern-filter"><option value="">전체 패턴</option></select></label>
-      <label class="control"><span>원본 타입</span><select id="type-filter"><option value="">전체 타입</option></select></label>
     </section>
 
     <main class="content-grid">

@@ -1,5 +1,5 @@
 
-const CSV_URL = "./data/modelmon-skill-dex-gen1-full.csv";
+const CSV_URL = "../../src/data/modelmon-skill-dex-gen1-battle.csv";
 
 const ELEMENT_COLORS = {
   대화: "#5c9f5c",
@@ -19,11 +19,9 @@ const ELEMENT_COLORS = {
 const state = { skills: [], filteredSkills: [], selectedId: null };
 
 const searchInput = document.getElementById("search-input");
-const conceptFilter = document.getElementById("concept-filter");
 const elementFilter = document.getElementById("element-filter");
 const statusFilter = document.getElementById("status-filter");
 const patternFilter = document.getElementById("pattern-filter");
-const typeFilter = document.getElementById("type-filter");
 const skillGrid = document.getElementById("skill-grid");
 const detailPanel = document.getElementById("detail-panel");
 const skillCount = document.getElementById("skill-count");
@@ -60,19 +58,15 @@ async function loadCsvText() {
 
 function bindEvents() {
   searchInput.addEventListener("input", render);
-  conceptFilter.addEventListener("change", render);
   elementFilter.addEventListener("change", render);
   statusFilter.addEventListener("change", render);
   patternFilter.addEventListener("change", render);
-  typeFilter.addEventListener("change", render);
 }
 
 function populateOptions(skills) {
-  appendOptions(conceptFilter, [...new Set(skills.map((skill) => skill.ai_concept_ko))]);
   appendOptions(elementFilter, [...new Set(skills.map((skill) => skill.ai_element))]);
   appendOptions(statusFilter, [...new Set(skills.map((skill) => skill.ai_status_family_ko))]);
   appendOptions(patternFilter, [...new Set(skills.map((skill) => skill.ai_pattern))]);
-  appendOptions(typeFilter, [...new Set(skills.map((skill) => skill.origin_type_ko))]);
 }
 
 function appendOptions(select, values) {
@@ -104,23 +98,16 @@ function applyFilters(skills) {
     const matchesQuery = !query || [
       skill.skill_no,
       skill.skill_name_ko,
-      skill.origin_move_en,
       skill.ai_element,
       skill.ai_pattern,
-      skill.ai_concept_ko,
-      skill.ai_keyword_ko,
       skill.ai_status_family_ko,
       skill.ai_status_element_ko,
-      skill.ai_effect_ko,
-      skill.ai_mapping_memo_ko,
-      skill.origin_effect_en
+      skill.effect_ko
     ].join(" ").toLowerCase().includes(query);
-    const matchesConcept = !conceptFilter.value || skill.ai_concept_ko === conceptFilter.value;
     const matchesElement = !elementFilter.value || skill.ai_element === elementFilter.value;
     const matchesStatus = !statusFilter.value || skill.ai_status_family_ko === statusFilter.value;
     const matchesPattern = !patternFilter.value || skill.ai_pattern === patternFilter.value;
-    const matchesType = !typeFilter.value || skill.origin_type_ko === typeFilter.value;
-    return matchesQuery && matchesConcept && matchesElement && matchesStatus && matchesPattern && matchesType;
+    return matchesQuery && matchesElement && matchesStatus && matchesPattern;
   });
 }
 
@@ -139,13 +126,13 @@ function renderGrid(skills) {
       render();
     });
     fragment.querySelector(".skill-no").textContent = `No. ${skill.skill_no}`;
-    fragment.querySelector(".origin-type").textContent = `${skill.origin_type_ko} · ${skill.origin_category_ko}`;
+    fragment.querySelector(".origin-type").textContent = `위력 ${skill.power} · 명중 ${skill.accuracy}`;
     fragment.querySelector(".card-title").textContent = skill.skill_name_ko;
-    fragment.querySelector(".card-subtitle").textContent = `${skill.ai_keyword_ko} · ${skill.ai_effect_ko}`;
+    fragment.querySelector(".card-subtitle").textContent = skill.effect_ko;
     const elementChip = fragment.querySelector(".element-chip");
     elementChip.textContent = skill.ai_element;
     elementChip.style.background = ELEMENT_COLORS[skill.ai_element] ?? "#55655b";
-    fragment.querySelector(".concept-chip").textContent = skill.ai_concept_ko;
+    fragment.querySelector(".concept-chip").textContent = skill.ai_pattern;
     fragment.querySelector(".category-chip").textContent = skill.ai_status_family_ko === "없음" ? "직접형" : skill.ai_status_family_ko;
     skillGrid.append(fragment);
   });
@@ -160,7 +147,7 @@ function renderDetail(skill) {
     <div class="detail-header">
       <div>
         <p class="detail-number">No. ${skill.skill_no}</p>
-        <h2 class="detail-title">${skill.skill_name_ko}<small>${skill.origin_move_en} 기반 재해석</small></h2>
+        <h2 class="detail-title">${skill.skill_name_ko}<small>실전 스킬 데이터</small></h2>
       </div>
       <div class="detail-badge">${skill.ai_pattern}</div>
     </div>
@@ -168,8 +155,8 @@ function renderDetail(skill) {
       <h3>전투 배치</h3>
       <div class="chip-row">
         <span class="element-chip" style="background:${ELEMENT_COLORS[skill.ai_element] ?? "#55655b"}">${skill.ai_element}</span>
-        <span class="pattern-chip">${skill.ai_concept_ko}</span>
-        <span class="category-chip">${skill.ai_keyword_ko}</span>
+        <span class="pattern-chip">${skill.ai_pattern}</span>
+        <span class="category-chip">${skill.ai_status_family_ko === "없음" ? "직접형" : skill.ai_status_family_ko}</span>
       </div>
     </section>
     <section class="detail-section">
@@ -179,25 +166,17 @@ function renderDetail(skill) {
         <span class="category-chip">${skill.ai_status_element_ko === "없음" ? "상태 원소 없음" : `${skill.ai_status_element_ko} 계열`}</span>
       </div>
     </section>
-    <section class="detail-section">
-      <h3>매핑 메모</h3>
-      <p>${skill.ai_mapping_memo_ko}</p>
-    </section>
     <div class="detail-grid">
-      <div class="info-card"><span>원본 타입</span><strong>${skill.origin_type_ko}</strong></div>
-      <div class="info-card"><span>원본 분류</span><strong>${skill.origin_category_ko}</strong></div>
-      <div class="info-card"><span>위력</span><strong>${skill.origin_power}</strong></div>
-      <div class="info-card"><span>명중</span><strong>${skill.origin_accuracy}</strong></div>
-      <div class="info-card"><span>PP</span><strong>${skill.origin_pp}</strong></div>
+      <div class="info-card"><span>위력</span><strong>${skill.power}</strong></div>
+      <div class="info-card"><span>명중</span><strong>${skill.accuracy}</strong></div>
+      <div class="info-card"><span>PP</span><strong>${skill.pp}</strong></div>
       <div class="info-card"><span>전투 원소</span><strong>${skill.ai_element}</strong></div>
+      <div class="info-card"><span>상태 원소</span><strong>${skill.ai_status_element_ko === "없음" ? "없음" : skill.ai_status_element_ko}</strong></div>
+      <div class="info-card"><span>상태군</span><strong>${skill.ai_status_family_ko === "없음" ? "직접형" : skill.ai_status_family_ko}</strong></div>
     </div>
     <section class="detail-section">
       <h3>우리 게임 효과</h3>
-      <p>${skill.ai_effect_ko}</p>
-    </section>
-    <section class="detail-section">
-      <h3>원본 효과 메모</h3>
-      <p>${skill.origin_effect_en || "효과 설명 없음"}</p>
+      <p>${skill.effect_ko}</p>
     </section>
   `;
 }

@@ -3,18 +3,17 @@ const CSV_URL = "./data/modelmon-skill-dex-gen1-full.csv";
 
 const ELEMENT_COLORS = {
   대화: "#5c9f5c",
-  생성: "#ea6f55",
-  멀티모달: "#7e6ad8",
-  실시간: "#ef9438",
-  기억: "#7fbf65",
-  정렬: "#56a6a0",
-  코드: "#405fcb",
-  환각: "#8f5da8",
-  인프라: "#6f7e90",
-  도구사용: "#9b774a",
   추론: "#6c71d9",
+  생성: "#ea6f55",
   검색: "#4f8c84",
-  프런티어: "#2a333c"
+  코드: "#405fcb",
+  에이전트: "#9b774a",
+  멀티모달: "#7e6ad8",
+  메모리: "#7fbf65",
+  정렬: "#56a6a0",
+  시스템: "#6f7e90",
+  학습: "#2a333c",
+  오염: "#8f5da8"
 };
 
 const state = { skills: [], filteredSkills: [], selectedId: null };
@@ -22,13 +21,14 @@ const state = { skills: [], filteredSkills: [], selectedId: null };
 const searchInput = document.getElementById("search-input");
 const conceptFilter = document.getElementById("concept-filter");
 const elementFilter = document.getElementById("element-filter");
+const statusFilter = document.getElementById("status-filter");
 const patternFilter = document.getElementById("pattern-filter");
 const typeFilter = document.getElementById("type-filter");
 const skillGrid = document.getElementById("skill-grid");
 const detailPanel = document.getElementById("detail-panel");
 const skillCount = document.getElementById("skill-count");
-const conceptCount = document.getElementById("concept-count");
 const elementCount = document.getElementById("element-count");
+const statusCount = document.getElementById("status-count");
 const cardTemplate = document.getElementById("card-template");
 const embeddedCsv = document.getElementById("skill-csv");
 
@@ -62,6 +62,7 @@ function bindEvents() {
   searchInput.addEventListener("input", render);
   conceptFilter.addEventListener("change", render);
   elementFilter.addEventListener("change", render);
+  statusFilter.addEventListener("change", render);
   patternFilter.addEventListener("change", render);
   typeFilter.addEventListener("change", render);
 }
@@ -69,6 +70,7 @@ function bindEvents() {
 function populateOptions(skills) {
   appendOptions(conceptFilter, [...new Set(skills.map((skill) => skill.ai_concept_ko))]);
   appendOptions(elementFilter, [...new Set(skills.map((skill) => skill.ai_element))]);
+  appendOptions(statusFilter, [...new Set(skills.map((skill) => skill.ai_status_family_ko))]);
   appendOptions(patternFilter, [...new Set(skills.map((skill) => skill.ai_pattern))]);
   appendOptions(typeFilter, [...new Set(skills.map((skill) => skill.origin_type_ko))]);
 }
@@ -84,8 +86,8 @@ function appendOptions(select, values) {
 
 function renderStats(skills) {
   skillCount.textContent = String(skills.length).padStart(3, "0");
-  conceptCount.textContent = String(new Set(skills.map((skill) => skill.ai_concept_ko)).size).padStart(2, "0");
   elementCount.textContent = String(new Set(skills.map((skill) => skill.ai_element)).size).padStart(2, "0");
+  statusCount.textContent = String(new Set(skills.map((skill) => skill.ai_status_family_ko)).size - (skills.some((skill) => skill.ai_status_family_ko === "없음") ? 1 : 0)).padStart(2, "0");
 }
 
 function render() {
@@ -107,15 +109,18 @@ function applyFilters(skills) {
       skill.ai_pattern,
       skill.ai_concept_ko,
       skill.ai_keyword_ko,
+      skill.ai_status_family_ko,
+      skill.ai_status_element_ko,
       skill.ai_effect_ko,
       skill.ai_mapping_memo_ko,
       skill.origin_effect_en
     ].join(" ").toLowerCase().includes(query);
     const matchesConcept = !conceptFilter.value || skill.ai_concept_ko === conceptFilter.value;
     const matchesElement = !elementFilter.value || skill.ai_element === elementFilter.value;
+    const matchesStatus = !statusFilter.value || skill.ai_status_family_ko === statusFilter.value;
     const matchesPattern = !patternFilter.value || skill.ai_pattern === patternFilter.value;
     const matchesType = !typeFilter.value || skill.origin_type_ko === typeFilter.value;
-    return matchesQuery && matchesConcept && matchesElement && matchesPattern && matchesType;
+    return matchesQuery && matchesConcept && matchesElement && matchesStatus && matchesPattern && matchesType;
   });
 }
 
@@ -141,7 +146,7 @@ function renderGrid(skills) {
     elementChip.textContent = skill.ai_element;
     elementChip.style.background = ELEMENT_COLORS[skill.ai_element] ?? "#55655b";
     fragment.querySelector(".concept-chip").textContent = skill.ai_concept_ko;
-    fragment.querySelector(".category-chip").textContent = skill.origin_move_en;
+    fragment.querySelector(".category-chip").textContent = skill.ai_status_family_ko === "없음" ? "직접형" : skill.ai_status_family_ko;
     skillGrid.append(fragment);
   });
 }
@@ -160,11 +165,18 @@ function renderDetail(skill) {
       <div class="detail-badge">${skill.ai_pattern}</div>
     </div>
     <section class="detail-section">
-      <h3>AI 매핑</h3>
+      <h3>전투 배치</h3>
       <div class="chip-row">
         <span class="element-chip" style="background:${ELEMENT_COLORS[skill.ai_element] ?? "#55655b"}">${skill.ai_element}</span>
         <span class="pattern-chip">${skill.ai_concept_ko}</span>
         <span class="category-chip">${skill.ai_keyword_ko}</span>
+      </div>
+    </section>
+    <section class="detail-section">
+      <h3>상태 배치</h3>
+      <div class="chip-row">
+        <span class="pattern-chip">${skill.ai_status_family_ko === "없음" ? "직접형" : skill.ai_status_family_ko}</span>
+        <span class="category-chip">${skill.ai_status_element_ko === "없음" ? "상태 원소 없음" : `${skill.ai_status_element_ko} 계열`}</span>
       </div>
     </section>
     <section class="detail-section">
@@ -177,7 +189,7 @@ function renderDetail(skill) {
       <div class="info-card"><span>위력</span><strong>${skill.origin_power}</strong></div>
       <div class="info-card"><span>명중</span><strong>${skill.origin_accuracy}</strong></div>
       <div class="info-card"><span>PP</span><strong>${skill.origin_pp}</strong></div>
-      <div class="info-card"><span>AI 원소</span><strong>${skill.ai_element}</strong></div>
+      <div class="info-card"><span>전투 원소</span><strong>${skill.ai_element}</strong></div>
     </div>
     <section class="detail-section">
       <h3>우리 게임 효과</h3>
@@ -212,10 +224,8 @@ function parseCsv(text) {
       value = "";
       continue;
     }
-    if ((char === "
-" || char === "") && !insideQuotes) {
-      if (char === "" && nextChar === "
-") index += 1;
+    if ((char === "\n" || char === "\r") && !insideQuotes) {
+      if (char === "\r" && nextChar === "\n") index += 1;
       row.push(value);
       if (row.some((cell) => cell.length > 0)) rows.push(row);
       row = [];

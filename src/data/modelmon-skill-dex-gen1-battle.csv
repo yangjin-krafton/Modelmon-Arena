@@ -1,58 +1,4 @@
-
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>모델몬 1기 스킬 도감</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css">
-</head>
-<body>
-  <div class="page-shell">
-    <header class="hero">
-      <div class="hero-copy">
-        <p class="eyebrow">샌드박스 풀 버전</p>
-        <h1>모델몬 1기 스킬 도감</h1>
-        <p class="hero-text">포켓몬 1기 기술 165개 전체를 기준으로, 각 기술을 모델몬 전투용 AI 원소 12개와 상태군 체계로 다시 정리한 전용 도감입니다.</p>
-      </div>
-      <div class="hero-stats">
-        <div class="stat-card"><span class="stat-label">총 스킬 수</span><strong id="skill-count">0</strong></div>
-        <div class="stat-card"><span class="stat-label">전투 원소 수</span><strong id="element-count">0</strong></div>
-        <div class="stat-card"><span class="stat-label">상태군 수</span><strong id="status-count">0</strong></div>
-      </div>
-    </header>
-
-    <section class="toolbar">
-      <label class="control"><span>검색</span><input id="search-input" type="search" placeholder="스킬명, 키워드, 원본 기술명 검색"></label>
-      <label class="control"><span>AI 개념</span><select id="concept-filter"><option value="">전체 개념</option></select></label>
-      <label class="control"><span>전투 원소</span><select id="element-filter"><option value="">전체 원소</option></select></label>
-      <label class="control"><span>상태군</span><select id="status-filter"><option value="">전체 상태군</option></select></label>
-      <label class="control"><span>능력 패턴</span><select id="pattern-filter"><option value="">전체 패턴</option></select></label>
-      <label class="control"><span>원본 타입</span><select id="type-filter"><option value="">전체 타입</option></select></label>
-    </section>
-
-    <main class="content-grid">
-      <section class="skill-grid" id="skill-grid" aria-live="polite"></section>
-      <aside class="detail-panel" id="detail-panel"><p class="detail-empty">카드를 선택하면 스킬 상세 정보가 표시됩니다.</p></aside>
-    </main>
-  </div>
-
-  <template id="card-template">
-    <article class="skill-card">
-      <button class="card-button" type="button">
-        <div class="card-meta"><span class="skill-no"></span><span class="origin-type"></span></div>
-        <h2 class="card-title"></h2>
-        <p class="card-subtitle"></p>
-        <div class="chip-row"><span class="element-chip"></span><span class="concept-chip"></span><span class="category-chip"></span></div>
-      </button>
-    </article>
-  </template>
-
-  <script id="skill-csv" type="text/plain">
-skill_no,skill_name_ko,ai_element,ai_pattern,ai_status_family_ko,ai_status_element_ko,power,accuracy,pp,effect_ko
+﻿skill_no,skill_name_ko,ai_element,ai_pattern,ai_status_family_ko,ai_status_element_ko,power,accuracy,pp,effect_ko
 001,기억 흡수,메모리,흡수,회복,메모리,20,100,25,준 피해의 절반만큼 자신을 회복한다.
 002,오염 산성,정렬,단일 공격,노출,검색,40,100,30,피해와 함께 추가 상태이상을 남길 가능성이 있다.
 003,오염 산성 갑주,정렬,버프,증폭,학습,—,—,20,자신의 핵심 성능을 크게 끌어올린다.
@@ -218,7 +164,3 @@ skill_no,skill_name_ko,ai_element,ai_pattern,ai_status_family_ko,ai_status_eleme
 163,에이전트 윙 어택,에이전트,단일 공격,없음,없음,60,100,35,안정적으로 피해를 주는 기본형 공격 기술이다.
 164,멀티 인출,정렬,보호막,보호,정렬,—,—,40,자신의 성능을 올려 다음 전개를 유리하게 만든다.
 165,프롬프트 감기,에이전트,행동 봉쇄,속박,에이전트,15,90,20,상대를 묶어 두고 여러 턴 지속 피해를 준다.
-  </script>
-  <script src="./app.js" defer></script>
-</body>
-</html>

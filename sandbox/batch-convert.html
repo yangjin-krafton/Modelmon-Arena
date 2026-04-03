@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Batch Sprite Dye — Channel Mix 64px 12색</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:#0e0e1a; color:#ddd; font-family:'Segoe UI',monospace; padding:20px; }
+    h1 { font-size:1.3rem; color:#7b2ff7; margin-bottom:4px; }
+    .sub { font-size:0.8rem; color:#555; margin-bottom:16px; }
+    .controls { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:16px; }
+    button { padding:8px 18px; background:#7b2ff7; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:700; }
+    button:hover { background:#9b5ff7; }
+    button:disabled { opacity:0.3; cursor:not-allowed; }
+    .bar { width:100%; height:6px; background:#222; border-radius:3px; margin:8px 0; }
+    .bar .fill { height:100%; background:#7b2ff7; border-radius:3px; transition:width 0.2s; }
+    #status { font-size:0.8rem; color:#888; margin-bottom:8px; }
+    .grid { display:flex; flex-wrap:wrap; gap:6px; }
+    .grid canvas {
+      width:64px; height:64px; image-rendering:pixelated;
+      background:repeating-conic-gradient(#181828 0% 25%,#1e1e30 0% 50%) 50%/8px 8px;
+      border-radius:4px; border:1px solid #222;
+    }
+    .grid .label { font-size:0.55rem; color:#555; text-align:center; width:64px; overflow:hidden; }
+    input[type=file] { display:none; }
+  </style>
+</head>
+<body>
+  <h1>Batch Sprite Dye</h1>
+  <p class="sub">Channel Mix · 64px · 12색 · originals/ → src/asset/sprites/</p>
+
+  <div class="controls">
+    <button id="btn-folder">1. originals 폴더 선택</button>
+    <input type="file" id="folder-input" webkitdirectory multiple>
+    <button id="btn-convert" disabled>2. 변환 시작</button>
+    <button id="btn-download" disabled>3. 전체 다운로드</button>
+  </div>
+  <div id="status">대기 중...</div>
+  <div class="bar"><div class="fill" id="progress" style="width:0%"></div></div>
+  <div class="grid" id="grid"></div>
+
+<script>
+// ============================================================
+// INLINE DATA: evo CSV + brand palettes
+// ============================================================
+const EVO_CSV = `evo_line_id,evo_line_name,dex_start,dex_end,members,stage_count,assigned_brand
+EVO01,Bulbasaur Line,1,3,001/002/003,3,OpenAI
+EVO02,Charmander Line,4,6,004/005/006,3,Anthropic
+EVO03,Squirtle Line,7,9,007/008/009,3,Google DeepMind
+EVO04,Caterpie Line,10,12,010/011/012,3,Stability AI
+EVO05,Weedle Line,13,15,013/014/015,3,Upstage (Solar)
+EVO06,Pidgey Line,16,18,016/017/018,3,Meta AI
+EVO07,Rattata Line,19,20,019/020,2,Cohere
+EVO08,Spearow Line,21,22,021/022,2,xAI
+EVO09,Ekans Line,23,24,023/024,2,Scale AI
+EVO10,Pikachu Line,25,26,025/026,2,Mistral
+EVO11,Sandshrew Line,27,28,027/028,2,Amazon Bedrock
+EVO12,Nidoran-F Line,29,31,029/030/031,3,Tencent (Hunyuan)
+EVO13,Nidoran-M Line,32,34,032/033/034,3,Kakao Brain
+EVO14,Clefairy Line,35,36,035/036,2,Moonshot (Kimi)
+EVO15,Vulpix Line,37,38,037/038,2,Runway
+EVO16,Jigglypuff Line,39,40,039/040,2,ElevenLabs
+EVO17,Zubat Line,41,42,041/042,2,ByteDance (Doubao)
+EVO18,Oddish Line,43,45,043/044/045,3,Flux (BFL)
+EVO19,Paras Line,46,47,046/047,2,LangChain
+EVO20,Venonat Line,48,49,048/049,2,Perplexity
+EVO21,Diglett Line,50,51,050/051,2,Pinecone
+EVO22,Meowth Line,52,53,052/053,2,Jasper
+EVO23,Psyduck Line,54,55,054/055,2,Minimax
+EVO24,Mankey Line,56,57,056/057,2,Groq
+EVO25,Growlithe Line,58,59,058/059,2,Brave Leo
+EVO26,Poliwag Line,60,62,060/061/062,3,Naver (HyperCLOVA)
+EVO27,Abra Line,63,65,063/064/065,3,AI21 Labs
+EVO28,Machop Line,66,68,066/067/068,3,Cerebras
+EVO29,Bellsprout Line,69,71,069/070/071,3,Together AI
+EVO30,Tentacool Line,72,73,072/073,2,Sourcegraph (Cody)
+EVO31,Geodude Line,74,76,074/075/076,3,LG (EXAONE)
+EVO32,Ponyta Line,77,78,077/078,2,Samsung (Gauss)
+EVO33,Slowpoke Line,79,80,079/080,2,Baidu (Ernie)
+EVO34,Magnemite Line,81,82,081/082,2,SenseTime
+EVO35,Farfetchd,83,83,083,1,Reka AI
+EVO36,Doduo Line,84,85,084/085,2,Twelve Labs
+EVO37,Seel Line,86,87,086/087,2,Hume AI
+EVO38,Grimer Line,88,89,088/089,2,Weaviate
+EVO39,Shellder Line,90,91,090/091,2,Codeium
+EVO40,Gastly Line,92,94,092/093/094,3,Midjourney
+EVO41,Onix,95,95,095,1,Intel
+EVO42,Drowzee Line,96,97,096/097,2,Character.AI
+EVO43,Krabby Line,98,99,098/099,2,Weights & Biases
+EVO44,Voltorb Line,100,101,100/101,2,Inflection
+EVO45,Exeggcute Line,102,103,102/103,2,You.com
+EVO46,Cubone Line,104,105,104/105,2,01.AI (Yi)
+EVO47,Hitmonlee,106,106,106,1,Tabnine
+EVO48,Hitmonchan,107,107,107,1,GitHub Copilot
+EVO49,Lickitung,108,108,108,1,PlayHT
+EVO50,Koffing Line,109,110,109/110,2,SambaNova
+EVO51,Rhyhorn Line,111,112,111/112,2,Sanctuary AI
+EVO52,Chansey,113,113,113,1,Hugging Face
+EVO53,Tangela,114,114,114,1,SK Telecom (A.)
+EVO54,Kangaskhan,115,115,115,1,Aleph Alpha
+EVO55,Horsea Line,116,117,116/117,2,Leonardo AI
+EVO56,Goldeen Line,118,119,118/119,2,Luma AI
+EVO57,Staryu Line,120,121,120/121,2,Zhipu AI (GLM)
+EVO58,Mr Mime,122,122,122,1,Writer
+EVO59,Scyther,123,123,123,1,Cursor
+EVO60,Jynx,124,124,124,1,Suno
+EVO61,Electabuzz,125,125,125,1,Replit
+EVO62,Magmar,126,126,126,1,iFlytek (Spark)
+EVO63,Pinsir,127,127,127,1,Databricks
+EVO64,Tauros,128,128,128,1,Pika
+EVO65,Magikarp Line,129,130,129/130,2,Kling (Kuaishou)
+EVO66,Lapras,131,131,131,1,Snowflake (Arctic)
+EVO67,Ditto,132,132,132,1,Ditto (Synthetic)
+EVO68,Eevee Line,133,136,133/134/135/136,4,Ideogram
+EVO69,Porygon,137,137,137,1,Figure AI
+EVO70,Omanyte Line,138,139,138/139,2,Boston Dynamics
+EVO71,Kabuto Line,140,141,140/141,2,Udio
+EVO72,Aerodactyl,142,142,142,1,Tesla (Optimus)
+EVO73,Snorlax,143,143,143,1,Alibaba (Qwen)
+EVO74,Articuno,144,144,144,1,Apple Intelligence
+EVO75,Zapdos,145,145,145,1,AMD
+EVO76,Moltres,146,146,146,1,Adobe Firefly
+EVO77,Dratini Line,147,149,147/148/149,3,DeepSeek
+EVO78,Mewtwo,150,150,150,1,Nvidia
+EVO79,Mew,151,151,151,1,IBM`;
+
+// Build dex→brand map
+function buildDexMap() {
+  const map = {};
+  for (const line of EVO_CSV.trim().split('\n').slice(1)) {
+    const parts = line.split(',');
+    const members = parts[4].split('/');
+    const brand = parts[6];
+    for (const m of members) map[m] = brand;
+  }
+  return map;
+}
+const DEX_TO_BRAND = buildDexMap();
+
+// ============================================================
+// CHANNEL MIX ENGINE (from sprite-dye.js, inlined)
+// ============================================================
+const PIXEL_RES = 64, OUTPUT_SIZE = 256, QUANTIZE_K = 12, STRENGTH = 0.85;
+
+function lum(r,g,b){ return (r*0.299+g*0.587+b*0.114)/255; }
+function colorDist(a,b){ const dr=a[0]-b[0],dg=a[1]-b[1],db=a[2]-b[2]; return dr*dr+dg*dg+db*db; }
+
+function kMeansQuantize(data, k) {
+  const px=[];
+  for(let i=0;i<data.length;i+=4) if(data[i+3]>10) px.push([data[i],data[i+1],data[i+2]]);
+  if(!px.length) return [];
+  const step=Math.max(1,Math.floor(px.length/k));
+  const sorted=[...px].sort((a,b)=>lum(...a)-lum(...b));
+  let centers=[];
+  for(let i=0;i<k;i++) centers.push([...sorted[Math.min(i*step,sorted.length-1)]]);
+  for(let iter=0;iter<12;iter++){
+    const cl=Array.from({length:k},()=>[]);
+    for(const p of px){let md=Infinity,mj=0;for(let j=0;j<k;j++){const d=colorDist(p,centers[j]);if(d<md){md=d;mj=j;}}cl[mj].push(p);}
+    let moved=false;
+    for(let j=0;j<k;j++){if(!cl[j].length)continue;const a=[0,0,0];for(const p of cl[j]){a[0]+=p[0];a[1]+=p[1];a[2]+=p[2];}const n=cl[j].length;const nc=[Math.round(a[0]/n),Math.round(a[1]/n),Math.round(a[2]/n)];if(colorDist(nc,centers[j])>4)moved=true;centers[j]=nc;}
+    if(!moved)break;
+  }
+  centers.sort((a,b)=>lum(...a)-lum(...b));
+  return centers;
+}
+
+function buildTargetPalette(pal,k){
+  const src=pal.colors.map(c=>({rgb:c.rgb,weight:c.w,lum:lum(...c.rgb)})).sort((a,b)=>a.lum-b.lum);
+  const cum=[];let acc=0;for(const s of src){cum.push({start:acc,end:acc+s.weight,rgb:s.rgb});acc+=s.weight;}
+  const r=[];for(let i=0;i<k;i++){const t=(i+0.5)/k;let seg=cum[cum.length-1];for(const c of cum){if(t<=c.end){seg=c;break;}}r.push([...seg.rgb]);}
+  return r;
+}
+
+function solveLeastSquares(pairs,ch){
+  const ATA=Array.from({length:4},()=>new Float64Array(4)),ATb=new Float64Array(4);
+  for(const p of pairs){const row=[p.src[0]/255,p.src[1]/255,p.src[2]/255,1];const t=p.dst[ch]/255;for(let i=0;i<4;i++){for(let j=0;j<4;j++)ATA[i][j]+=row[i]*row[j];ATb[i]+=row[i]*t;}}
+  for(let i=0;i<4;i++)ATA[i][i]+=0.01;
+  const aug=ATA.map((r,i)=>[...r,ATb[i]]);
+  for(let c=0;c<4;c++){let mr=c,mv=Math.abs(aug[c][c]);for(let r=c+1;r<4;r++)if(Math.abs(aug[r][c])>mv){mv=Math.abs(aug[r][c]);mr=r;}[aug[c],aug[mr]]=[aug[mr],aug[c]];const pv=aug[c][c];if(Math.abs(pv)<1e-10)continue;for(let j=c;j<=4;j++)aug[c][j]/=pv;for(let r=0;r<4;r++){if(r===c)continue;const f=aug[r][c];for(let j=c;j<=4;j++)aug[r][j]-=f*aug[c][j];}}
+  return aug.map(r=>r[4]);
+}
+
+function channelMix(data, palette) {
+  const orig = kMeansQuantize(data, QUANTIZE_K);
+  if (!orig.length) return;
+  const target = buildTargetPalette(palette, orig.length);
+  const pairs = [];
+  for (let i=0;i<orig.length;i++) pairs.push({src:orig[i],dst:target[i]});
+  pairs.push({src:[0,0,0],dst:[0,0,0]},{src:[255,255,255],dst:[255,255,255]},{src:[128,128,128],dst:[128,128,128]});
+  const cR=solveLeastSquares(pairs,0),cG=solveLeastSquares(pairs,1),cB=solveLeastSquares(pairs,2);
+  const M=[[cR[0],cR[1],cR[2]],[cG[0],cG[1],cG[2]],[cB[0],cB[1],cB[2]]];
+  const C=[cR[3],cG[3],cB[3]];
+  const str=STRENGTH;
+  for(let i=0;i<data.length;i+=4){
+    if(data[i+3]<10)continue;
+    const r=data[i]/255,g=data[i+1]/255,b=data[i+2]/255;
+    const nr=(M[0][0]*r+M[0][1]*g+M[0][2]*b+C[0])*255;
+    const ng=(M[1][0]*r+M[1][1]*g+M[1][2]*b+C[1])*255;
+    const nb=(M[2][0]*r+M[2][1]*g+M[2][2]*b+C[2])*255;
+    data[i]=Math.max(0,Math.min(255,Math.round(data[i]*(1-str)+nr*str)));
+    data[i+1]=Math.max(0,Math.min(255,Math.round(data[i+1]*(1-str)+ng*str)));
+    data[i+2]=Math.max(0,Math.min(255,Math.round(data[i+2]*(1-str)+nb*str)));
+  }
+}
+
+function pixelate(img) {
+  const c=document.createElement('canvas'); c.width=PIXEL_RES; c.height=PIXEL_RES;
+  const ctx=c.getContext('2d'); ctx.clearRect(0,0,PIXEL_RES,PIXEL_RES);
+  const s=Math.min(PIXEL_RES/img.width,PIXEL_RES/img.height);
+  const w=img.width*s,h=img.height*s;
+  ctx.drawImage(img,(PIXEL_RES-w)/2,(PIXEL_RES-h)/2,w,h);
+  return ctx.getImageData(0,0,PIXEL_RES,PIXEL_RES);
+}
+
+function renderPixelArt(pd) {
+  const c=document.createElement('canvas'); c.width=OUTPUT_SIZE; c.height=OUTPUT_SIZE;
+  const ctx=c.getContext('2d'); const px=OUTPUT_SIZE/PIXEL_RES;
+  for(let y=0;y<PIXEL_RES;y++) for(let x=0;x<PIXEL_RES;x++){
+    const i=(y*PIXEL_RES+x)*4; const a=pd.data[i+3]; if(a<10)continue;
+    ctx.fillStyle=`rgba(${pd.data[i]},${pd.data[i+1]},${pd.data[i+2]},${a/255})`;
+    ctx.fillRect(Math.floor(x*px),Math.floor(y*px),Math.ceil(px),Math.ceil(px));
+  }
+  return c;
+}
+
+// ============================================================
+// UI
+// ============================================================
+let palettes = null;
+let sourceFiles = [];
+let resultCanvases = [];
+
+// Load palettes: try fetch first, fallback to inline
+fetch('../src/data/brand-palettes.json').then(r=>r.json()).then(p=>{palettes=p; statusEl.textContent='팔레트 로드 완료. originals 폴더를 선택하세요.';}).catch(()=>{
+  // file:// fallback: load via hidden textarea
+  statusEl.textContent = 'JSON fetch 실패 → 인라인 팔레트 사용';
+  loadPalettesInline();
+});
+
+function loadPalettesInline() {
+  // Generate from brand primary colors
+  function expand(r,g,b) {
+    return { colors: [
+      {rgb:[r,g,b], w:0.40},
+      {rgb:[Math.max(0,r-60),Math.max(0,g-60),Math.max(0,b-60)], w:0.25},
+      {rgb:[Math.min(255,r+80),Math.min(255,g+80),Math.min(255,b+80)], w:0.20},
+      {rgb:[Math.max(0,Math.round(r*0.2)),Math.max(0,Math.round(g*0.2)),Math.max(0,Math.round(b*0.2))], w:0.15},
+    ]};
+  }
+  const primaries = {
+    'OpenAI':[16,163,127],'Anthropic':[204,120,67],'Google DeepMind':[66,133,244],
+    'Meta AI':[0,100,210],'xAI':[220,40,40],'Mistral':[245,130,32],
+    'DeepSeek':[107,92,231],'Cohere':[57,89,77],'AI21 Labs':[91,33,182],
+    'Inflection':[232,121,168],'Reka AI':[255,107,74],'Aleph Alpha':[45,106,79],
+    'Baidu (Ernie)':[41,50,225],'Alibaba (Qwen)':[255,106,0],'Tencent (Hunyuan)':[0,200,83],
+    'ByteDance (Doubao)':[37,244,238],'Zhipu AI (GLM)':[108,99,255],'01.AI (Yi)':[26,115,232],
+    'Minimax':[255,82,82],'Moonshot (Kimi)':[179,136,255],'SenseTime':[0,191,165],
+    'iFlytek (Spark)':[224,64,251],'Naver (HyperCLOVA)':[3,207,93],'Kakao Brain':[254,229,0],
+    'Upstage (Solar)':[79,195,247],'LG (EXAONE)':[165,0,52],'Samsung (Gauss)':[20,40,160],
+    'SK Telecom (A.)':[228,0,43],'Cursor':[124,58,237],'Replit':[242,98,7],
+    'GitHub Copilot':[110,64,201],'Tabnine':[107,105,255],'Codeium':[9,182,162],
+    'Sourcegraph (Cody)':[161,18,255],'Midjourney':[104,122,200],'Stability AI':[184,92,255],
+    'Runway':[0,212,170],'Adobe Firefly':[255,0,0],'Pika':[255,119,169],
+    'Luma AI':[139,92,246],'Ideogram':[59,130,246],'Leonardo AI':[168,85,247],
+    'Flux (BFL)':[236,72,153],'Kling (Kuaishou)':[255,111,0],'Twelve Labs':[74,144,217],
+    'ElevenLabs':[29,185,84],'Suno':[255,64,129],'Udio':[124,77,255],
+    'Hume AI':[255,183,77],'PlayHT':[0,229,255],'Perplexity':[32,178,170],
+    'You.com':[84,104,255],'Brave Leo':[251,84,43],'Pinecone':[27,31,59],
+    'Weaviate':[1,179,149],'Nvidia':[118,185,0],'AMD':[237,28,36],
+    'Intel':[0,113,197],'Groq':[245,80,54],'Cerebras':[255,110,64],
+    'SambaNova':[123,31,162],'Together AI':[61,90,254],'Snowflake (Arctic)':[41,181,232],
+    'Character.AI':[92,107,192],'Jasper':[255,87,34],'Writer':[41,121,255],
+    'Scale AI':[109,40,217],'Hugging Face':[255,210,30],'Weights & Biases':[255,190,0],
+    'LangChain':[28,60,60],'Databricks':[255,54,33],'Tesla (Optimus)':[204,0,0],
+    'Boston Dynamics':[255,214,0],'Figure AI':[189,189,189],'Sanctuary AI':[38,166,154],
+    'Apple Intelligence':[100,60,220],'Amazon Bedrock':[255,153,0],
+    'Ditto (Synthetic)':[224,224,224],'IBM':[5,48,173],
+  };
+  palettes = {};
+  for (const [k,v] of Object.entries(primaries)) palettes[k] = expand(...v);
+  statusEl.textContent = '인라인 팔레트 로드 완료. originals 폴더를 선택하세요.';
+}
+
+const btnFolder = document.getElementById('btn-folder');
+const btnConvert = document.getElementById('btn-convert');
+const btnDownload = document.getElementById('btn-download');
+const folderInput = document.getElementById('folder-input');
+const statusEl = document.getElementById('status');
+const progressEl = document.getElementById('progress');
+const gridEl = document.getElementById('grid');
+
+btnFolder.addEventListener('click', () => folderInput.click());
+folderInput.addEventListener('change', e => {
+  const all = [...e.target.files];
+  sourceFiles = all
+    .filter(f => f.name.match(/^\d{3}\.png$/i))
+    .filter(f => { const n=parseInt(f.name); return n>=1 && n<=151; })
+    .sort((a,b) => a.name.localeCompare(b.name,undefined,{numeric:true}));
+  statusEl.textContent = `${sourceFiles.length}장 로드됨. 변환 버튼을 누르세요.`;
+  btnConvert.disabled = false;
+});
+
+btnConvert.addEventListener('click', async () => {
+  if (!palettes) { statusEl.textContent = 'palettes 미로드'; return; }
+  btnConvert.disabled = true;
+  gridEl.innerHTML = '';
+  resultCanvases = [];
+  const total = sourceFiles.length;
+  let done = 0;
+
+  for (const file of sourceFiles) {
+    const dexNum = file.name.replace('.png','');
+    const brand = DEX_TO_BRAND[dexNum];
+    const pal = brand ? palettes[brand] : null;
+
+    const img = await loadImg(file);
+    const pd = pixelate(img);
+    if (pal) channelMix(pd.data, pal);
+    const canvas = renderPixelArt(pd);
+
+    // Show preview
+    const preview = document.createElement('canvas');
+    preview.width = 64; preview.height = 64;
+    const pctx = preview.getContext('2d');
+    pctx.imageSmoothingEnabled = false;
+    pctx.drawImage(canvas, 0, 0, 64, 64);
+    gridEl.appendChild(preview);
+
+    const lbl = document.createElement('div');
+    lbl.className = 'label';
+    lbl.textContent = `${dexNum} ${brand||'?'}`;
+    gridEl.appendChild(lbl);
+
+    resultCanvases.push({ dexNum, brand, canvas });
+    done++;
+    progressEl.style.width = (done/total*100)+'%';
+    statusEl.textContent = `변환 중... ${done}/${total}`;
+
+    // Yield to UI
+    if (done % 5 === 0) await new Promise(r => setTimeout(r, 0));
+  }
+
+  statusEl.textContent = `완료! ${done}장 변환됨. 다운로드 버튼으로 저장하세요.`;
+  btnDownload.disabled = false;
+});
+
+btnDownload.addEventListener('click', async () => {
+  statusEl.textContent = '다운로드 중...';
+  let i = 0;
+  for (const { dexNum, canvas } of resultCanvases) {
+    const a = document.createElement('a');
+    a.download = `${dexNum}.png`;
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+    i++;
+    if (i % 10 === 0) await new Promise(r => setTimeout(r, 100));
+  }
+  statusEl.textContent = `${i}장 다운로드 완료 → src/asset/sprites/ 에 저장하세요`;
+});
+
+function loadImg(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+</script>
+</body>
+</html>

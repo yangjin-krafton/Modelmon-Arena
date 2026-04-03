@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modelmon Pixel Art Pipeline Test</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #1a1a2e; color: #e0e0e0; font-family: 'Segoe UI', monospace; padding: 20px; }
+    h1 { font-size: 1.4rem; margin-bottom: 8px; color: #7b2ff7; }
+    h2 { font-size: 1rem; margin: 16px 0 8px; color: #aaa; }
+
+    .drop-zone {
+      border: 2px dashed #555; border-radius: 12px; padding: 40px 20px;
+      text-align: center; color: #666; cursor: pointer; transition: all 0.2s;
+      margin-bottom: 16px; position: relative;
+    }
+    .drop-zone:hover, .drop-zone.drag-over { border-color: #7b2ff7; color: #aaa; background: rgba(123,47,247,0.05); }
+    .drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .drop-zone p { pointer-events: none; }
+    .drop-zone .hint { font-size: 0.75rem; color: #555; margin-top: 8px; pointer-events: none; }
+
+    .controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+    .controls label { font-size: 0.85rem; color: #888; }
+    select { background: #2a2a4a; border: 1px solid #444; color: #fff; padding: 6px 10px; border-radius: 4px; }
+    button { padding: 8px 16px; background: #7b2ff7; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; }
+    button:hover { background: #9b5ff7; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .grid { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 12px; }
+    .card {
+      background: #16213e; border: 1px solid #333; border-radius: 8px;
+      padding: 8px; text-align: center; width: 280px;
+    }
+    .card canvas {
+      image-rendering: pixelated; border: 1px solid #333;
+      background: repeating-conic-gradient(#222 0% 25%, #2a2a2a 0% 50%) 50% / 16px 16px;
+    }
+    .card .label { font-size: 0.75rem; color: #666; margin-top: 4px; }
+    .palette-row { display: flex; gap: 4px; justify-content: center; margin-top: 6px; flex-wrap: wrap; }
+    .palette-row .swatch { width: 16px; height: 16px; border-radius: 2px; border: 1px solid #555; }
+    #status { font-size: 0.8rem; color: #888; margin: 8px 0; }
+
+    .palette-presets { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+    .preset-btn {
+      padding: 6px 12px; border-radius: 4px; border: 2px solid transparent;
+      cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: all 0.15s;
+    }
+    .preset-btn:hover { transform: scale(1.05); }
+    .preset-btn.active { border-color: #fff; }
+    .preset-btn .color-dots { display: flex; gap: 2px; justify-content: center; margin-top: 3px; }
+    .preset-btn .color-dots span {
+      display: inline-block; height: 6px; border-radius: 1px; min-width: 4px;
+    }
+    .slider-row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin: 6px 0; }
+    .slider-row label { font-size: 0.8rem; color: #666; display: flex; align-items: center; gap: 6px; }
+    .slider-row input[type=range] { width: 100px; }
+  </style>
+</head>
+<body>
+  <h1>Modelmon Pixel Art Pipeline</h1>
+  <p style="font-size:0.85rem;color:#666;margin-bottom:12px;">PNG 이미지 드롭 → 픽셀아트(256x256, 투명채널) → AI모델 컬러 팔레트 적용</p>
+
+  <div class="drop-zone" id="drop-zone">
+    <input type="file" id="file-input" multiple accept="image/png,image/jpeg,image/webp">
+    <p>PNG 이미지를 여기에 드래그하거나 클릭해서 선택</p>
+    <p class="hint">또는 아래 버튼으로 originals 폴더를 통째로 선택</p>
+  </div>
+  <div style="margin-bottom:16px; display:flex; gap:12px; align-items:center;">
+    <button id="btn-folder" style="background:#2a6;padding:10px 24px;font-size:1rem;">
+      📂 originals 폴더 선택 (151장 한번에)
+    </button>
+    <input type="file" id="folder-input" webkitdirectory multiple style="display:none;">
+    <span id="folder-status" style="font-size:0.8rem;color:#666;"></span>
+  </div>
+
+  <div class="controls">
+    <label>픽셀 해상도
+      <select id="pixelRes">
+        <option value="24">24px</option>
+        <option value="32" selected>32px</option>
+        <option value="48">48px</option>
+        <option value="64">64px</option>
+      </select>
+    </label>
+    <button id="btn-reprocess" disabled>Re-process</button>
+    <button id="download-all" disabled>Download All PNGs</button>
+  </div>
+
+  <h2>Color Palette</h2>
+  <div class="controls" style="margin-bottom:4px;">
+    <label>Mode
+      <select id="colorMode">
+        <option value="channelMix" selected>Channel Mix (추천)</option>
+        <option value="multiHue">Multi-Hue Shift</option>
+        <option value="hueShift">Hue Shift (단일색)</option>
+        <option value="paletteSwap">Palette Swap (인덱스드)</option>
+        <option value="tintBand">Tint Band (명도밴드)</option>
+      </select>
+    </label>
+    <label>추출 색 수
+      <select id="quantizeK">
+        <option value="6">6색</option>
+        <option value="8" selected>8색</option>
+        <option value="12">12색</option>
+        <option value="16">16색</option>
+      </select>
+    </label>
+  </div>
+  <div class="palette-presets" id="palette-presets"></div>
+  <div id="status"></div>
+
+  <div class="grid" id="grid"></div>
+
+  <script>
+    const OUTPUT_SIZE = 256;
+    let paletteStrength = 0.85;
+
+    // 포켓몬 1기 15타입 = 15 AI 회사 CI 컬러 매핑
+    // 타입 특성과 회사 성격/컬러를 매칭
+    const PALETTES = {
+      'Original': null,
+
+      // ── Fire = Anthropic ──
+      // 따뜻한 오렌지/탄, 안전 중시 = 불의 통제된 힘
+      'Fire — Anthropic': {
+        hue: 25, type: 'Fire', brand: 'Anthropic',
+        colors: [
+          { rgb: [204, 120, 67],  weight: 0.35 }, // 시그니처 오렌지
+          { rgb: [180, 90,  45],  weight: 0.25 }, // 딥 오렌지
+          { rgb: [242, 224, 200], weight: 0.20 }, // 크림
+          { rgb: [60,  40,  30],  weight: 0.20 }, // 다크 브라운
+        ],
+      },
+
+      // ── Grass = OpenAI ──
+      // 그린 CI, 성장/자연 = 풀의 생명력
+      'Grass — OpenAI': {
+        hue: 160, type: 'Grass', brand: 'OpenAI',
+        colors: [
+          { rgb: [16,  163, 127], weight: 0.40 }, // 틸 그린
+          { rgb: [100, 220, 180], weight: 0.25 }, // 민트
+          { rgb: [0,   80,  60],  weight: 0.20 }, // 다크 그린
+          { rgb: [220, 255, 240], weight: 0.15 }, // 라이트 민트
+        ],
+      },
+
+      // ── Water = Meta ──
+      // 블루 CI, 광대한 바다 = 물의 깊이
+      'Water — Meta': {
+        hue: 225, type: 'Water', brand: 'Meta',
+        colors: [
+          { rgb: [0,   100, 210], weight: 0.35 }, // 메타 블루
+          { rgb: [55,  0,   200], weight: 0.25 }, // 딥 퍼플
+          { rgb: [150, 200, 255], weight: 0.20 }, // 라이트 블루
+          { rgb: [255, 255, 255], weight: 0.20 }, // 화이트
+        ],
+      },
+
+      // ── Electric = Mistral ──
+      // 오렌지/옐로우, 빠른 유럽 스타트업 = 번개의 속도
+      'Electric — Mistral': {
+        hue: 30, type: 'Electric', brand: 'Mistral',
+        colors: [
+          { rgb: [245, 130, 32],  weight: 0.35 }, // 오렌지
+          { rgb: [255, 195, 0],   weight: 0.30 }, // 옐로우
+          { rgb: [255, 230, 150], weight: 0.15 }, // 라이트 옐로우
+          { rgb: [0,   0,   0],   weight: 0.20 }, // 블랙
+        ],
+      },
+
+      // ── Psychic = Google ──
+      // 멀티컬러, 멀티모달 감각 = 초능력의 다감각
+      'Psychic — Google': {
+        hue: 220, type: 'Psychic', brand: 'Google',
+        colors: [
+          { rgb: [66,  133, 244], weight: 0.25 }, // 블루
+          { rgb: [234, 67,  53],  weight: 0.25 }, // 레드
+          { rgb: [251, 188, 4],   weight: 0.25 }, // 옐로우
+          { rgb: [52,  168, 83],  weight: 0.15 }, // 그린
+          { rgb: [255, 255, 255], weight: 0.10 }, // 화이트
+        ],
+      },
+
+      // ── Fighting = xAI ──
+      // 블랙+레드, 공격적 스타일 = 격투의 투지
+      'Fighting — xAI': {
+        hue: 0, type: 'Fighting', brand: 'xAI',
+        colors: [
+          { rgb: [220, 40,  40],  weight: 0.35 }, // 레드
+          { rgb: [0,   0,   0],   weight: 0.35 }, // 블랙
+          { rgb: [255, 255, 255], weight: 0.20 }, // 화이트
+          { rgb: [150, 20,  20],  weight: 0.10 }, // 다크 레드
+        ],
+      },
+
+      // ── Poison = DeepSeek ──
+      // 퍼플/블루, 미스터리 = 독의 신비
+      'Poison — DeepSeek': {
+        hue: 250, type: 'Poison', brand: 'DeepSeek',
+        colors: [
+          { rgb: [130, 80,  230], weight: 0.35 }, // 퍼플
+          { rgb: [70,  100, 255], weight: 0.25 }, // 블루
+          { rgb: [200, 180, 255], weight: 0.20 }, // 라벤더
+          { rgb: [20,  20,  60],  weight: 0.20 }, // 다크 네이비
+        ],
+      },
+
+      // ── Ice = Perplexity ──
+      // 틸/터쿼이즈, 정밀한 검색 = 얼음의 명료함
+      'Ice — Perplexity': {
+        hue: 175, type: 'Ice', brand: 'Perplexity',
+        colors: [
+          { rgb: [32,  178, 170], weight: 0.35 }, // 틸
+          { rgb: [20,  195, 200], weight: 0.25 }, // 터쿼이즈
+          { rgb: [180, 240, 240], weight: 0.25 }, // 라이트 시안
+          { rgb: [10,  60,  70],  weight: 0.15 }, // 다크 틸
+        ],
+      },
+
+      // ── Normal = Cohere ──
+      // 코랄/그린, 범용/안정 = 노말의 균형
+      'Normal — Cohere': {
+        hue: 160, type: 'Normal', brand: 'Cohere',
+        colors: [
+          { rgb: [57,  89,  77],  weight: 0.30 }, // 다크 틸 그린
+          { rgb: [209, 142, 226], weight: 0.25 }, // 코랄 퍼플
+          { rgb: [140, 200, 180], weight: 0.25 }, // 세이지 그린
+          { rgb: [240, 230, 245], weight: 0.20 }, // 라이트 라벤더
+        ],
+      },
+
+      // ── Ground = Amazon ──
+      // 오렌지+네이비, Bedrock(기반암) = 땅의 견고함
+      'Ground — Amazon': {
+        hue: 30, type: 'Ground', brand: 'Amazon',
+        colors: [
+          { rgb: [255, 153, 0],   weight: 0.40 }, // AWS 오렌지
+          { rgb: [35,  47,  62],  weight: 0.30 }, // 다크 네이비
+          { rgb: [255, 200, 100], weight: 0.15 }, // 라이트 오렌지
+          { rgb: [20,  25,  35],  weight: 0.15 }, // 딥 네이비
+        ],
+      },
+
+      // ── Flying = Microsoft ──
+      // 스카이 블루, Copilot = 하늘을 나는 조종사
+      'Flying — Microsoft': {
+        hue: 200, type: 'Flying', brand: 'Microsoft',
+        colors: [
+          { rgb: [0,   164, 239], weight: 0.30 }, // MS 블루
+          { rgb: [127, 186, 0],   weight: 0.25 }, // MS 그린
+          { rgb: [242, 80,  34],  weight: 0.20 }, // MS 레드
+          { rgb: [255, 185, 0],   weight: 0.15 }, // MS 옐로우
+          { rgb: [255, 255, 255], weight: 0.10 }, // 화이트
+        ],
+      },
+
+      // ── Bug = Hugging Face ──
+      // 옐로우, 오픈소스 생태계 = 벌레의 군집 생태계
+      'Bug — HuggingFace': {
+        hue: 48, type: 'Bug', brand: 'HuggingFace',
+        colors: [
+          { rgb: [255, 210, 30],  weight: 0.40 }, // HF 옐로우
+          { rgb: [255, 240, 120], weight: 0.20 }, // 라이트 옐로우
+          { rgb: [30,  30,  30],  weight: 0.25 }, // 다크
+          { rgb: [200, 160, 0],   weight: 0.15 }, // 골드
+        ],
+      },
+
+      // ── Rock = Nvidia ──
+      // 그린+블랙, GPU 하드웨어 = 바위의 견고한 기반
+      'Rock — Nvidia': {
+        hue: 80, type: 'Rock', brand: 'Nvidia',
+        colors: [
+          { rgb: [118, 185, 0],   weight: 0.40 }, // 엔비디아 그린
+          { rgb: [0,   0,   0],   weight: 0.30 }, // 블랙
+          { rgb: [170, 220, 80],  weight: 0.15 }, // 라이트 그린
+          { rgb: [60,  100, 0],   weight: 0.15 }, // 다크 그린
+        ],
+      },
+
+      // ── Ghost = Midjourney ──
+      // 화이트/라이트블루 on 다크, 초현실 = 유령의 환상
+      'Ghost — Midjourney': {
+        hue: 220, type: 'Ghost', brand: 'Midjourney',
+        colors: [
+          { rgb: [255, 255, 255], weight: 0.30 }, // 화이트
+          { rgb: [15,  15,  25],  weight: 0.30 }, // 나이트 블랙
+          { rgb: [100, 130, 200], weight: 0.25 }, // 미스트 블루
+          { rgb: [50,  55,  80],  weight: 0.15 }, // 다크 슬레이트
+        ],
+      },
+
+      // ── Dragon = Apple ──
+      // 프리미엄 그라데이션, 희귀+강력 = 드래곤의 위엄
+      'Dragon — Apple': {
+        hue: 270, type: 'Dragon', brand: 'Apple',
+        colors: [
+          { rgb: [100, 60,  220], weight: 0.30 }, // 퍼플 (Siri)
+          { rgb: [255, 45,  85],  weight: 0.25 }, // 핑크 레드
+          { rgb: [50,  170, 255], weight: 0.25 }, // 블루
+          { rgb: [10,  10,  15],  weight: 0.20 }, // 스페이스 블랙
+        ],
+      },
+    };
+
+    let currentPalette = 'Original';
+    let loadedImages = [];   // { name, pixelData, pixelRes, originalImg }
+    let sourceImages = [];   // original Image elements for re-process
+
+    // --- Palette Preset Buttons ---
+    const presetsEl = document.getElementById('palette-presets');
+
+    for (const [name, pal] of Object.entries(PALETTES)) {
+      const btn = document.createElement('button');
+      btn.className = 'preset-btn' + (name === 'Original' ? ' active' : '');
+
+      // 타입 — 브랜드 형식이면 두 줄로 표시
+      if (pal && pal.type) {
+        const typeLine = document.createElement('div');
+        typeLine.textContent = pal.type;
+        typeLine.style.fontWeight = '800';
+        btn.appendChild(typeLine);
+        const brandLine = document.createElement('div');
+        brandLine.textContent = pal.brand;
+        brandLine.style.cssText = 'font-size:0.65rem;opacity:0.7;';
+        btn.appendChild(brandLine);
+      } else {
+        const label = document.createElement('div');
+        label.textContent = name;
+        btn.appendChild(label);
+      }
+
+      if (pal && pal.colors) {
+        const main = pal.colors[0].rgb;
+        btn.style.background = `rgba(${main[0]},${main[1]},${main[2]},0.25)`;
+        btn.style.color = `rgb(${Math.min(main[0]+60,255)},${Math.min(main[1]+60,255)},${Math.min(main[2]+60,255)})`;
+        const dots = document.createElement('div');
+        dots.className = 'color-dots';
+        for (const c of pal.colors) {
+          const span = document.createElement('span');
+          span.style.background = `rgb(${c.rgb.join(',')})`;
+          span.style.width = `${Math.round(c.weight * 60)}px`;
+          dots.appendChild(span);
+        }
+        btn.appendChild(dots);
+      } else {
+        btn.style.background = '#333';
+        btn.style.color = '#ccc';
+      }
+
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentPalette = name;
+        recolorAll();
+      });
+      presetsEl.appendChild(btn);
+    }
+
+    // --- Strength slider + mode change ---
+    const sliderRow = document.createElement('div');
+    sliderRow.className = 'slider-row';
+    sliderRow.innerHTML = `
+      <label>Strength <input type="range" id="strength-slider" min="0" max="100" value="85"> <span id="strength-val">85%</span></label>
+    `;
+    presetsEl.parentNode.insertBefore(sliderRow, presetsEl.nextSibling);
+    document.getElementById('strength-slider').addEventListener('input', e => {
+      paletteStrength = e.target.value / 100;
+      document.getElementById('strength-val').textContent = e.target.value + '%';
+      recolorAll();
+    });
+    document.getElementById('colorMode').addEventListener('change', () => recolorAll());
+    document.getElementById('quantizeK').addEventListener('change', () => recolorAll());
+
+    // --- File Input / Drag & Drop ---
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const folderInput = document.getElementById('folder-input');
+    const btnFolder = document.getElementById('btn-folder');
+    const folderStatus = document.getElementById('folder-status');
+
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      handleFiles(e.dataTransfer.files);
+    });
+    fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+    // 폴더 선택 버튼
+    btnFolder.addEventListener('click', () => folderInput.click());
+    folderInput.addEventListener('change', e => {
+      const allFiles = [...e.target.files];
+      // PNG만, 베이스 넘버(001~151)만 필터
+      const pngFiles = allFiles
+        .filter(f => f.name.match(/^\d{3}\.png$/))
+        .filter(f => { const n = parseInt(f.name); return n >= 1 && n <= 151; })
+        .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+      folderStatus.textContent = `${allFiles.length}개 파일 중 ${pngFiles.length}장 (001~151) 선택됨`;
+      if (pngFiles.length) handleFiles(pngFiles);
+    });
+
+    function handleFiles(fileList) {
+      const files = [...fileList]
+        .filter(f => f.type.startsWith('image/') || f.name.match(/\.(png|jpg|jpeg|webp)$/i))
+        .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+      if (!files.length) return;
+
+      const pixelRes = parseInt(document.getElementById('pixelRes').value);
+      const status = document.getElementById('status');
+      const grid = document.getElementById('grid');
+      grid.innerHTML = '';
+      loadedImages = [];
+      sourceImages = [];
+
+      status.textContent = `Processing ${files.length} images...`;
+      let processed = 0;
+
+      for (const file of files) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => {
+            const name = file.name.replace(/\.[^.]+$/, '');
+            sourceImages.push({ name, img });
+
+            const { pixelData } = pixelate(img, pixelRes);
+            loadedImages.push({ name, pixelData, pixelRes });
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.id = `card-${name}`;
+
+            const outCanvas = document.createElement('canvas');
+            outCanvas.width = OUTPUT_SIZE;
+            outCanvas.height = OUTPUT_SIZE;
+            outCanvas.style.width = '256px';
+            outCanvas.style.height = '256px';
+            card.appendChild(outCanvas);
+
+            const label = document.createElement('div');
+            label.className = 'label';
+            label.textContent = name;
+            card.appendChild(label);
+
+            const palRow = document.createElement('div');
+            palRow.className = 'palette-row';
+            palRow.id = `pal-${name}`;
+            card.appendChild(palRow);
+
+            grid.appendChild(card);
+            renderToCanvas(outCanvas, pixelData, pixelRes, palRow);
+
+            processed++;
+            if (processed === files.length) {
+              // Sort cards by name
+              const cards = [...grid.children].sort((a, b) =>
+                a.id.localeCompare(b.id, undefined, { numeric: true })
+              );
+              cards.forEach(c => grid.appendChild(c));
+
+              status.textContent = `Done! ${files.length} images → ${pixelRes}px pixel art → ${OUTPUT_SIZE}x${OUTPUT_SIZE}`;
+              document.getElementById('download-all').disabled = false;
+              document.getElementById('btn-reprocess').disabled = false;
+            } else {
+              status.textContent = `Processing... ${processed}/${files.length}`;
+            }
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // --- Re-process with different pixel resolution ---
+    document.getElementById('btn-reprocess').addEventListener('click', () => {
+      if (!sourceImages.length) return;
+      const pixelRes = parseInt(document.getElementById('pixelRes').value);
+      const grid = document.getElementById('grid');
+      grid.innerHTML = '';
+      loadedImages = [];
+
+      for (const { name, img } of sourceImages) {
+        const { pixelData } = pixelate(img, pixelRes);
+        loadedImages.push({ name, pixelData, pixelRes });
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.id = `card-${name}`;
+
+        const outCanvas = document.createElement('canvas');
+        outCanvas.width = OUTPUT_SIZE;
+        outCanvas.height = OUTPUT_SIZE;
+        outCanvas.style.width = '256px';
+        outCanvas.style.height = '256px';
+        card.appendChild(outCanvas);
+
+        const label = document.createElement('div');
+        label.className = 'label';
+        label.textContent = name;
+        card.appendChild(label);
+
+        const palRow = document.createElement('div');
+        palRow.className = 'palette-row';
+        palRow.id = `pal-${name}`;
+        card.appendChild(palRow);
+
+        grid.appendChild(card);
+        renderToCanvas(outCanvas, pixelData, pixelRes, palRow);
+      }
+      document.getElementById('status').textContent = `Re-processed ${sourceImages.length} images at ${pixelRes}px`;
+    });
+
+    // --- Pixelate ---
+    function pixelate(img, res) {
+      const small = document.createElement('canvas');
+      small.width = res;
+      small.height = res;
+      const sCtx = small.getContext('2d');
+      sCtx.clearRect(0, 0, res, res);
+
+      const scale = Math.min(res / img.width, res / img.height);
+      const w = img.width * scale;
+      const h = img.height * scale;
+      const x = (res - w) / 2;
+      const y = (res - h) / 2;
+      sCtx.drawImage(img, x, y, w, h);
+
+      const pixelData = sCtx.getImageData(0, 0, res, res);
+      return { pixelData };
+    }
+
+    // ===== COLOR UTILITIES =====
+    function rgbToHsl(r, g, b) {
+      r /= 255; g /= 255; b /= 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      let h, s, l = (max + min) / 2;
+      if (max === min) { h = s = 0; }
+      else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+          case g: h = ((b - r) / d + 2) / 6; break;
+          case b: h = ((r - g) / d + 4) / 6; break;
+        }
+      }
+      return [h, s, l];
+    }
+
+    function hslToRgb(h, s, l) {
+      let r, g, b;
+      if (s === 0) { r = g = b = l; }
+      else {
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        const hue2rgb = (p, q, t) => {
+          if (t < 0) t += 1; if (t > 1) t -= 1;
+          if (t < 1/6) return p + (q - p) * 6 * t;
+          if (t < 1/2) return q;
+          if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+          return p;
+        };
+        r = hue2rgb(p, q, h + 1/3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1/3);
+      }
+      return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+    }
+
+    function lum(r, g, b) { return (r * 0.299 + g * 0.587 + b * 0.114) / 255; }
+
+    function colorDist(a, b) {
+      const dr = a[0] - b[0], dg = a[1] - b[1], db = a[2] - b[2];
+      return dr * dr + dg * dg + db * db;
+    }
+
+    // ===== MODE: CHANNEL MIX (통도혼합 — 추천) =====
+    // 《无尽战区》에서 사용한 채널 혼합 방식.
+    //
+    // 원리:
+    //   DyeColor.r = Base.r * M[0][0] + Base.g * M[0][1] + Base.b * M[0][2] + C[0]
+    //   DyeColor.g = Base.r * M[1][0] + Base.g * M[1][1] + Base.b * M[1][2] + C[1]
+    //   DyeColor.b = Base.r * M[2][0] + Base.g * M[2][1] + Base.b * M[2][2] + C[2]
+    //
+    // 3x3 매트릭스(M) + 상수(C) = 12 파라미터로 임의의 색 변환 가능.
+    // HSV와 달리 냉난 관계가 보존되고, 채널 간 관계가 유지됨.
+    //
+    // 자동화:
+    //   1. K-means로 원본 대표색 K개 추출
+    //   2. 브랜드 팔레트에서 대응 타겟색 K개 생성
+    //   3. 최소제곱법(Least Squares)으로 최적 M, C 자동 계산
+    //   4. 전체 픽셀에 매트릭스 적용
+
+    // 4x4 정규방정식 풀기 (Ax=b → x = (A^T A)^{-1} A^T b)
+    // A: Kx4 [r, g, b, 1], b: Kx1 (타겟 채널값)
+    function solveLeastSquares(pairs, channel) {
+      // pairs: [{src:[r,g,b], dst:[r,g,b]}, ...]
+      const n = pairs.length;
+      // A^T A (4x4) and A^T b (4x1)
+      const ATA = Array.from({length: 4}, () => new Float64Array(4));
+      const ATb = new Float64Array(4);
+
+      for (const p of pairs) {
+        const row = [p.src[0] / 255, p.src[1] / 255, p.src[2] / 255, 1.0];
+        const target = p.dst[channel] / 255;
+        for (let i = 0; i < 4; i++) {
+          for (let j = 0; j < 4; j++) {
+            ATA[i][j] += row[i] * row[j];
+          }
+          ATb[i] += row[i] * target;
+        }
+      }
+
+      // 정규화 항 추가 (Tikhonov regularization) — 과적합 방지
+      const lambda = 0.01;
+      for (let i = 0; i < 4; i++) ATA[i][i] += lambda;
+
+      // 가우스 소거법
+      const aug = ATA.map((row, i) => [...row, ATb[i]]);
+      for (let col = 0; col < 4; col++) {
+        // 피벗 선택
+        let maxRow = col, maxVal = Math.abs(aug[col][col]);
+        for (let row = col + 1; row < 4; row++) {
+          if (Math.abs(aug[row][col]) > maxVal) {
+            maxVal = Math.abs(aug[row][col]);
+            maxRow = row;
+          }
+        }
+        [aug[col], aug[maxRow]] = [aug[maxRow], aug[col]];
+
+        const pivot = aug[col][col];
+        if (Math.abs(pivot) < 1e-10) continue;
+        for (let j = col; j <= 4; j++) aug[col][j] /= pivot;
+        for (let row = 0; row < 4; row++) {
+          if (row === col) continue;
+          const factor = aug[row][col];
+          for (let j = col; j <= 4; j++) aug[row][j] -= factor * aug[col][j];
+        }
+      }
+
+      return aug.map(row => row[4]); // [M_r, M_g, M_b, C]
+    }
+
+    function computeChannelMixMatrix(origColors, targetColors) {
+      // 색 쌍 구성 (+ 흑/백 앵커 포인트 추가로 안정성 강화)
+      const pairs = [];
+      for (let i = 0; i < origColors.length; i++) {
+        pairs.push({ src: origColors[i], dst: targetColors[i] });
+      }
+      // 앵커: 검정→검정, 흰→흰 (명암 보존 유도)
+      pairs.push({ src: [0, 0, 0],       dst: [0, 0, 0] });
+      pairs.push({ src: [255, 255, 255], dst: [255, 255, 255] });
+      // 앵커: 중간 회색 보존
+      pairs.push({ src: [128, 128, 128], dst: [128, 128, 128] });
+
+      // 각 출력 채널별 최적 계수 계산
+      const coeffR = solveLeastSquares(pairs, 0);
+      const coeffG = solveLeastSquares(pairs, 1);
+      const coeffB = solveLeastSquares(pairs, 2);
+
+      return {
+        // 3x3 매트릭스
+        matrix: [
+          [coeffR[0], coeffR[1], coeffR[2]],
+          [coeffG[0], coeffG[1], coeffG[2]],
+          [coeffB[0], coeffB[1], coeffB[2]],
+        ],
+        // 상수 벡터
+        constant: [coeffR[3], coeffG[3], coeffB[3]],
+      };
+    }
+
+    function applyChannelMix(data, palette) {
+      const k = parseInt(document.getElementById('quantizeK').value);
+      const str = paletteStrength;
+
+      // 1. 원본 대표색 추출
+      const origColors = kMeansQuantize(data, k);
+      if (origColors.length === 0) return;
+
+      // 2. 타겟 팔레트 생성
+      const targetColors = buildTargetPalette(palette, origColors.length);
+
+      // 3. 채널 혼합 매트릭스 자동 계산
+      const { matrix: M, constant: C } = computeChannelMixMatrix(origColors, targetColors);
+
+      // 4. 전체 픽셀에 매트릭스 적용
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i + 3] < 10) continue;
+
+        const r = data[i] / 255;
+        const g = data[i + 1] / 255;
+        const b = data[i + 2] / 255;
+
+        // Channel Mix: out = M * in + C
+        const nr = (M[0][0] * r + M[0][1] * g + M[0][2] * b + C[0]) * 255;
+        const ng = (M[1][0] * r + M[1][1] * g + M[1][2] * b + C[1]) * 255;
+        const nb = (M[2][0] * r + M[2][1] * g + M[2][2] * b + C[2]) * 255;
+
+        // Strength 블렌드 + 클램프
+        data[i]     = Math.max(0, Math.min(255, Math.round(data[i]     * (1-str) + nr * str)));
+        data[i + 1] = Math.max(0, Math.min(255, Math.round(data[i + 1] * (1-str) + ng * str)));
+        data[i + 2] = Math.max(0, Math.min(255, Math.round(data[i + 2] * (1-str) + nb * str)));
+      }
+    }
+
+    // ===== MODE: MULTI-HUE SHIFT =====
+    // Hue Shift의 자연스러움 + 브랜드 멀티컬러 활용
+    //
+    // 원리:
+    // 1. 원본 이미지에서 K-means로 대표 색 그룹 추출 (HSL 공간)
+    // 2. 추출된 그룹을 명도순 정렬
+    // 3. 브랜드 컬러도 명도순 정렬, weight 비율에 따라 그룹에 배분
+    // 4. 각 픽셀의 H/S를 해당 브랜드 컬러 방향으로 부드럽게 전환
+    // 5. L(밝기)은 원본 그대로 보존
+    //
+    // → 포켓몬의 각 색상 영역(몸통, 배, 눈, 무늬 등)이
+    //   브랜드의 서로 다른 컬러로 자연스럽게 매핑됨
+
+    function applyMultiHue(data, palette) {
+      const k = parseInt(document.getElementById('quantizeK').value);
+      const str = paletteStrength;
+
+      // 1. 불투명 픽셀을 HSL로 변환하여 수집
+      const pixels = [];
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i + 3] > 10) {
+          const [h, s, l] = rgbToHsl(data[i], data[i+1], data[i+2]);
+          pixels.push({ i, h, s, l, r: data[i], g: data[i+1], b: data[i+2] });
+        }
+      }
+      if (pixels.length === 0) return;
+
+      // 2. K-means on RGB → 색 그룹 추출
+      const origCenters = kMeansQuantize(data, k);
+      if (origCenters.length === 0) return;
+
+      // 원본 센터의 HSL 계산
+      const origHsl = origCenters.map(c => {
+        const [h, s, l] = rgbToHsl(...c);
+        return { rgb: c, h, s, l, lum: lum(...c) };
+      });
+      // 명도순 정렬
+      origHsl.sort((a, b) => a.lum - b.lum);
+
+      // 3. 브랜드 컬러를 명도순 정렬 + HSL 계산
+      const brandColors = palette.colors.map(c => {
+        const [h, s, l] = rgbToHsl(...c.rgb);
+        return { rgb: c.rgb, h, s, l, weight: c.weight, lum: lum(...c.rgb) };
+      }).sort((a, b) => a.lum - b.lum);
+
+      // 4. weight 비율에 따라 origHsl 그룹에 브랜드 컬러 배분
+      //    예: 브랜드 [A:0.4, B:0.35, C:0.25] + orig 8그룹
+      //    → A에 3개, B에 3개, C에 2개 배분
+      const totalGroups = origHsl.length;
+      const assignment = []; // assignment[i] = brandColor for origHsl[i]
+      let groupIdx = 0;
+      for (const bc of brandColors) {
+        const count = Math.max(1, Math.round(bc.weight * totalGroups));
+        for (let j = 0; j < count && groupIdx < totalGroups; j++) {
+          assignment[groupIdx] = bc;
+          groupIdx++;
+        }
+      }
+      // 남은 그룹은 마지막 브랜드 컬러로
+      while (assignment.length < totalGroups) {
+        assignment.push(brandColors[brandColors.length - 1]);
+      }
+
+      // 5. 각 픽셀 → 가장 가까운 orig 그룹 → 매핑된 브랜드 컬러 방향으로 HSL 전환
+      for (const px of pixels) {
+        // 가장 가까운 센터 찾기
+        let minD = Infinity, minJ = 0;
+        for (let j = 0; j < origHsl.length; j++) {
+          const d = colorDist([px.r, px.g, px.b], origHsl[j].rgb);
+          if (d < minD) { minD = d; minJ = j; }
+        }
+
+        const target = assignment[minJ];
+
+        // 무채색 처리: 원본이 거의 무채색이면 가볍게만 틴트
+        if (px.s < 0.06) {
+          // 무채색 → 약간의 브랜드 틴트만
+          const [tr, tg, tb] = hslToRgb(target.h, 0.15, px.l);
+          const t = str * 0.3; // 무채색엔 약하게
+          data[px.i]     = Math.round(px.r * (1-t) + tr * t);
+          data[px.i + 1] = Math.round(px.g * (1-t) + tg * t);
+          data[px.i + 2] = Math.round(px.b * (1-t) + tb * t);
+          continue;
+        }
+
+        // H: 브랜드 hue 방향으로 이동 (원본 변차 20% 보존)
+        const hueDiff = px.h - origHsl[minJ].h;
+        let newH = target.h + hueDiff * 0.2;
+        if (newH < 0) newH += 1;
+        if (newH > 1) newH -= 1;
+
+        // S: 브랜드 채도 방향으로 블렌드 (원본 50% + 브랜드 50%)
+        const newS = Math.min(1, px.s * 0.5 + target.s * 0.5);
+
+        // L: 원본 그대로 보존 (형태/명암 유지의 핵심)
+        const newL = px.l;
+
+        const [nr, ng, nb] = hslToRgb(newH, newS, newL);
+        data[px.i]     = Math.round(px.r * (1-str) + nr * str);
+        data[px.i + 1] = Math.round(px.g * (1-str) + ng * str);
+        data[px.i + 2] = Math.round(px.b * (1-str) + nb * str);
+      }
+    }
+
+    // ===== MODE 1: HUE SHIFT (Shiny Pokemon 방식) =====
+    // 원본 HSL에서 H만 타겟 hue 방향으로 회전.
+    // S, L 완벽 보존 → 형태/명암 그대로, 색조만 변환.
+    // Gen2에서 shiny를 생성한 원리와 동일.
+    function applyHueShift(data, palette) {
+      const targetH = palette.hue / 360;
+      const str = paletteStrength;
+
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i + 3] < 10) continue;
+        const [h, s, l] = rgbToHsl(data[i], data[i+1], data[i+2]);
+
+        // 무채색(s < 0.08)은 건너뜀 → 흰/검/회는 유지
+        if (s < 0.08) continue;
+
+        // 새 hue: 타겟 hue 중심으로 원본 변차(variation) 보존
+        const variation = h - 0.5; // -0.5 ~ +0.5
+        let newH = targetH + variation * 0.3; // 30% 변차 유지
+        if (newH < 0) newH += 1;
+        if (newH > 1) newH -= 1;
+
+        const [nr, ng, nb] = hslToRgb(newH, s, l);
+        data[i]   = Math.round(data[i]   * (1 - str) + nr * str);
+        data[i+1] = Math.round(data[i+1] * (1 - str) + ng * str);
+        data[i+2] = Math.round(data[i+2] * (1 - str) + nb * str);
+      }
+    }
+
+    // ===== MODE 2: PALETTE SWAP (인덱스드 팔레트 방식) =====
+    // 1. K-means로 원본 이미지를 K색으로 양자화
+    // 2. 추출된 K색을 명도순 정렬
+    // 3. 타겟 팔레트를 명도순으로 K색 생성 (weight 비율로 보간)
+    // 4. 각 원본 픽셀 → 가장 가까운 양자화색 → 대응하는 타겟색으로 교체
+    // 5. 명암 미세 보정으로 디테일 보존
+
+    function kMeansQuantize(data, k, maxIter = 12) {
+      // 불투명 픽셀만 수집
+      const pixels = [];
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i + 3] > 10) pixels.push([data[i], data[i+1], data[i+2]]);
+      }
+      if (pixels.length === 0) return [];
+
+      // 초기 중심: 균등 분포 샘플
+      const step = Math.max(1, Math.floor(pixels.length / k));
+      const sorted = [...pixels].sort((a, b) => lum(...a) - lum(...b));
+      let centers = [];
+      for (let i = 0; i < k; i++) {
+        centers.push([...sorted[Math.min(i * step, sorted.length - 1)]]);
+      }
+
+      // K-means 반복
+      for (let iter = 0; iter < maxIter; iter++) {
+        const clusters = Array.from({ length: k }, () => []);
+        for (const px of pixels) {
+          let minD = Infinity, minJ = 0;
+          for (let j = 0; j < k; j++) {
+            const d = colorDist(px, centers[j]);
+            if (d < minD) { minD = d; minJ = j; }
+          }
+          clusters[minJ].push(px);
+        }
+        let moved = false;
+        for (let j = 0; j < k; j++) {
+          if (clusters[j].length === 0) continue;
+          const avg = [0, 0, 0];
+          for (const px of clusters[j]) { avg[0] += px[0]; avg[1] += px[1]; avg[2] += px[2]; }
+          const n = clusters[j].length;
+          const newC = [Math.round(avg[0]/n), Math.round(avg[1]/n), Math.round(avg[2]/n)];
+          if (colorDist(newC, centers[j]) > 4) moved = true;
+          centers[j] = newC;
+        }
+        if (!moved) break;
+      }
+
+      // 명도순 정렬
+      centers.sort((a, b) => lum(...a) - lum(...b));
+      return centers;
+    }
+
+    function buildTargetPalette(palette, k) {
+      // 팔레트 colors를 명도순 정렬
+      const src = palette.colors.map(c => ({
+        rgb: c.rgb, weight: c.weight, lum: lum(...c.rgb),
+      })).sort((a, b) => a.lum - b.lum);
+
+      // weight 비율에 따라 누적 구간 생성
+      const cumulative = [];
+      let acc = 0;
+      for (const s of src) {
+        cumulative.push({ start: acc, end: acc + s.weight, rgb: s.rgb });
+        acc += s.weight;
+      }
+
+      // K개 색을 균등 위치에서 샘플 (구간 내 보간)
+      const result = [];
+      for (let i = 0; i < k; i++) {
+        const t = (i + 0.5) / k; // 0~1 구간의 중심점
+        // 해당 위치의 구간 찾기
+        let seg = cumulative[cumulative.length - 1];
+        for (const c of cumulative) {
+          if (t <= c.end) { seg = c; break; }
+        }
+        result.push([...seg.rgb]);
+      }
+      return result;
+    }
+
+    function applyPaletteSwap(data, palette) {
+      const k = parseInt(document.getElementById('quantizeK').value);
+      const str = paletteStrength;
+
+      // 1. 원본 색 추출 (K-means)
+      const origColors = kMeansQuantize(data, k);
+      if (origColors.length === 0) return;
+
+      // 2. 타겟 팔레트 생성 (같은 K개, 명도순)
+      const targetColors = buildTargetPalette(palette, origColors.length);
+
+      // 3. 매핑 적용
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i + 3] < 10) continue;
+        const px = [data[i], data[i+1], data[i+2]];
+
+        // 가장 가까운 양자화색 찾기
+        let minD = Infinity, minJ = 0;
+        for (let j = 0; j < origColors.length; j++) {
+          const d = colorDist(px, origColors[j]);
+          if (d < minD) { minD = d; minJ = j; }
+        }
+
+        // 원본색과 양자화색의 명도 차이 → 타겟에도 반영 (디테일 보존)
+        const origLum = lum(...px);
+        const quantLum = lum(...origColors[minJ]);
+        const lumDelta = origLum - quantLum; // -1 ~ +1
+        const tc = targetColors[minJ];
+
+        // 타겟색에 명도 차이 반영
+        const scale = 1 + lumDelta * 1.5;
+        const pr = Math.max(0, Math.min(255, Math.round(tc[0] * scale)));
+        const pg = Math.max(0, Math.min(255, Math.round(tc[1] * scale)));
+        const pb = Math.max(0, Math.min(255, Math.round(tc[2] * scale)));
+
+        data[i]   = Math.round(data[i]   * (1 - str) + pr * str);
+        data[i+1] = Math.round(data[i+1] * (1 - str) + pg * str);
+        data[i+2] = Math.round(data[i+2] * (1 - str) + pb * str);
+      }
+    }
+
+    // ===== MODE 3: TINT BAND (기존 명도밴드 방식) =====
+    function applyTintBand(data, palette) {
+      const entries = palette.colors.map(c => ({
+        rgb: c.rgb, weight: c.weight, lum: lum(...c.rgb),
+      })).sort((a, b) => a.lum - b.lum);
+      const bands = [];
+      let cursor = 0;
+      for (const e of entries) {
+        bands.push({ start: cursor, end: cursor + e.weight, rgb: e.rgb });
+        cursor += e.weight;
+      }
+      const str = paletteStrength;
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i + 3] < 10) continue;
+        const l = lum(data[i], data[i+1], data[i+2]);
+        let band = bands[bands.length - 1];
+        for (const bd of bands) { if (l <= bd.end) { band = bd; break; } }
+        const br = band.end - band.start;
+        const t = br > 0.001 ? (l - band.start) / br : 0.5;
+        const sc = 0.6 + t * 0.8;
+        data[i]   = Math.round(data[i]   * (1-str) + Math.min(255, band.rgb[0]*sc) * str);
+        data[i+1] = Math.round(data[i+1] * (1-str) + Math.min(255, band.rgb[1]*sc) * str);
+        data[i+2] = Math.round(data[i+2] * (1-str) + Math.min(255, band.rgb[2]*sc) * str);
+      }
+    }
+
+    // ===== DISPATCH =====
+    function applyPalette(data, palette) {
+      const mode = document.getElementById('colorMode').value;
+      switch (mode) {
+        case 'channelMix':  applyChannelMix(data, palette); break;
+        case 'multiHue':    applyMultiHue(data, palette); break;
+        case 'hueShift':    applyHueShift(data, palette); break;
+        case 'paletteSwap': applyPaletteSwap(data, palette); break;
+        case 'tintBand':    applyTintBand(data, palette); break;
+      }
+    }
+
+    // --- Render ---
+    function renderToCanvas(outCanvas, pixelData, pixelRes, palRow) {
+      const ctx = outCanvas.getContext('2d');
+      ctx.clearRect(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
+
+      const palette = PALETTES[currentPalette];
+      const data = new Uint8ClampedArray(pixelData.data);
+
+      if (palette) applyPalette(data, palette);
+
+      const pxSize = OUTPUT_SIZE / pixelRes;
+      const colors = new Map();
+
+      for (let y = 0; y < pixelRes; y++) {
+        for (let x = 0; x < pixelRes; x++) {
+          const i = (y * pixelRes + x) * 4;
+          const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
+          if (a < 10) continue;
+          ctx.fillStyle = `rgba(${r},${g},${b},${a/255})`;
+          ctx.fillRect(Math.floor(x * pxSize), Math.floor(y * pxSize), Math.ceil(pxSize), Math.ceil(pxSize));
+          if (a > 128) {
+            const key = `${r},${g},${b}`;
+            colors.set(key, (colors.get(key) || 0) + 1);
+          }
+        }
+      }
+
+      if (palRow) {
+        palRow.innerHTML = '';
+        const sorted = [...colors.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12);
+        for (const [color] of sorted) {
+          const swatch = document.createElement('div');
+          swatch.className = 'swatch';
+          swatch.style.background = `rgb(${color})`;
+          palRow.appendChild(swatch);
+        }
+      }
+    }
+
+    // --- Recolor ---
+    function recolorAll() {
+      for (const item of loadedImages) {
+        const card = document.getElementById(`card-${item.name}`);
+        if (!card) continue;
+        renderToCanvas(card.querySelector('canvas'), item.pixelData, item.pixelRes, document.getElementById(`pal-${item.name}`));
+      }
+    }
+
+    // --- Download ---
+    document.getElementById('download-all').addEventListener('click', () => {
+      for (const item of loadedImages) {
+        const card = document.getElementById(`card-${item.name}`);
+        if (!card) continue;
+        const link = document.createElement('a');
+        const suffix = currentPalette === 'Original' ? '' : `-${currentPalette.split(' ')[0].toLowerCase()}`;
+        link.download = `modelmon-${item.name}${suffix}.png`;
+        link.href = card.querySelector('canvas').toDataURL('image/png');
+        link.click();
+      }
+    });
+  </script>
+</body>
+</html>

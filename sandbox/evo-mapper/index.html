@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evo Line → AI Brand Mapper (79:79)</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0e0e1a; color: #ddd; font-family: 'Segoe UI', sans-serif; }
+
+    /* Layout: 왼쪽 브랜드 패널 + 오른쪽 그리드 */
+    .app { display: flex; height: 100vh; }
+
+    /* ── LEFT PANEL: 브랜드 목록 ── */
+    .panel {
+      width: 280px; flex-shrink: 0; background: #12121e; border-right: 1px solid #222;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .panel-header { padding: 12px; border-bottom: 1px solid #222; }
+    .panel-header h1 { font-size: 1rem; color: #7b2ff7; margin-bottom: 2px; }
+    .panel-header .sub { font-size: 0.7rem; color: #555; }
+    .panel-stats {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
+      padding: 8px 12px; border-bottom: 1px solid #222; background: #0e0e18;
+    }
+    .panel-stats .s { text-align: center; }
+    .panel-stats .s .n { font-size: 1.1rem; font-weight: 900; color: #7b2ff7; }
+    .panel-stats .s .l { font-size: 0.6rem; color: #555; }
+    .panel-search {
+      padding: 6px 12px; border-bottom: 1px solid #222;
+    }
+    .panel-search input {
+      width: 100%; background: #1a1a2e; border: 1px solid #333; color: #fff;
+      padding: 5px 8px; border-radius: 4px; font-size: 0.8rem;
+    }
+    .brand-list { flex: 1; overflow-y: auto; padding: 4px 0; }
+    .brand-group-label {
+      padding: 6px 12px 2px; font-size: 0.6rem; color: #444;
+      text-transform: uppercase; letter-spacing: 1px; font-weight: 700;
+      position: sticky; top: 0; background: #12121e; z-index: 1;
+    }
+    .brand-item {
+      display: flex; align-items: center; gap: 8px; padding: 5px 12px;
+      cursor: pointer; transition: background 0.1s; font-size: 0.8rem;
+      border-left: 3px solid transparent;
+    }
+    .brand-item:hover { background: #1a1a30; }
+    .brand-item.active { background: #1e1e40; border-left-color: var(--c); }
+    .brand-item .dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+    .brand-item .bname { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .brand-item .bcount {
+      font-size: 0.65rem; background: #222; color: #666; padding: 1px 5px;
+      border-radius: 8px; min-width: 18px; text-align: center;
+    }
+    .brand-item .bcount.has { background: var(--c); color: #fff; }
+    .brand-item.dimmed { opacity: 0.35; }
+
+    .panel-actions { padding: 8px 12px; border-top: 1px solid #222; display: flex; flex-direction: column; gap: 4px; }
+    .panel-actions button {
+      padding: 6px; background: #222; color: #aaa; border: 1px solid #333;
+      border-radius: 4px; cursor: pointer; font-size: 0.75rem; text-align: center;
+    }
+    .panel-actions button:hover { background: #333; color: #fff; }
+    .panel-actions button.primary { background: #7b2ff7; color: #fff; border-color: #7b2ff7; }
+
+    /* ── RIGHT: 메인 그리드 ── */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .toolbar {
+      padding: 8px 16px; border-bottom: 1px solid #222; background: #0e0e18;
+      display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    }
+    .toolbar .search-main {
+      background: #1a1a2e; border: 1px solid #333; color: #fff;
+      padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; width: 180px;
+    }
+    .filter-pills { display: flex; gap: 4px; }
+    .pill {
+      padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; cursor: pointer;
+      border: 1px solid #333; background: #1a1a2e; color: #777;
+    }
+    .pill.active { background: #7b2ff7; color: #fff; border-color: #7b2ff7; }
+    .toolbar .spacer { flex: 1; }
+    .toolbar .hint { font-size: 0.65rem; color: #444; }
+
+    /* Grid */
+    .grid-scroll { flex: 1; overflow-y: auto; padding: 8px 16px; }
+    .evo-grid { display: flex; flex-direction: column; gap: 4px; }
+    .evo-row {
+      display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+      background: #151525; border: 1px solid #1e1e35; border-radius: 6px;
+      cursor: pointer; transition: all 0.1s; user-select: none;
+      border-left: 4px solid transparent;
+    }
+    .evo-row:hover { background: #1a1a38; border-color: #333; }
+    .evo-row.assigned { border-left-color: var(--brand-color); }
+    .evo-row.highlight { box-shadow: 0 0 0 2px var(--brand-color); }
+    .evo-row.painting { background: #1e2850; }
+
+    .evo-num { font-size: 0.6rem; color: #444; width: 32px; text-align: right; flex-shrink: 0; }
+    .evo-sprites { display: flex; gap: 1px; flex-shrink: 0; }
+    .evo-sprites img {
+      width: 40px; height: 40px; image-rendering: pixelated;
+      background: #0a0a14; border-radius: 3px;
+    }
+    .evo-info { flex: 1; min-width: 0; }
+    .evo-name { font-weight: 700; font-size: 0.85rem; }
+    .evo-meta { font-size: 0.65rem; color: #555; }
+    .evo-tag {
+      padding: 2px 8px; border-radius: 3px; font-size: 0.65rem; font-weight: 600;
+      white-space: nowrap; max-width: 160px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .evo-tag.empty { background: #1a1a1a; color: #444; }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: #7b2ff7; color: #fff; padding: 8px 20px; border-radius: 6px;
+      font-size: 0.8rem; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 100;
+    }
+    .toast.show { opacity: 1; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT PANEL -->
+  <div class="panel">
+    <div class="panel-header">
+      <h1>AI Brand Palette</h1>
+      <div class="sub">79 brands — click to paint</div>
+    </div>
+    <div class="panel-stats" id="stats"></div>
+    <div class="panel-search">
+      <input id="brand-search" placeholder="브랜드 검색...">
+    </div>
+    <div class="brand-list" id="brand-list"></div>
+    <div class="panel-actions">
+      <button class="primary" id="btn-auto">Auto Assign (미할당)</button>
+      <button id="btn-clear">Clear All</button>
+      <button id="btn-export">Export CSV</button>
+      <button id="btn-import">Import CSV</button>
+      <input type="file" id="csv-file" accept=".csv" style="display:none">
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="toolbar">
+      <input class="search-main" id="evo-search" placeholder="진화라인 검색...">
+      <div class="filter-pills" id="filters">
+        <span class="pill active" data-f="all">전체 79</span>
+        <span class="pill" data-f="unassigned">미할당</span>
+        <span class="pill" data-f="assigned">할당됨</span>
+        <span class="pill" data-f="s1">1단</span>
+        <span class="pill" data-f="s2">2단</span>
+        <span class="pill" data-f="s3">3단+</span>
+      </div>
+      <div class="spacer"></div>
+      <div class="hint">좌측 브랜드 선택 → 우측 라인 클릭 (드래그 페인트 가능)</div>
+    </div>
+    <div class="grid-scroll" id="grid-scroll">
+      <div class="evo-grid" id="grid"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// 79 AI BRANDS (grouped by category)
+// ============================================================
+const BRANDS = [
+  // ── Foundation Models ──
+  { key:'OpenAI',         group:'Foundation', color:'#10A37F' },
+  { key:'Anthropic',      group:'Foundation', color:'#CC7843' },
+  { key:'Google DeepMind',group:'Foundation', color:'#4285F4' },
+  { key:'Meta AI',        group:'Foundation', color:'#0064D2' },
+  { key:'xAI',            group:'Foundation', color:'#DC2828' },
+  { key:'Mistral',        group:'Foundation', color:'#F58220' },
+  { key:'DeepSeek',       group:'Foundation', color:'#6B5CE7' },
+  { key:'Cohere',         group:'Foundation', color:'#39594D' },
+  { key:'AI21 Labs',      group:'Foundation', color:'#5B21B6' },
+  { key:'Inflection',     group:'Foundation', color:'#E879A8' },
+  { key:'Reka AI',        group:'Foundation', color:'#FF6B4A' },
+  { key:'Aleph Alpha',    group:'Foundation', color:'#2D6A4F' },
+
+  // ── Chinese AI ──
+  { key:'Baidu (Ernie)',  group:'Chinese AI', color:'#2932E1' },
+  { key:'Alibaba (Qwen)', group:'Chinese AI', color:'#FF6A00' },
+  { key:'Tencent (Hunyuan)',group:'Chinese AI',color:'#00C853' },
+  { key:'ByteDance (Doubao)',group:'Chinese AI',color:'#25F4EE' },
+  { key:'Zhipu AI (GLM)', group:'Chinese AI', color:'#6C63FF' },
+  { key:'01.AI (Yi)',      group:'Chinese AI', color:'#1A73E8' },
+  { key:'Minimax',         group:'Chinese AI', color:'#FF5252' },
+  { key:'Moonshot (Kimi)', group:'Chinese AI', color:'#B388FF' },
+  { key:'SenseTime',       group:'Chinese AI', color:'#00BFA5' },
+  { key:'iFlytek (Spark)', group:'Chinese AI', color:'#E040FB' },
+
+  // ── Korean AI ──
+  { key:'Naver (HyperCLOVA)',group:'Korean AI',color:'#03CF5D' },
+  { key:'Kakao Brain',    group:'Korean AI', color:'#FEE500' },
+  { key:'Upstage (Solar)',group:'Korean AI', color:'#4FC3F7' },
+  { key:'LG (EXAONE)',    group:'Korean AI', color:'#A50034' },
+  { key:'Samsung (Gauss)',group:'Korean AI', color:'#1428A0' },
+  { key:'SK Telecom (A.)',group:'Korean AI', color:'#E4002B' },
+
+  // ── Code & Dev Tools ──
+  { key:'Cursor',         group:'Dev Tools', color:'#7C3AED' },
+  { key:'Replit',         group:'Dev Tools', color:'#F26207' },
+  { key:'GitHub Copilot', group:'Dev Tools', color:'#6E40C9' },
+  { key:'Tabnine',        group:'Dev Tools', color:'#6B69FF' },
+  { key:'Codeium',        group:'Dev Tools', color:'#09B6A2' },
+  { key:'Sourcegraph (Cody)',group:'Dev Tools',color:'#A112FF' },
+
+  // ── Image / Video Gen ──
+  { key:'Midjourney',     group:'Image/Video',color:'#687AC8' },
+  { key:'Stability AI',   group:'Image/Video',color:'#B85CFF' },
+  { key:'Runway',          group:'Image/Video',color:'#00D4AA' },
+  { key:'Adobe Firefly',   group:'Image/Video',color:'#FF0000' },
+  { key:'Pika',            group:'Image/Video',color:'#FF77A9' },
+  { key:'Luma AI',         group:'Image/Video',color:'#8B5CF6' },
+  { key:'Ideogram',        group:'Image/Video',color:'#3B82F6' },
+  { key:'Leonardo AI',     group:'Image/Video',color:'#A855F7' },
+  { key:'Flux (BFL)',      group:'Image/Video',color:'#EC4899' },
+  { key:'Kling (Kuaishou)',group:'Image/Video',color:'#FF6F00' },
+
+  // ── Voice / Music ──
+  { key:'ElevenLabs',     group:'Voice/Music',color:'#1DB954' },
+  { key:'Suno',           group:'Voice/Music',color:'#FF4081' },
+  { key:'Udio',           group:'Voice/Music',color:'#7C4DFF' },
+  { key:'Hume AI',        group:'Voice/Music',color:'#FFB74D' },
+  { key:'PlayHT',         group:'Voice/Music',color:'#00E5FF' },
+
+  // ── Search / RAG ──
+  { key:'Perplexity',     group:'Search/RAG', color:'#20B2AA' },
+  { key:'You.com',        group:'Search/RAG', color:'#5468FF' },
+  { key:'Brave Leo',      group:'Search/RAG', color:'#FB542B' },
+  { key:'Pinecone',       group:'Search/RAG', color:'#1B1F3B' },
+  { key:'Weaviate',       group:'Search/RAG', color:'#01B395' },
+
+  // ── Infra / Hardware ──
+  { key:'Nvidia',         group:'Infra',     color:'#76B900' },
+  { key:'AMD',            group:'Infra',     color:'#ED1C24' },
+  { key:'Intel',          group:'Infra',     color:'#0071C5' },
+  { key:'Groq',           group:'Infra',     color:'#F55036' },
+  { key:'Cerebras',       group:'Infra',     color:'#FF6E40' },
+  { key:'SambaNova',      group:'Infra',     color:'#7B1FA2' },
+  { key:'Together AI',    group:'Infra',     color:'#3D5AFE' },
+
+  // ── Agent / Platform ──
+  { key:'Character.AI',   group:'Agent/Platform',color:'#5C6BC0' },
+  { key:'Jasper',          group:'Agent/Platform',color:'#FF5722' },
+  { key:'Writer',          group:'Agent/Platform',color:'#2979FF' },
+  { key:'Scale AI',        group:'Agent/Platform',color:'#6D28D9' },
+  { key:'Hugging Face',    group:'Agent/Platform',color:'#FFD21E' },
+  { key:'Weights & Biases',group:'Agent/Platform',color:'#FFBE00' },
+  { key:'LangChain',       group:'Agent/Platform',color:'#1C3C3C' },
+  { key:'Databricks',      group:'Agent/Platform',color:'#FF3621' },
+
+  // ── Robotics / Embodied ──
+  { key:'Tesla (Optimus)', group:'Robotics',  color:'#CC0000' },
+  { key:'Boston Dynamics',  group:'Robotics',  color:'#FFD600' },
+  { key:'Figure AI',       group:'Robotics',  color:'#BDBDBD' },
+  { key:'Sanctuary AI',    group:'Robotics',  color:'#26A69A' },
+
+  // ── Frontier / Research ──
+  { key:'Apple Intelligence',group:'Frontier', color:'#643CDC' },
+  { key:'Amazon Bedrock',  group:'Frontier',  color:'#FF9900' },
+  { key:'Ditto (Synthetic)',group:'Frontier', color:'#E0E0E0' },
+  { key:'Mew (Unknown)',   group:'Frontier',  color:'#F8BBD0' },
+];
+
+const brandMap = {};
+BRANDS.forEach(b => brandMap[b.key] = b);
+
+// ============================================================
+// EVO LINES CSV (embedded)
+// ============================================================
+const CSV = `evo_line_id,evo_line_name,dex_start,dex_end,members,stage_count,assigned_brand
+EVO01,Bulbasaur Line,1,3,001/002/003,3,
+EVO02,Charmander Line,4,6,004/005/006,3,
+EVO03,Squirtle Line,7,9,007/008/009,3,
+EVO04,Caterpie Line,10,12,010/011/012,3,
+EVO05,Weedle Line,13,15,013/014/015,3,
+EVO06,Pidgey Line,16,18,016/017/018,3,
+EVO07,Rattata Line,19,20,019/020,2,
+EVO08,Spearow Line,21,22,021/022,2,
+EVO09,Ekans Line,23,24,023/024,2,
+EVO10,Pikachu Line,25,26,025/026,2,
+EVO11,Sandshrew Line,27,28,027/028,2,
+EVO12,Nidoran♀ Line,29,31,029/030/031,3,
+EVO13,Nidoran♂ Line,32,34,032/033/034,3,
+EVO14,Clefairy Line,35,36,035/036,2,
+EVO15,Vulpix Line,37,38,037/038,2,
+EVO16,Jigglypuff Line,39,40,039/040,2,
+EVO17,Zubat Line,41,42,041/042,2,
+EVO18,Oddish Line,43,45,043/044/045,3,
+EVO19,Paras Line,46,47,046/047,2,
+EVO20,Venonat Line,48,49,048/049,2,
+EVO21,Diglett Line,50,51,050/051,2,
+EVO22,Meowth Line,52,53,052/053,2,
+EVO23,Psyduck Line,54,55,054/055,2,
+EVO24,Mankey Line,56,57,056/057,2,
+EVO25,Growlithe Line,58,59,058/059,2,
+EVO26,Poliwag Line,60,62,060/061/062,3,
+EVO27,Abra Line,63,65,063/064/065,3,
+EVO28,Machop Line,66,68,066/067/068,3,
+EVO29,Bellsprout Line,69,71,069/070/071,3,
+EVO30,Tentacool Line,72,73,072/073,2,
+EVO31,Geodude Line,74,76,074/075/076,3,
+EVO32,Ponyta Line,77,78,077/078,2,
+EVO33,Slowpoke Line,79,80,079/080,2,
+EVO34,Magnemite Line,81,82,081/082,2,
+EVO35,Farfetch'd,83,83,083,1,
+EVO36,Doduo Line,84,85,084/085,2,
+EVO37,Seel Line,86,87,086/087,2,
+EVO38,Grimer Line,88,89,088/089,2,
+EVO39,Shellder Line,90,91,090/091,2,
+EVO40,Gastly Line,92,94,092/093/094,3,
+EVO41,Onix,95,95,095,1,
+EVO42,Drowzee Line,96,97,096/097,2,
+EVO43,Krabby Line,98,99,098/099,2,
+EVO44,Voltorb Line,100,101,100/101,2,
+EVO45,Exeggcute Line,102,103,102/103,2,
+EVO46,Cubone Line,104,105,104/105,2,
+EVO47,Hitmonlee,106,106,106,1,
+EVO48,Hitmonchan,107,107,107,1,
+EVO49,Lickitung,108,108,108,1,
+EVO50,Koffing Line,109,110,109/110,2,
+EVO51,Rhyhorn Line,111,112,111/112,2,
+EVO52,Chansey,113,113,113,1,
+EVO53,Tangela,114,114,114,1,
+EVO54,Kangaskhan,115,115,115,1,
+EVO55,Horsea Line,116,117,116/117,2,
+EVO56,Goldeen Line,118,119,118/119,2,
+EVO57,Staryu Line,120,121,120/121,2,
+EVO58,Mr. Mime,122,122,122,1,
+EVO59,Scyther,123,123,123,1,
+EVO60,Jynx,124,124,124,1,
+EVO61,Electabuzz,125,125,125,1,
+EVO62,Magmar,126,126,126,1,
+EVO63,Pinsir,127,127,127,1,
+EVO64,Tauros,128,128,128,1,
+EVO65,Magikarp Line,129,130,129/130,2,
+EVO66,Lapras,131,131,131,1,
+EVO67,Ditto,132,132,132,1,
+EVO68,Eevee Line,133,136,133/134/135/136,4,
+EVO69,Porygon,137,137,137,1,
+EVO70,Omanyte Line,138,139,138/139,2,
+EVO71,Kabuto Line,140,141,140/141,2,
+EVO72,Aerodactyl,142,142,142,1,
+EVO73,Snorlax,143,143,143,1,
+EVO74,Articuno,144,144,144,1,
+EVO75,Zapdos,145,145,145,1,
+EVO76,Moltres,146,146,146,1,
+EVO77,Dratini Line,147,149,147/148/149,3,
+EVO78,Mewtwo,150,150,150,1,
+EVO79,Mew,151,151,151,1,`;
+
+function parseCSV(t) {
+  const lines = t.trim().split('\n');
+  const h = lines[0].split(',');
+  return lines.slice(1).map(l => {
+    const v = l.split(',');
+    const o = {};
+    h.forEach((k, i) => o[k.trim()] = (v[i]||'').trim());
+    return o;
+  });
+}
+
+let evoLines = parseCSV(CSV);
+
+// ============================================================
+// STATE
+// ============================================================
+let activeBrand = null;
+let evoFilter = 'all';
+let evoSearch = '';
+let brandSearch = '';
+let isPainting = false;
+
+// ============================================================
+// RENDER
+// ============================================================
+function render() {
+  renderStats();
+  renderBrands();
+  renderGrid();
+}
+
+function renderStats() {
+  const assigned = evoLines.filter(e => e.assigned_brand).length;
+  const total = evoLines.length;
+  const usedBrands = new Set(evoLines.map(e => e.assigned_brand).filter(Boolean)).size;
+  document.getElementById('stats').innerHTML = `
+    <div class="s"><div class="n">${assigned}/${total}</div><div class="l">할당</div></div>
+    <div class="s"><div class="n">${usedBrands}/${BRANDS.length}</div><div class="l">브랜드</div></div>
+    <div class="s"><div class="n">${total-assigned}</div><div class="l">남은</div></div>
+  `;
+}
+
+function renderBrands() {
+  const list = document.getElementById('brand-list');
+  list.innerHTML = '';
+
+  // 브랜드별 할당 수
+  const counts = {};
+  BRANDS.forEach(b => counts[b.key] = 0);
+  evoLines.forEach(e => { if (e.assigned_brand) counts[e.assigned_brand] = (counts[e.assigned_brand]||0) + 1; });
+
+  // 할당된 브랜드 집합
+  const assignedSet = new Set(evoLines.map(e => e.assigned_brand).filter(Boolean));
+
+  // 그룹별
+  let lastGroup = '';
+  const q = brandSearch.toLowerCase();
+  for (const b of BRANDS) {
+    if (q && !b.key.toLowerCase().includes(q) && !b.group.toLowerCase().includes(q)) continue;
+
+    if (b.group !== lastGroup) {
+      lastGroup = b.group;
+      const lbl = document.createElement('div');
+      lbl.className = 'brand-group-label';
+      lbl.textContent = b.group;
+      list.appendChild(lbl);
+    }
+
+    const el = document.createElement('div');
+    el.className = 'brand-item';
+    el.style.setProperty('--c', b.color);
+    if (activeBrand === b.key) el.classList.add('active');
+    // 이미 다른 라인에 할당된 브랜드 dimmed (1:1이면)
+    if (counts[b.key] > 0 && activeBrand !== b.key) el.classList.add('dimmed');
+
+    const c = counts[b.key];
+    el.innerHTML = `
+      <span class="dot" style="background:${b.color}"></span>
+      <span class="bname">${b.key}</span>
+      <span class="bcount${c?' has':''}" ${c?`style="background:${b.color}"`:''}>${c}</span>
+    `;
+
+    el.addEventListener('click', () => {
+      activeBrand = activeBrand === b.key ? null : b.key;
+      render();
+    });
+    list.appendChild(el);
+  }
+}
+
+function renderGrid() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  const q = evoSearch.toLowerCase();
+
+  for (const evo of evoLines) {
+    // filter
+    if (evoFilter === 'unassigned' && evo.assigned_brand) continue;
+    if (evoFilter === 'assigned' && !evo.assigned_brand) continue;
+    if (evoFilter === 's1' && evo.stage_count !== '1') continue;
+    if (evoFilter === 's2' && evo.stage_count !== '2') continue;
+    if (evoFilter === 's3' && parseInt(evo.stage_count) < 3) continue;
+    if (q && !evo.evo_line_name.toLowerCase().includes(q) && !evo.members.includes(q)
+        && !(evo.assigned_brand||'').toLowerCase().includes(q)) continue;
+
+    const row = document.createElement('div');
+    row.className = 'evo-row';
+    const brand = brandMap[evo.assigned_brand];
+    if (brand) {
+      row.classList.add('assigned');
+      row.style.setProperty('--brand-color', brand.color);
+    }
+
+    const members = evo.members.split('/');
+    const sprites = members.map(m =>
+      `<img src="../originals/${m}.png" alt="#${m}" loading="lazy" onerror="this.style.opacity=0.2">`
+    ).join('');
+
+    let tag;
+    if (brand) {
+      tag = `<span class="evo-tag" style="background:${brand.color}25;color:${brand.color}">${brand.key}</span>`;
+    } else {
+      tag = `<span class="evo-tag empty">—</span>`;
+    }
+
+    row.innerHTML = `
+      <span class="evo-num">${evo.evo_line_id.replace('EVO','')}</span>
+      <div class="evo-sprites">${sprites}</div>
+      <div class="evo-info">
+        <div class="evo-name">${evo.evo_line_name}</div>
+        <div class="evo-meta">#${members[0]}–${members[members.length-1]} · ${evo.stage_count}단 · ${members.length}체</div>
+      </div>
+      ${tag}
+    `;
+
+    // Click / drag paint
+    const assign = () => {
+      if (!activeBrand) { evo.assigned_brand = ''; render(); return; }
+      evo.assigned_brand = evo.assigned_brand === activeBrand ? '' : activeBrand;
+      render();
+    };
+    row.addEventListener('mousedown', e => { isPainting = true; assign(); e.preventDefault(); });
+    row.addEventListener('mouseenter', () => { if (isPainting) assign(); });
+
+    grid.appendChild(row);
+  }
+}
+
+// Global mouseup
+document.addEventListener('mouseup', () => isPainting = false);
+
+// ============================================================
+// FILTERS
+// ============================================================
+document.getElementById('filters').addEventListener('click', e => {
+  if (!e.target.classList.contains('pill')) return;
+  evoFilter = e.target.dataset.f;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  e.target.classList.add('active');
+  renderGrid();
+});
+
+document.getElementById('evo-search').addEventListener('input', e => {
+  evoSearch = e.target.value;
+  renderGrid();
+});
+
+document.getElementById('brand-search').addEventListener('input', e => {
+  brandSearch = e.target.value;
+  renderBrands();
+});
+
+// ============================================================
+// ACTIONS
+// ============================================================
+document.getElementById('btn-auto').addEventListener('click', () => {
+  const unassigned = evoLines.filter(e => !e.assigned_brand);
+  if (!unassigned.length) { toast('모두 할당됨'); return; }
+  const usedKeys = new Set(evoLines.map(e => e.assigned_brand).filter(Boolean));
+  const available = BRANDS.filter(b => !usedKeys.has(b.key));
+  let idx = 0;
+  for (const evo of unassigned) {
+    if (idx < available.length) {
+      evo.assigned_brand = available[idx].key;
+      idx++;
+    }
+  }
+  render();
+  toast(`${idx}개 자동 할당`);
+});
+
+document.getElementById('btn-clear').addEventListener('click', () => {
+  evoLines.forEach(e => e.assigned_brand = '');
+  render();
+  toast('전체 해제');
+});
+
+document.getElementById('btn-export').addEventListener('click', () => {
+  const h = 'evo_line_id,evo_line_name,dex_start,dex_end,members,stage_count,assigned_brand';
+  const rows = evoLines.map(e =>
+    `${e.evo_line_id},${e.evo_line_name},${e.dex_start},${e.dex_end},${e.members},${e.stage_count},${e.assigned_brand}`
+  );
+  const blob = new Blob([h + '\n' + rows.join('\n') + '\n'], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'gen1-evo-lines.csv';
+  a.click();
+  toast('CSV 저장됨');
+});
+
+document.getElementById('btn-import').addEventListener('click', () => {
+  document.getElementById('csv-file').click();
+});
+document.getElementById('csv-file').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    const imp = parseCSV(r.result);
+    const m = {};
+    imp.forEach(row => m[row.evo_line_id] = row.assigned_brand || '');
+    evoLines.forEach(evo => { if (m[evo.evo_line_id] !== undefined) evo.assigned_brand = m[evo.evo_line_id]; });
+    render();
+    toast(`${imp.length}행 가져옴`);
+  };
+  r.readAsText(f);
+  e.target.value = '';
+});
+
+// Keyboard: ESC = 브랜드 선택 해제
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { activeBrand = null; render(); }
+});
+
+// ============================================================
+// TOAST
+// ============================================================
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+render();
+</script>
+</body>
+</html>

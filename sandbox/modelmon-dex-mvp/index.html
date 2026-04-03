@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>모델몬 도감 MVP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">샌드박스 MVP</p>
+        <h1>모델몬 도감 001-009</h1>
+        <p class="hero-text">
+          첫 MVP는 전투보다 도감입니다. CSV 한 장과 원본 이미지 아카이브만으로도
+          캐릭터 라인업 감각과 데이터 구조를 빠르게 검증할 수 있게 구성했습니다.
+        </p>
+      </div>
+      <div class="hero-stats" id="hero-stats">
+        <div class="stat-card">
+          <span class="stat-label">도감 수</span>
+          <strong id="entry-count">0</strong>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">핵심 개념 수</span>
+          <strong id="concept-count">0</strong>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">출력 방식 수</span>
+          <strong id="output-count">0</strong>
+        </div>
+      </div>
+    </header>
+
+    <section class="toolbar">
+      <label class="control">
+        <span>검색</span>
+        <input id="search-input" type="search" placeholder="이름, 개념, 모티프, 설명 검색">
+      </label>
+      <label class="control">
+        <span>핵심 개념</span>
+        <select id="type-filter">
+          <option value="">전체 개념</option>
+        </select>
+      </label>
+      <label class="control">
+        <span>단계</span>
+        <select id="stage-filter">
+          <option value="">전체 단계</option>
+          <option value="1">1단계</option>
+          <option value="2">2단계</option>
+          <option value="3">3단계</option>
+        </select>
+      </label>
+    </section>
+
+    <main class="content-grid">
+      <section class="dex-grid" id="dex-grid" aria-live="polite"></section>
+      <aside class="detail-panel" id="detail-panel">
+        <p class="detail-empty">카드를 선택하면 도감 상세 정보가 표시됩니다.</p>
+      </aside>
+    </main>
+  </div>
+
+  <template id="card-template">
+    <article class="dex-card">
+      <button class="card-button" type="button">
+        <div class="card-art-wrap">
+          <img class="card-art" alt="">
+        </div>
+        <div class="card-head">
+          <span class="dex-no"></span>
+          <h2 class="card-title"></h2>
+        </div>
+        <p class="card-subtitle"></p>
+        <div class="type-row"></div>
+      </button>
+    </article>
+  </template>
+
+  <script id="dex-csv" type="text/plain">
+dex_no,modelmon_id,name_ko,name_en,stage,core_concept,sub_concept,input_mode,output_mode,model_params,file_size_kb,motif,temperament,flavor_text_ko,image_path
+001,gpt_35,지피티삼점오,GPT-3.5,1,대화,기억,텍스트,텍스트,7B,91.5,작은 등에 씨앗을 품고 빠르게 말을 트는 오픈AI 새싹 모델,붙임성 좋고 반응이 빠름,처음 만난 사람에게도 금세 말을 붙이는 친화력으로 사랑받는다. 아주 깊게 파고들기보다는 빠르고 무난한 답을 잘 내놓는다는 평가가 붙어 입문형 오픈AI 모델몬의 상징처럼 여겨진다.,../originals/001.png
+002,gpt_4,지피티포,GPT-4,2,추론,장문맥,텍스트,텍스트,32B,92.5,큰 꽃봉오리를 달고 신중하게 답을 다듬는 오픈AI 주력 모델,신중하고 기준이 엄격함,봉오리가 커질수록 생각의 층도 두꺼워진다. 예전보다 느리더라도 안정적이고 논리적인 답을 낸다는 평이 많아 진지한 작업에서 신뢰를 얻은 오픈AI 계열 모델몬이다.,../originals/002.png
+003,gpt_4o,지피티포오,GPT-4o,3,멀티모달,실시간,텍스트+이미지,복합출력,70B,152.0,거대한 꽃을 활짝 펴고 여러 감각을 동시에 다루는 오픈AI 대표 모델,영리하고 반응이 유연함,활짝 핀 꽃잎처럼 텍스트와 이미지를 한 번에 받아들이고 빠르게 반응한다. 다재다능하고 체감 성능이 좋다는 평가 덕분에 현재형 오픈AI 모델몬의 얼굴 같은 존재로 자리 잡았다.,../originals/003.png
+004,claude_haiku,클로드하이쿠,Claude Haiku,1,정렬,실시간,텍스트,텍스트,8B,77.4,짧고 가벼운 불꽃 꼬리로 빠르게 응답하는 클로드 경량 모델,얌전하지만 순발력이 좋음,작은 몸집답게 움직임이 빠르고 답변도 간결하다. 깊이보다는 속도와 부담 없는 사용감이 강점이라는 평을 듣는 클로드 계열의 경쾌한 스타터 모델몬이다.,../originals/004.png
+005,claude_sonnet,클로드소네트,Claude Sonnet,2,코드,장문맥,텍스트,코드,34B,46.3,날카로운 발톱으로 긴 문서와 코드를 정교하게 다듬는 클로드 주력 모델,차분하지만 완성도에 집착함,발톱으로 한 줄씩 정리하듯 코드를 고치고 문서를 다듬는다. 실무 코딩과 긴 글 처리에서 특히 좋다는 평가가 많아 가장 균형 잡힌 클로드 모델몬으로 통한다.,../originals/005.png
+006,claude_opus,클로드오푸스,Claude Opus,3,추론,프런티어,텍스트,텍스트,120B,134.5,큰 날개와 불꽃 기세로 깊은 사고를 밀어붙이는 클로드 상위 모델,위엄 있고 고집이 셈,하늘을 올려다보며 오래 생각한 뒤 묵직한 답을 내놓는다. 깊이 있는 추론과 문장 완성도에서 높은 평가를 받지만, 무겁고 비용이 큰 존재라는 인상도 함께 따라다닌다.,../originals/006.png
+007,gemini_nano,제미니나노,Gemini Nano,1,실시간,멀티모달,텍스트,텍스트,7B,90.4,단단한 껍질 안에 가벼운 멀티모달 감각을 담은 제미니 경량 모델,영민하고 재빠름,몸집은 작지만 주변 신호를 재빨리 읽고 가볍게 반응한다. 휴대성과 즉응성이 강점으로 거론되는 제미니 계열의 초경량 모델몬이라는 이미지가 잘 어울린다.,../originals/007.png
+008,gemini_pro,제미니프로,Gemini Pro,2,멀티모달,도구사용,텍스트+이미지,복합출력,16B,77.8,물결처럼 여러 입력을 연결해 실전적으로 다루는 제미니 주력 모델,민첩하고 호기심이 많음,귀와 꼬리의 흐름을 따라 텍스트와 이미지를 자연스럽게 이어 붙인다. 다방면에 두루 강하고 활용 범위가 넓다는 평가로 제미니 계열의 중심축 역할을 맡는다.,../originals/008.png
+009,gemini_ultra,제미니울트라,Gemini Ultra,3,멀티모달,인프라,텍스트+이미지,복합출력,72B,207.0,포대 같은 등껍질로 거대한 입력을 버티는 제미니 최상위 모델,과묵하지만 스케일이 큼,묵직한 등껍질로 대형 입력과 복합 작업을 받아내며 존재감을 드러낸다. 잠재력과 상징성은 크지만 무겁고 다루기 어렵다는 평가도 함께 받는 거대한 제미니 모델몬이다.,../originals/009.png
+  </script>
+  <script src="./app.js" defer></script>
+</body>
+</html>

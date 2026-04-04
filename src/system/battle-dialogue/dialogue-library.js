@@ -8,7 +8,11 @@ export const DIALOGUE_CATEGORY_FILES = {
   build: "dialogue-build.csv",
   impact: "dialogue-impact.csv",
   reaction: "dialogue-reaction.csv",
-  closing: "dialogue-closing.csv"
+  closing: "dialogue-closing.csv",
+  sceneIntro: "dialogue-scene-intro.csv",
+  sceneAction: "dialogue-scene-action.csv",
+  sceneResult: "dialogue-scene-result.csv",
+  sceneAfter: "dialogue-scene-after.csv"
 };
 
 export async function loadBattleDialogueLibrary({
@@ -23,10 +27,4 @@ export async function loadBattleDialogueLibrary({
   );
 
   return Object.fromEntries(entries);
-}
-
-export function createBattleDialogueLibraryFromRows(rowsByCategory) {
-  return Object.fromEntries(
-    Object.entries(DIALOGUE_CATEGORY_FILES).map(([category]) => [category, rowsByCategory[category] || []])
-  );
 }

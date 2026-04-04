@@ -1,0 +1,52 @@
+/* Reset, body, .phone-shell, screen system, and transition rules */
+
+/* ════════════════════════════════
+   RESET & BASE
+════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  font-family: 'Noto Sans KR', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  touch-action: pan-y;
+}
+
+.phone-shell {
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ════════════════════════════════
+   SCREEN SYSTEM
+════════════════════════════════ */
+.screen-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+  transition: transform var(--transition);
+  background: var(--bg);
+}
+
+/* 초기 상태 */
+#screen-list  { transform: translateX(0); }
+#screen-detail{ transform: translateX(100%); }
+
+/* 전환 상태 */
+#screen-list.pushed  { transform: translateX(-28%); }
+#screen-detail.open  { transform: translateX(0); }

@@ -1,6 +1,6 @@
-id,weight,phase,importance,commentary_role,skill_pattern,status_name,momentum,text
-build-001,3,*,*,*,단일 공격|연타,*,*,{{attacker_name}}이(가) 주저하지 않았어요. 한 번 각을 잡더니 {{skill_name}}이(가) 거의 끊기듯 바로 이어졌어요.
-build-002,3,*,*,analysis,버프|보호막,*,*,{{attacker_name}}은(는) 지금 무리해서 끝내려는 쪽이 아니에요. 오히려 다음 턴까지 계산하고 차분하게 판을 정리하는 쪽에 가까워요.
-build-003,2,전|결,high,highlight|climax,행동 봉쇄|단일 공격,속박|지연,*,한 박자 늦게 들어오는 것처럼 보였는데 그게 오히려 포인트였어요. {{attacker_name}}이(가) 타이밍을 진짜 날카롭게 잡았어요.
-build-004,1,*,low,setup,단일 공격|연타,*,*,바로 붙었어요.
-build-005,1,전|결,high,highlight|climax,단일 공격|연타|행동 봉쇄,*,left|right,*,{{attacker_name}}은(는) 전혀 급해 보이지 않았어요. 오히려 한 번 숨을 고르고, 상대가 반응하는 박자를 끝까지 본 다음에 {{skill_name}}을(를) 밀어 넣었죠. 그래서 더 아팠어요. 빠르기만 한 공격이 아니라, 보고 들어간 공격이었거든요.
+id,weight,phase,importance,commentary_role,skill_pattern,skill_family,status_name,momentum,length_band,usage_bucket,damage_band,hp_band,tags,text
+build-001,3,*,*,*,단일 공격|연타,strike|multi-hit,*,*,medium|long,fresh|repeat,small|medium,*,*,{{attacker_name}}이(가) 주저하지 않았어요. 한 번 각을 잡더니 {{skill_name}}이(가) 거의 끊기듯 바로 이어졌어요.
+build-002,3,*,*,analysis,버프|보호막,setup,*,*,medium|long,*,zero,*,analysis,{{attacker_name}}은(는) 지금 무리해서 끝내려는 쪽이 아니에요. 오히려 다음 턴까지 계산하고 차분하게 판을 정리하는 쪽에 가까워요.
+build-003,2,전|결,high,highlight|climax,행동 봉쇄,control,속박|지연,*,long,repeat|spam,small|medium,low|critical,*,한 박자 늦게 들어오는 것처럼 보였는데 그게 오히려 포인트였어요. {{attacker_name}}이(가) 타이밍을 진짜 날카롭게 잡았어요.
+build-004,1,*,low,setup,단일 공격|연타,strike|multi-hit,*,*,short,fresh,small,high|mid,*,바로 붙었어요.
+build-005,1,전|결,high,highlight|climax,단일 공격|연타|행동 봉쇄,strike|multi-hit|control,*,left|right,long,repeat|spam,medium|big,low|critical,repeat,{{attacker_name}}은(는) 전혀 급해 보이지 않았어요. 오히려 한 번 숨을 고르고, 상대가 반응하는 박자를 끝까지 본 다음에 {{skill_name}}을(를) 밀어 넣었죠. 그래서 더 아팠어요. 빠르기만 한 공격이 아니라, 보고 들어간 공격이었거든요.

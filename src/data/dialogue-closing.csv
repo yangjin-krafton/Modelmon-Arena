@@ -1,7 +1,7 @@
-id,weight,phase,importance,commentary_role,skill_pattern,status_name,momentum,text
-closing-001,3,기|승,low|mid,setup|transition,*,*,*,이번 턴은 숫자보다 분위기를 가져온 쪽이 더 커요. 아직 초반이긴 한데, 누가 먼저 리듬 잡는지는 슬슬 보이기 시작해요.
-closing-002,3,전,mid|high,transition|highlight,*,*,*,중반 넘어가면 이런 한 번이 오래 가요. 지금 장면 하나가 다음 두세 턴 분위기까지 바꿔 버릴 수 있거든요.
-closing-003,2,결,high,climax,*,*,*,이제 거의 끝 쪽이에요. 다음 한 번은 그냥 데미지가 아니라 승부 자체를 닫는 장면이 될 수도 있어요.
-closing-004,2,*,high,highlight,*,*,left|right,*,나중에 기억나는 건 수치보다 이런 순간일 거예요. 아, 여기서 흐름이 넘어갔구나 싶은 그 장면이요.
-closing-005,1,*,low,setup|transition,*,*,*,분위기 왔어요.
-closing-006,1,승|전|결,mid|high,transition|highlight|climax,*,*,left|right,*,이 장면이 좋은 건 숫자만 남기고 지나가지 않는다는 거예요. 누가 우세한지, 누가 조금씩 밀리기 시작했는지, 그리고 다음 한 턴이 왜 갑자기 무겁게 느껴지는지까지 한 번에 남겨 버리는 턴이거든요.
+id,weight,phase,importance,commentary_role,skill_pattern,skill_family,status_name,momentum,length_band,usage_bucket,damage_band,hp_band,tags,text
+closing-001,3,기|승,low|mid,setup|transition,*,*,*,*,medium,fresh|repeat,*,high|mid,*,이번 턴은 숫자보다 분위기를 가져온 쪽이 더 커요. 아직 초반이긴 한데, 누가 먼저 리듬 잡는지는 슬슬 보이기 시작해요.
+closing-002,3,전,mid|high,transition|highlight,*,*,*,*,medium|long,*,small|medium|big,mid|low,전,중반 넘어가면 이런 한 번이 오래 가요. 지금 장면 하나가 다음 두세 턴 분위기까지 바꿔 버릴 수 있거든요.
+closing-003,2,결,high,climax,*,*,*,*,long,*,medium|big,low|critical,결,이제 거의 끝 쪽이에요. 다음 한 번은 그냥 데미지가 아니라 승부 자체를 닫는 장면이 될 수도 있어요.
+closing-004,2,*,high,highlight,*,*,*,left|right,medium|long,*,medium|big,*,highlight,나중에 기억나는 건 수치보다 이런 순간일 거예요. 아, 여기서 흐름이 넘어갔구나 싶은 그 장면이요.
+closing-005,1,*,low,setup|transition,*,*,*,*,short,fresh,*,*,*,분위기 왔어요.
+closing-006,1,승|전|결,mid|high,transition|highlight|climax,*,*,*,left|right,long,repeat|spam,small|medium|big,mid|low|critical,repeat,이 장면이 좋은 건 숫자만 남기고 지나가지 않는다는 거예요. 누가 우세한지, 누가 조금씩 밀리기 시작했는지, 그리고 다음 한 턴이 왜 갑자기 무겁게 느껴지는지까지 한 번에 남겨 버리는 턴이거든요.

@@ -1,0 +1,190 @@
+/* List screen styles: header, search bar, filter chips, list items, empty state */
+
+/* ════════════════════════════════
+   LIST SCREEN
+════════════════════════════════ */
+
+/* 스티키 헤더 */
+.list-header {
+  flex-shrink: 0;
+  background: var(--bg);
+  padding: max(env(safe-area-inset-top, 0px), 14px) 16px 0;
+  position: relative;
+  z-index: 10;
+}
+.list-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: var(--line);
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.page-title { font-size: 26px; font-weight: 900; color: var(--text); letter-spacing: -0.04em; }
+.result-count { font-size: 13px; color: var(--text3); }
+
+/* 검색바 — 48px, font-size 16px (iOS 확대 방지) */
+.search-bar {
+  height: 48px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  gap: 10px;
+  margin-bottom: 10px;
+  transition: border-color 0.2s;
+}
+.search-bar:focus-within {
+  border-color: rgba(91,141,255,0.4);
+  background: rgba(91,141,255,0.06);
+}
+.sb-icon { font-size: 16px; color: var(--text3); flex-shrink: 0; }
+#search-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  font-family: inherit;
+  color: var(--text);
+  caret-color: var(--accent);
+}
+#search-input::placeholder { color: var(--text3); }
+.sb-clear {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  border: none;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--text2);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.sb-clear.visible { display: flex; }
+
+/* 타입 필터 — 36px, 가로 스크롤 */
+.filter-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  mask-image: linear-gradient(to right, black 85%, transparent 100%);
+}
+.filter-chip {
+  flex-shrink: 0;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text3);
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.filter-chip[data-active="true"] {
+  background: rgba(91,141,255,0.16);
+  border-color: rgba(91,141,255,0.45);
+  color: var(--accent);
+}
+
+/* 리스트 */
+.list-body {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 10px 16px 12px;
+  scrollbar-width: none;
+}
+.list-body::-webkit-scrollbar { display: none; }
+
+/* 리스트 아이템 — min 80px */
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 80px;
+  padding: 12px 14px 12px 18px;
+  border-radius: var(--radius-card);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--line);
+  margin-bottom: 8px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.15s, border-color 0.15s, transform 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.list-item:active { transform: scale(0.98); }
+.list-item.is-active {
+  background: rgba(91,141,255,0.07);
+  border-color: rgba(91,141,255,0.22);
+}
+
+/* 왼쪽 컬러 바 */
+.item-bar {
+  position: absolute;
+  left: 0; top: 18px; bottom: 18px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+}
+
+/* 썸네일 56×56 */
+.item-thumb {
+  width: 56px; height: 56px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.item-thumb img { width: 90%; height: 90%; object-fit: contain; }
+.list-item.is-active .item-thumb { border-color: rgba(91,141,255,0.3); }
+
+/* 텍스트 */
+.item-body { flex: 1; min-width: 0; }
+.ib-top { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+.ib-no { font-size: 11px; font-weight: 700; color: var(--text3); letter-spacing: 0.08em; flex-shrink: 0; }
+.ib-name { font-size: 17px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ib-en { font-size: 12px; color: var(--text3); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ib-type {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.item-arrow { font-size: 20px; color: var(--text3); flex-shrink: 0; }
+.list-item.is-active .item-arrow { color: rgba(91,141,255,0.5); }
+
+/* 빈 상태 */
+.empty-state {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: var(--text3);
+  font-size: 14px;
+  line-height: 2;
+  text-align: center;
+}
+.empty-state .es-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state.show { display: flex; }

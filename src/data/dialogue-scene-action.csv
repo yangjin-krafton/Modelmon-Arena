@@ -1,0 +1,6 @@
+id,weight,phase,importance,commentary_role,skill_pattern,skill_family,status_name,momentum,length_band,usage_bucket,damage_band,hp_band,tags,text
+scene-action-001,3,*,*,*,단일 공격,strike,*,*,short|medium,fresh|repeat,small|medium,*,*,{{attacker_name}}이(가) {{skill_name}}을(를) 짧고 빠르게 밀어 넣었어요.
+scene-action-002,3,*,*,*,연타,multi-hit,*,*,medium|long,fresh|repeat,small|medium,*,*,{{attacker_name}} 쪽 손이 한 번 붙더니 끊기질 않았어요. {{skill_name}} 연속 박자가 생각보다 훨씬 촘촘하게 이어졌거든요.
+scene-action-003,2,*,*,analysis,버프|보호막,setup,*,*,medium|long,*,zero,*,analysis,{{attacker_name}}은(는) 여기서 무리하게 끝내려 하지 않았어요. {{skill_name}}으로 먼저 판을 정리하고, 다음 턴에 더 유리한 자리를 만들려는 쪽에 가까웠죠.
+scene-action-004,2,전|결,high,highlight|climax,행동 봉쇄,control,속박|지연,*,long,repeat|spam,small|medium,low|critical,repeat,느리게 들어오는 것처럼 보였는데 그게 오히려 포인트였어요. {{attacker_name}}이(가) {{skill_name}} 타이밍을 끝까지 보고 눌렀고, 그래서 {{defender_name}} 쪽 리듬이 정면으로 꼬였어요.
+scene-action-005,1,*,low,setup,단일 공격|연타,strike|multi-hit,*,*,short,fresh,small,high|mid,*,바로 붙었어요.

@@ -1,0 +1,6 @@
+id,weight,phase,importance,commentary_role,skill_pattern,skill_family,status_name,momentum,length_band,usage_bucket,damage_band,hp_band,tags,text
+scene-result-001,3,*,mid|high,*,단일 공격|연타,strike|multi-hit,없음,*,medium|long,*,small|medium|big,*,*,맞는 순간보다 그다음이 더 확실했어요. {{defender_name}} 쪽 호흡이 한 번 꺾이면서 방금 공격이 얼마나 깊게 들어갔는지가 뒤늦게 드러났거든요.
+scene-result-002,3,*,high,highlight|climax,*,control|utility,노출|속박|지연,*,medium|long,*,small|medium|big,*,highlight,이번 장면이 위험한 건 딱 여기예요. 피해로 끝난 게 아니라 {{status_name}}이(가) 남아서, {{defender_name}} 입장에서는 다음 턴까지 부담을 같이 끌고 가야 하거든요.
+scene-result-003,2,*,mid,analysis,버프|보호막,setup,보호,*,medium,*,zero,*,analysis,화려하게 터지진 않았어도 내용은 꽤 컸어요. 지금부터는 {{attacker_name}} 쪽이 원하는 템포로 전개될 가능성이 높아졌거든요.
+scene-result-004,1,*,low,setup|transition,*,*,없음,*,short,fresh,small,high|mid,*,생각보다 아팠어요.
+scene-result-005,1,전|결,high,highlight|climax,*,strike|multi-hit|control,left|right,*,long,repeat|spam,medium|big,low|critical,repeat,수치만 보면 {{damage}}인데 체감은 그 이상이에요. 한 번 맞고 끝난 게 아니라 분위기 자체가 넘어가 버린 장면이라, 보는 쪽에서도 ‘아, 여기서 갈린다’는 느낌이 바로 와요.

@@ -1,0 +1,15 @@
+/* CSS custom properties — design tokens for the entire app */
+:root {
+  --bg:          #0d0e17;
+  --bg2:         #13141f;
+  --bg3:         #1a1c2e;
+  --line:        rgba(255,255,255,0.07);
+  --text:        #ffffff;
+  --text2:       rgba(255,255,255,0.55);
+  --text3:       rgba(255,255,255,0.28);
+  --accent:      #5b8dff;
+  --accent-glow: rgba(91,141,255,0.35);
+  --radius-card: 18px;
+  --nav-h:       58px;
+  --transition:  0.32s cubic-bezier(0.4, 0, 0.2, 1);
+}

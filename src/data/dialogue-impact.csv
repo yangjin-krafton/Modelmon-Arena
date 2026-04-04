@@ -1,6 +1,6 @@
-id,weight,phase,importance,commentary_role,skill_pattern,status_name,momentum,text
-impact-001,3,*,mid|high,*,단일 공격|연타,없음,*,딱 맞는 순간보다 그 직후가 더 선명했어요. 방금 공격이 얼마나 깊게 들어갔는지가 뒤늦게 확 보였거든요.
-impact-002,3,*,high,highlight|climax,*,노출|속박|지연,*,이번 장면이 더 위험한 건 맞은 뒤예요. {{defender_name}} 쪽에 {{status_name}}이(가) 남으면서 그냥 한 번 스친 교환으로 안 끝났어요.
-impact-003,2,*,mid,analysis,버프|보호막,*,*,겉으로 보기엔 조용했는데 내용은 전혀 안 조용했어요. 화려하진 않아도 전장이 {{attacker_name}} 쪽 계산대로 조금씩 기울고 있었어요.
-impact-004,1,*,low,setup|transition,단일 공격|연타,없음,*,생각보다 깊게 들어갔어요.
-impact-005,1,전|결,high,highlight|climax,*,노출|속박|지연,left|right,*,진짜 무서운 건 타격 그 자체보다 뒤에 남은 흔적이었어요. 한 번 부딪히고 끝난 게 아니라, {{defender_name}} 쪽 박자 전체가 살짝 밀려 버렸거든요. 그래서 이 턴은 체력 수치보다 체감 압박이 훨씬 크게 남아요.
+id,weight,phase,importance,commentary_role,skill_pattern,skill_family,status_name,momentum,length_band,usage_bucket,damage_band,hp_band,tags,text
+impact-001,3,*,mid|high,*,단일 공격|연타,strike|multi-hit,없음,*,medium|long,*,small|medium|big,*,*,딱 맞는 순간보다 그 직후가 더 선명했어요. 방금 공격이 얼마나 깊게 들어갔는지가 뒤늦게 확 보였거든요.
+impact-002,3,*,high,highlight|climax,*,control|utility,노출|속박|지연,*,medium|long,*,small|medium|big,*,highlight,이번 장면이 더 위험한 건 맞은 뒤예요. {{defender_name}} 쪽에 {{status_name}}이(가) 남으면서 그냥 한 번 스친 교환으로 안 끝났어요.
+impact-003,2,*,mid,analysis,버프|보호막,setup,*,*,medium|long,*,zero,*,analysis,겉으로 보기엔 조용했는데 내용은 전혀 안 조용했어요. 화려하진 않아도 전장이 {{attacker_name}} 쪽 계산대로 조금씩 기울고 있었어요.
+impact-004,1,*,low,setup|transition,단일 공격|연타,strike|multi-hit,없음,*,short,fresh,small,high|mid,*,생각보다 깊게 들어갔어요.
+impact-005,1,전|결,high,highlight|climax,*,control|strike|multi-hit,노출|속박|지연,left|right,long,repeat|spam,medium|big,low|critical,repeat,진짜 무서운 건 타격 그 자체보다 뒤에 남은 흔적이었어요. 한 번 부딪히고 끝난 게 아니라, {{defender_name}} 쪽 박자 전체가 살짝 밀려 버렸거든요. 그래서 이 턴은 체력 수치보다 체감 압박이 훨씬 크게 남아요.

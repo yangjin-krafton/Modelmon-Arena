@@ -22,12 +22,18 @@ export const SPRITE = id => `./asset/sprites/${id}.webp`;
    Type → CSS class mapping
 ════════════════════════════════════════ */
 const TYPE_CLS = {
-  '대화':    { type:'chat',  label:'type-chat',  bar:'bar-chat',  glow:'glow-chat'  },
-  '추론':    { type:'inf',   label:'type-inf',   bar:'bar-inf',   glow:'glow-inf'   },
-  '멀티모달':{ type:'mm',    label:'type-mm',    bar:'bar-mm',    glow:'glow-mm'    },
-  '코드':    { type:'code',  label:'type-code',  bar:'bar-code',  glow:'glow-code'  },
-  '정렬':    { type:'align', label:'type-align', bar:'bar-align', glow:'glow-align' },
-  '실시간':  { type:'rt',    label:'type-rt',    bar:'bar-rt',    glow:'glow-rt'    },
+  '대화':      { type:'chat',  label:'type-chat',  bar:'bar-chat',  glow:'glow-chat'  },
+  '추론':      { type:'inf',   label:'type-inf',   bar:'bar-inf',   glow:'glow-inf'   },
+  '멀티모달':  { type:'mm',    label:'type-mm',    bar:'bar-mm',    glow:'glow-mm'    },
+  '코드':      { type:'code',  label:'type-code',  bar:'bar-code',  glow:'glow-code'  },
+  '정렬':      { type:'align', label:'type-align', bar:'bar-align', glow:'glow-align' },
+  '실시간':    { type:'rt',    label:'type-rt',    bar:'bar-rt',    glow:'glow-rt'    },
+  '생성':      { type:'mm',    label:'type-mm',    bar:'bar-mm',    glow:'glow-mm'    },
+  '음성':      { type:'rt',    label:'type-rt',    bar:'bar-rt',    glow:'glow-rt'    },
+  '검색':      { type:'inf',   label:'type-inf',   bar:'bar-inf',   glow:'glow-inf'   },
+  '에이전트':  { type:'code',  label:'type-code',  bar:'bar-code',  glow:'glow-code'  },
+  '메모리':    { type:'align', label:'type-align', bar:'bar-align', glow:'glow-align' },
+  '시스템':    { type:'rt',    label:'type-rt',    bar:'bar-rt',    glow:'glow-rt'    },
 };
 
 export function typeInfo(concept) {

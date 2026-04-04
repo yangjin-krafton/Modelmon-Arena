@@ -24,11 +24,14 @@ export function parseCSV(text, delimiter = ',') {
   const lines = text.trim().split(/\r?\n/);
   if (lines.length < 2) return [];
 
-  const headers = splitLine(lines[0], delimiter);
+  const headers = splitLine(lines[0], delimiter).map((header, index) => {
+    const clean = header.trim();
+    return index === 0 ? clean.replace(/^\uFEFF/, '') : clean;
+  });
 
   return lines.slice(1).map(line => {
     const values = splitLine(line, delimiter);
-    return Object.fromEntries(headers.map((h, i) => [h.trim(), (values[i] ?? '').trim()]));
+    return Object.fromEntries(headers.map((h, i) => [h, (values[i] ?? '').trim()]));
   });
 }
 

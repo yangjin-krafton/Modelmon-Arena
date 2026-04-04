@@ -1,0 +1,9 @@
+id,weight,phase,importance,commentary_role,skill_pattern,status_name,momentum,text
+explain-001,3,기,low|mid,setup|transition,*,없음,*,쉽게 보면 아직 초반이에요. 지금은 누가 먼저 템포를 잡는지 보는 구간이라 한 번 한 번이 다 체크포인트예요.
+explain-002,3,승|전,mid,transition,단일 공격|연타,없음,*,쉽게 보면 {{attacker_name}}이(가) 이번 교환에서 한 번 더 앞섰어요. {{defender_name}}은(는) 체력도 빠지고 흐름도 조금 흔들렸고요.
+explain-003,3,*,mid,analysis,버프|보호막,*,*,쉽게 보면 지금은 세게 때리는 턴이라기보다 준비 턴이에요. 여기서 정리 잘해 두면 다음 장면이 훨씬 편해져요.
+explain-004,2,*,high,highlight|climax,*,노출|속박|지연,*,쉽게 보면 핵심은 데미지보다 상태예요. {{defender_name}} 입장에서는 다음 턴 선택지가 확 줄 수 있어요.
+explain-005,2,결,high,climax,*,*,left|right,*,쉽게 보면 거의 마무리 직전이에요. 여기서 한 번 더 성공하면 그대로 끝까지 밀릴 수 있는 분위기예요.
+explain-006,1,*,low,setup,*,없음,*,지금은 탐색전이에요.
+explain-007,1,승|전,mid|high,transition|highlight,단일 공격|연타,없음,left|right,*,쉽게 말하면 이번 장면은 그냥 한 번 맞고 끝난 턴이 아니에요. {{attacker_name}} 쪽이 리듬을 먼저 잡으면서 {{defender_name}}에게 선택을 강요한 턴이라, 다음 교환에서도 압박을 계속 이어 갈 가능성이 커졌어요.
+explain-008,1,*,mid,analysis,보호막|버프,*,*,겉으로 보기엔 조용해서 별일 아닌 것 같아도 이런 턴이 생각보다 중요해요. 지금 {{attacker_name}}이(가) 해 둔 준비가 쌓이면 다음 공격은 데미지 하나보다 체감 압박이 훨씬 크게 들어올 수 있거든요.

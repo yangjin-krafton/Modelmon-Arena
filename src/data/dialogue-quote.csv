@@ -1,0 +1,8 @@
+id,weight,phase,importance,commentary_role,skill_pattern,status_name,momentum,text
+quote-001,2,*,*,*,단일 공격|연타,*,*,좋아, 지금 타이밍 괜찮아. 그대로 간다.
+quote-002,2,*,*,analysis,버프|보호막,*,*,급할 거 없지. 여기서 판만 내 쪽으로 돌리면 돼.
+quote-003,2,전|결,high,highlight|climax,*,*,left,응, 지금이야. 여기서 확 밀어붙인다.
+quote-004,2,전|결,high,highlight|climax,*,*,right,아직 안 끝났거든. 마지막까지는 가 봐야지.
+quote-005,2,*,*,*,*,노출|속박|지연,*,어, 이제 좀 흔들리기 시작하는데?
+quote-006,1,*,*,*,*,없음,*,들어가.
+quote-007,1,전|결,high,highlight|climax,*,노출|속박|지연,left|right,*,좋아, 지금 반응 왔어. 그냥 데미지만 들어간 게 아니라 흐름까지 넘어왔거든. 여기서 한 번 더만 정확하게 잡으면 분위기 완전히 우리 쪽으로 굳어.

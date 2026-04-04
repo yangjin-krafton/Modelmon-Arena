@@ -1,0 +1,6 @@
+id,weight,phase,importance,commentary_role,skill_pattern,status_name,momentum,text
+opening-001,3,*,*,*,*,*,*,전장이 잠깐 조용해졌어요. 근데 그 조용함이 편한 쪽은 아니었어요. 뭔가 바로 터질 것 같은 정적이었죠.
+opening-002,3,*,*,*,*,*,*,공기가 먼저 바뀌었어요. 아직 기술이 나간 것도 아닌데, 다음 장면 분위기가 이미 정해지는 느낌이었달까.
+opening-003,2,결,high,climax,*,*,*,지금은 진짜 끝내기 직전 공기예요. 짧은 멈춤 하나도 괜히 크게 느껴지는 타이밍이거든요.
+opening-004,1,*,low,setup,*,*,*,숨 한번 고르는 순간.
+opening-005,1,승|전,mid|high,transition|highlight,*,*,*,전장이 이상하게 조용했어요. 시끄럽게 부딪히기 직전이라서 오히려 더 조용한, 그런 종류의 정적 있잖아요. 다들 아직 안 움직였는데도 다음 한 번이 꽤 크게 들어가겠구나 싶은 예감이 먼저 깔리는 순간이었어요.

@@ -1,0 +1,6 @@
+id,weight,phase,importance,commentary_role,skill_pattern,status_name,momentum,text
+reaction-001,3,*,*,*,*,*,*,{{defender_name}}은(는) 그냥 한 번 맞고 끝난 느낌이 아니었어요. 리듬 자체가 살짝 꼬이기 시작했거든요.
+reaction-002,2,전|결,high,highlight|climax,*,*,*,아직 버티려는 힘은 남아 있었어요. 근데 방금 충돌이 남긴 금은 생각보다 크게 보여요.
+reaction-003,2,*,mid|high,*,*,노출|속박|지연,*,{{defender_name}} 쪽 공기만 조금 무거워졌어요. 체력보다도 판단이 먼저 흔들리는 장면에 가까웠죠.
+reaction-004,1,*,low,setup|transition,*,없음,*,살짝 밀렸어요.
+reaction-005,1,전|결,high,highlight|climax,*,노출|속박|지연,left|right,*,{{defender_name}}이(가) 아직 완전히 무너진 건 아니에요. 근데 방금 이후로 반응이 아주 미세하게 늦어졌고, 그 미세한 차이가 지금 승부에서는 꽤 크게 보여요. 보는 쪽에서는 바로 느껴질 정도로요.

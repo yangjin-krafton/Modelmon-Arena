@@ -321,6 +321,35 @@ function animateGrowthBubble(bubble, entry) {
       ],
       { duration: 280, delay: 180 + index * 45, easing: 'ease-out', fill: 'both' },
     );
+
+    const deltaNode = node.querySelector('b');
+    const deltaValue = Number(deltaNode?.textContent || 0);
+    if (deltaValue > 0) {
+      spawnStatFloat(node, `+${deltaValue}`, index);
+    }
+  });
+}
+
+function spawnStatFloat(statNode, text, index) {
+  const float = document.createElement('span');
+  float.className = 'bl-growth-stat-float';
+  float.textContent = text;
+  statNode.appendChild(float);
+
+  float.animate(
+    [
+      { opacity: 0, transform: 'translate(-50%, 8px) scale(0.82)' },
+      { opacity: 1, transform: 'translate(-50%, -4px) scale(1)' },
+      { opacity: 0, transform: 'translate(-50%, -18px) scale(1.04)' },
+    ],
+    {
+      duration: 880,
+      delay: 260 + index * 55,
+      easing: 'cubic-bezier(.2,.8,.2,1)',
+      fill: 'forwards',
+    },
+  ).finished.finally(() => {
+    float.remove();
   });
 }
 

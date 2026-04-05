@@ -659,6 +659,7 @@
 }
 
 .bl-growth-stat {
+  position: relative;
   min-width: 0;
   display: grid;
   grid-template-columns: auto 1fr;
@@ -718,6 +719,19 @@
 
 .bl-growth-stat.is-same b {
   color: var(--text3);
+}
+
+.bl-growth-stat-float {
+  position: absolute;
+  left: 50%;
+  top: 2px;
+  pointer-events: none;
+  z-index: 2;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+  color: #9af0b6;
+  text-shadow: 0 0 10px rgba(80, 224, 148, 0.35);
 }
 
 .bl-growth-badge {

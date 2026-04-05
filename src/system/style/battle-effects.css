@@ -8,6 +8,8 @@
      .bf-fx__impact   — 타격 폭발 (타겟 위치)
      .bf-fx__self     — 자신 효과 (버프/실드/회복)
      .bf-fx__field    — 전장 전체 (광역/초고위력)
+     .bf-fx__ball     — 모델볼 투척 궤적
+   .bf-npc            — 훈련사 / 관장 NPC 스프라이트
 ════════════════════════════════════════════════════════ */
 
 /* ── 레이어 기반 ─────────────────────────────────────── */
@@ -395,6 +397,231 @@
 
 
 /* ════════════════════════════════════════════════════════
+   NPC (훈련사 / 관장) 등장 레이어
+   battle-field 내 absolute — 적 스프라이트 위치와 동일
+════════════════════════════════════════════════════════ */
+.bf-npc {
+  position: absolute;
+  right: 8px;
+  top: 0;
+  width: 68px;
+  height: 100%;           /* battle-field 전체 높이 활용 */
+  object-fit: contain;
+  object-position: right top;
+  z-index: 20;            /* 스프라이트(auto)보다 위, bf-fx(50)보다 아래 */
+  opacity: 0;
+  transform: translateX(110%);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* NPC 등장 */
+@keyframes kf-npc-enter {
+  0%   { transform: translateX(110%); opacity: 0; }
+  55%  { transform: translateX(-4%);  opacity: 1; }
+  75%  { transform: translateX(2%);   opacity: 1; }
+  100% { transform: translateX(0);    opacity: 1; }
+}
+/* NPC 퇴장 (공을 던지며 물러남) */
+@keyframes kf-npc-exit {
+  0%   { transform: translateX(0) rotate(0deg);    opacity: 1; }
+  30%  { transform: translateX(10%) rotate(-8deg);  opacity: 1; }
+  100% { transform: translateX(120%) rotate(-5deg); opacity: 0; }
+}
+
+.bf-npc.npc-enter { animation: kf-npc-enter 0.45s cubic-bezier(0.22,1,0.36,1) forwards; }
+.bf-npc.npc-exit  { animation: kf-npc-exit  0.38s ease-in forwards; }
+
+
+/* ════════════════════════════════════════════════════════
+   몬스터 등장 / 퇴장 (스프라이트에 직접 적용)
+════════════════════════════════════════════════════════ */
+
+/* 등장: bounce-in */
+@keyframes kf-mon-enter-enemy {
+  0%   { transform: scale(0.3) translateY(-12px); opacity: 0; }
+  55%  { transform: scale(1.08) translateY(3px);  opacity: 1; }
+  75%  { transform: scale(0.95) translateY(-1px); opacity: 1; }
+  100% { transform: scale(1) translateY(0);       opacity: 1; }
+}
+@keyframes kf-mon-enter-player {
+  0%   { transform: scale(0.3) translateY(12px); opacity: 0; }
+  55%  { transform: scale(1.08) translateY(-3px); opacity: 1; }
+  75%  { transform: scale(0.95) translateY(1px);  opacity: 1; }
+  100% { transform: scale(1) translateY(0);       opacity: 1; }
+}
+
+/* 기절: 아래로 쓰러짐 */
+@keyframes kf-mon-faint {
+  0%   { transform: translateY(0) rotate(0deg) scale(1);   opacity: 1; }
+  25%  { transform: translateY(-6px) rotate(-4deg) scale(1.02); opacity: 0.9; }
+  100% { transform: translateY(28px) rotate(8deg) scale(0.6);  opacity: 0; }
+}
+
+/* 교체 퇴장: 볼 속으로 빨려들어감 */
+@keyframes kf-mon-recall {
+  0%   { transform: scale(1) translateY(0); opacity: 1; filter: brightness(1); }
+  30%  { transform: scale(1.05) translateY(-4px); opacity: 0.9; filter: brightness(1.5); }
+  70%  { transform: scale(0.4) translateY(4px);  opacity: 0.6; filter: brightness(3) saturate(0); }
+  100% { transform: scale(0) translateY(0);       opacity: 0; }
+}
+
+.fx-mon-enter-enemy  { animation: kf-mon-enter-enemy  0.48s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+.fx-mon-enter-player { animation: kf-mon-enter-player 0.48s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+.fx-mon-faint        { animation: kf-mon-faint  0.55s ease-in forwards; }
+.fx-mon-recall       { animation: kf-mon-recall 0.35s ease-in forwards; }
+
+/* 스프라이트 숨김 (NPC 표시 중) */
+.fx-hidden { opacity: 0 !important; }
+
+
+/* ════════════════════════════════════════════════════════
+   모델볼 투척
+   .bf-fx__ball — JS가 --ball-dx / --ball-dy 설정 후
+                  p-ball 클래스로 활성화
+════════════════════════════════════════════════════════ */
+.bf-fx__ball {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.9);
+  background: radial-gradient(circle at 35% 35%,
+    rgba(255,255,255,0.95) 0%,
+    rgba(200,220,255,0.8) 40%,
+    rgba(80,140,255,0.6) 100%);
+  box-shadow: 0 0 8px rgba(120,180,255,0.7), 0 2px 4px rgba(0,0,0,0.4);
+  /* 가운데 선 */
+  overflow: hidden;
+  left: var(--ball-sx, 40px);
+  top:  var(--ball-sy, 120px);
+  opacity: 0;
+  will-change: transform, opacity;
+  z-index: 60;
+}
+
+/* 볼 가운데 구분선 */
+.bf-fx__ball::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  top: 50%; height: 2px;
+  background: rgba(0,0,0,0.35);
+  transform: translateY(-50%);
+}
+
+/* 볼 투척 포물선 궤도 — opacity 1 유지 (이후 wobble/lock/break로 연결) */
+@keyframes kf-ball-arc {
+  0%   { transform: translate(0, 0) rotate(0deg) scale(1);     opacity: 1; }
+  18%  { transform: translate(calc(var(--ball-dx)*0.18), calc(var(--ball-dy)*0.55 - 28px))
+                    rotate(150deg) scale(0.95); opacity: 1; }
+  45%  { transform: translate(calc(var(--ball-dx)*0.45), calc(var(--ball-dy)*1.15))
+                    rotate(380deg) scale(0.88); opacity: 1; }
+  75%  { transform: translate(calc(var(--ball-dx)*0.75), calc(var(--ball-dy)*0.92))
+                    rotate(580deg) scale(0.82); opacity: 1; }
+  90%  { transform: translate(calc(var(--ball-dx)*0.92), var(--ball-dy))
+                    rotate(680deg) scale(0.78); opacity: 1; }
+  100% { transform: translate(var(--ball-dx), var(--ball-dy))
+                    rotate(720deg) scale(0.7);  opacity: 1; }
+}
+
+.bf-fx.p-ball .bf-fx__ball {
+  animation: kf-ball-arc 0.75s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  opacity: 1;
+}
+
+/* ── 볼 흔들기 (포획 시도 판정 중) ── */
+@keyframes kf-ball-wobble {
+  0%,100% { transform: scale(0.7) rotate(0deg); opacity: 1; }
+  11%  { transform: scale(0.72) rotate(-22deg) translateY(2px); }
+  24%  { transform: scale(0.68) rotate(18deg)  translateY(1px); }
+  36%  { transform: scale(0.72) rotate(-13deg) translateY(2px); }
+  49%  { transform: scale(0.68) rotate(9deg)   translateY(1px); }
+  62%  { transform: scale(0.70) rotate(-6deg)  translateY(1px); }
+  75%  { transform: scale(0.70) rotate(3deg); }
+  88%  { transform: scale(0.70) rotate(-1deg); }
+}
+.bf-fx.p-ball-wobble .bf-fx__ball {
+  animation: kf-ball-wobble 1.1s ease-in-out forwards;
+}
+
+/* ── 볼 잠금 (포획 성공) — 황금빛 잠금 후 사라짐 ── */
+@keyframes kf-ball-lock {
+  0%   { transform: scale(0.7); opacity: 1; filter: brightness(1); }
+  20%  { transform: scale(0.95) translateY(-6px); filter: brightness(3.5) saturate(2); }
+  45%  { transform: scale(0.78) translateY(-3px); filter: brightness(2); }
+  70%  { transform: scale(0.72) translateY(-1px); filter: brightness(1.2); }
+  100% { transform: scale(0.7);  opacity: 0; filter: brightness(1); }
+}
+.bf-fx.p-ball-lock .bf-fx__ball {
+  animation: kf-ball-lock 0.85s ease-out forwards;
+}
+
+/* 포획 성공 시 전장 황금 플래시 */
+@keyframes kf-capture-gold {
+  0%   { opacity: 0; }
+  12%  { opacity: 0.7; background: radial-gradient(ellipse at 80% 25%,
+           rgba(255,220,60,0.85) 0%, rgba(255,160,30,0.5) 50%, transparent 80%); }
+  40%  { opacity: 0.45; }
+  70%  { opacity: 0.15; }
+  100% { opacity: 0; }
+}
+.bf-fx.p-ball-lock .bf-fx__field {
+  animation: kf-capture-gold 1.0s 0.2s ease-out forwards;
+}
+
+/* ── 볼 열림 (포획 실패) — 터지며 사라짐 ── */
+@keyframes kf-ball-break {
+  0%   { transform: scale(0.7); opacity: 1; filter: brightness(1); }
+  25%  { transform: scale(1.2) translateY(-8px); filter: brightness(2); opacity: 0.9; }
+  55%  { transform: scale(1.7) translateY(-14px); opacity: 0.5; filter: brightness(1); }
+  100% { transform: scale(0.4) translateY(-6px);  opacity: 0; }
+}
+.bf-fx.p-ball-break .bf-fx__ball {
+  animation: kf-ball-break 0.48s ease-out forwards;
+}
+
+/* 볼 명중 임팩트 (ball 이후 impact 재사용) */
+.bf-fx.p-ball .bf-fx__impact {
+  background: radial-gradient(circle at center,
+    rgba(255,255,255,0.9) 0%,
+    rgba(120,180,255,0.6) 45%,
+    transparent 75%);
+  animation: kf-impact 0.4s 0.68s ease-out forwards;
+}
+
+
+/* ════════════════════════════════════════════════════════
+   포획 모션
+   enemy-sprite에 직접 적용 → 최종적으로 사라짐
+════════════════════════════════════════════════════════ */
+
+/* 볼에 흡수되며 수축 */
+@keyframes kf-capture-absorb {
+  0%   { transform: scale(1); opacity: 1; filter: brightness(1) saturate(1); }
+  20%  { transform: scale(1.05); opacity: 1; filter: brightness(2) saturate(0.5); }
+  50%  { transform: scale(0.55); opacity: 0.8; filter: brightness(4) saturate(0); }
+  80%  { transform: scale(0.15); opacity: 0.4; filter: brightness(6) saturate(0); }
+  100% { transform: scale(0); opacity: 0; }
+}
+
+/* 포획 성공 플래시 (field 전체) */
+@keyframes kf-capture-success {
+  0%   { opacity: 0; }
+  10%  { opacity: 0.65; background: radial-gradient(circle at 80% 30%, rgba(255,220,80,0.9), rgba(255,160,40,0.5) 60%, transparent); }
+  35%  { opacity: 0.4; }
+  60%  { opacity: 0.15; }
+  100% { opacity: 0; }
+}
+
+.fx-capture { animation: kf-capture-absorb 0.7s ease-in forwards; }
+
+.bf-fx.p-capture .bf-fx__field {
+  animation: kf-capture-success 0.9s 0.55s ease-out forwards;
+}
+
+
+/* ════════════════════════════════════════════════════════
    접근성: 모션 감소 설정
 ════════════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
@@ -402,7 +629,11 @@
   .bf-fx__impact,
   .bf-fx__self,
   .bf-fx__field,
-  .fx-shake, .fx-recoil, .fx-flash {
+  .bf-fx__ball,
+  .bf-npc,
+  .fx-shake, .fx-recoil, .fx-flash,
+  .fx-mon-enter-enemy, .fx-mon-enter-player,
+  .fx-mon-faint, .fx-mon-recall, .fx-capture {
     animation: none !important;
     opacity: 0 !important;
   }

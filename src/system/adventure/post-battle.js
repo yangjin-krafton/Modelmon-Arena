@@ -5,9 +5,37 @@ import { captureMon, evolveMon, grantExp } from '../core/save.js';
 
 const MON_BY_ID = new Map(MONS.map(mon => [mon.id, mon]));
 
-export function resolvePostBattle({ teamMons, defeatedEnemy, encounter }) {
+/**
+ * 볼 투척 시 즉시 포획 판정 (전투 중 실시간 호출용)
+ * captureMon 호출 없음 — 결과만 반환, 실제 저장은 applyCaptureDecision 에서
+ */
+export function attemptCapture(defeatedEnemy, encounter, teamMons, catchMultiplier = 1) {
+  if (encounter?.type !== 'wild') return null;
+
+  const baseChance   = encounter.rewardHint?.captureChance ?? 0.22;
+  const existingBonus = encounter.captureBonus ?? 0;
+  const ballBonus    = Math.min(0.45, catchMultiplier * 0.08);
+  const successChance = Math.min(0.90, baseChance + existingBonus + ballBonus);
+
+  const candidate = {
+    monId: defeatedEnemy.id,
+    name:  defeatedEnemy.name,
+    level: Math.max(3, defeatedEnemy.level - 1),
+  };
+
+  if (Math.random() > successChance) {
+    return { success: false, reason: 'failed', chance: successChance, candidate };
+  }
+
+  // 같은 종류도 재포획 가능 — 레벨·스킬·능력치가 다르기 때문
+  return { success: true, chance: successChance, candidate, needsTeamChoice: teamMons.length >= 6 };
+}
+
+export function resolvePostBattle({ teamMons, defeatedEnemy, encounter, preCapture = null }) {
   const growth = teamMons.map(mon => resolveMonGrowth(mon, defeatedEnemy));
-  const capture = resolveCapture(defeatedEnemy, encounter, teamMons);
+  // 포획은 볼 투척으로만 가능 (포켓몬 원작 방식)
+  // preCapture 없이 처치만 한 경우 자동 포획 없음
+  const capture = preCapture ?? null;
 
   return {
     growth,
@@ -41,6 +69,7 @@ function resolveMonGrowth(mon, defeatedEnemy) {
   const finalMon = buildBattleMon(finalId, expResult.level);
   const afterSkills = getSkillsAtLevel(finalId, expResult.level).map(entry => entry.no);
   const learnedSkills = afterSkills.filter(skillNo => !beforeSkills.includes(skillNo));
+  const learnedSkillNames = learnedSkills.map(skillNo => SKILLS[skillNo]?.[0] || String(skillNo));
   const forgottenSkills = beforeSkills.filter(skillNo => !afterSkills.includes(skillNo));
 
   mon.id = finalMon.id;
@@ -66,48 +95,11 @@ function resolveMonGrowth(mon, defeatedEnemy) {
     evolvedTo,
     evolvedName: evolvedTo ? MON_BY_ID.get(evolvedTo)?.nameKo || evolvedTo : null,
     learnedSkills,
+    learnedSkillNames,
     forgottenSkills,
   };
 }
 
-function resolveCapture(defeatedEnemy, encounter, teamMons) {
-  if (encounter?.type !== 'wild') return null;
-
-  const baseChance = encounter.rewardHint?.captureChance ?? 0.22;
-  const bonusChance = encounter.captureBonus ?? 0;
-  const successChance = Math.min(0.95, baseChance + bonusChance);
-
-  if (Math.random() > successChance) {
-    return {
-      success: false,
-      reason: 'failed',
-      chance: successChance,
-      candidate: {
-        monId: defeatedEnemy.id,
-        name: defeatedEnemy.name,
-        level: Math.max(3, defeatedEnemy.level - 1),
-      },
-    };
-  }
-
-  const candidate = {
-    monId: defeatedEnemy.id,
-    name: defeatedEnemy.name,
-    level: Math.max(3, defeatedEnemy.level - 1),
-  };
-
-  if (teamMons.some(mon => mon.id === candidate.monId)) {
-    captureMon(candidate.monId, candidate.level);
-    return { success: false, reason: 'duplicate', candidate };
-  }
-
-  return {
-    success: true,
-    chance: successChance,
-    candidate,
-    needsTeamChoice: teamMons.length >= 6,
-  };
-}
 
 function buildSummaryLines(growth, capture) {
   const lines = [];
@@ -120,7 +112,7 @@ function buildSummaryLines(growth, capture) {
       lines.push(`${entry.beforeName} 진화 -> ${entry.evolvedName}`);
     }
     if (entry.learnedSkills.length) {
-      lines.push(`${entry.name} 새 스킬 ${entry.learnedSkills.map(skillNo => SKILLS[skillNo]?.[0] || skillNo).join(', ')} 습득`);
+      lines.push(`${entry.name} 새 스킬 ${entry.learnedSkillNames.join(', ')} 습득`);
     }
     if (entry.forgottenSkills.length) {
       lines.push(`${entry.name} 최신 기술 구성으로 갱신`);
@@ -129,8 +121,6 @@ function buildSummaryLines(growth, capture) {
 
   if (capture?.success) {
     lines.push(`${capture.candidate.name} 포획 성공`);
-  } else if (capture?.reason === 'duplicate') {
-    lines.push(`${capture.candidate.name}는 이미 보유 중`);
   } else if (capture?.reason === 'failed') {
     lines.push(`${capture.candidate.name} 포획 실패`);
   }

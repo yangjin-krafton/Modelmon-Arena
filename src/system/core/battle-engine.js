@@ -152,6 +152,7 @@ export function resolveTurn(playerMon, enemyMon, playerSkill, enemySkill, turn) 
 
   for (const { atk, def, skill, side } of sequence) {
     if (def.hp <= 0) break;
+    if (!skill) continue;
 
     const hit = checkHit(skill);
     let damage = 0, isCrit = false, effectiveness = 1;
@@ -190,8 +191,44 @@ export function resolveTurn(playerMon, enemyMon, playerSkill, enemySkill, turn) 
   return events;
 }
 
-/** 적 AI: PP 남은 스킬 중 랜덤 선택 */
+/**
+ * 아이템 사용 / 교체 후 적의 단독 반격 1회
+ * (아군 행동 없이 적만 공격 — 포켓몬 원작 턴 소비 규칙)
+ * 반환값: resolveTurn 이벤트 배열과 동일한 형식
+ */
+export function resolveEnemyOnlyTurn(playerMon, enemyMon, enemySkill, turn) {
+  const events = [];
+  if (!enemySkill || playerMon.hp <= 0 || enemyMon.hp <= 0) return events;
+
+  const hit = checkHit(enemySkill);
+  let damage = 0, isCrit = false, effectiveness = 1;
+
+  if (hit) {
+    ({ damage, isCrit, effectiveness } = calcDamage(enemyMon, playerMon, enemySkill));
+    playerMon.hp = Math.max(0, playerMon.hp - damage);
+    if (enemySkill.pp > 0) enemySkill.pp--;
+  }
+
+  events.push({
+    side:         'enemy',
+    turn,
+    type:         hit ? 'attack' : 'miss',
+    atkName:      enemyMon.name,   defName:      playerMon.name,
+    atkBrand:     enemyMon.brand,  defBrand:     playerMon.brand,
+    skillName:    enemySkill.name, skillPattern: enemySkill.pattern,
+    skillElement: enemySkill.element,
+    damage, isCrit, effectiveness,
+    atkHp: enemyMon.hp,  defHp: playerMon.hp,
+    atkMaxHp: enemyMon.maxHp, defMaxHp: playerMon.maxHp,
+    playerHp: playerMon.hp,   enemyHp:  enemyMon.hp,
+  });
+
+  return events;
+}
+
+/** 적 AI: PP 남은 스킬 중 랜덤 선택 (스킬 없으면 null) */
 export function pickEnemySkill(enemyMon) {
+  if (!enemyMon.skills.length) return null;
   const available = enemyMon.skills.filter(s => s.pp > 0);
   const pool = available.length ? available : enemyMon.skills;
   return pool[Math.floor(Math.random() * pool.length)];

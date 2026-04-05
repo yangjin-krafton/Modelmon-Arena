@@ -11,12 +11,11 @@ export function createWaveEncounter({ run, database, metaProgress = {} }) {
 
   switch (waveSlot?.slotType) {
     case 'wild':
+    case 'elite':
       return createWildEncounter({ run, biome, waveSlot, database, difficulty });
     case 'trainer':
-    case 'elite':
-      return createTrainerEncounter({ run, biome, waveSlot, database, difficulty });
     case 'boss':
-      return createBossEncounter({ run, biome, waveSlot, database, difficulty });
+      return createNpcEncounter({ run, biome, waveSlot, database, difficulty });
     case 'reward':
       return createRewardEncounter({ run, biome, waveSlot, difficulty });
     case 'shop':
@@ -35,47 +34,60 @@ export function createWaveEncounter({ run, database, metaProgress = {} }) {
   }
 }
 
+// --- 야생 전투 (wild + elite) ---
+// 항상 야생 몬스터 1마리 등장, 포획 가능
 function createWildEncounter({ run, biome, waveSlot, database, difficulty }) {
+  const isElite = waveSlot.slotType === 'elite';
   const pools = (database.wildPoolsByBiome.get(biome.id) || []).filter(pool =>
     run.wave >= pool.minWave && run.wave <= pool.maxWave,
   );
 
-  const rarity = pickWildRarity(run, biome);
+  const rarity = pickWildRarity(run, biome, isElite);
   const rarityPools = pools.filter(pool => pool.rarity === rarity);
   const candidates = rarityPools.length ? rarityPools : pools;
-  const enemyCount = difficulty.encounterBudget >= 22 ? 2 : 1;
-  const enemies = [];
+  const picked = pickWeighted(run, candidates);
 
-  for (let i = 0; i < enemyCount; i++) {
-    const picked = pickWeighted(run, candidates);
-    if (!picked) break;
-    enemies.push(buildEnemySummary(picked.monId, {
-      level: difficulty.recommendedLevel + (picked.stage - 1) + i,
-      roleTag: picked.roleTag,
-      rarity: picked.rarity,
-    }));
-  }
+  const enemy = picked
+    ? buildEnemySummary(picked.monId, {
+        level: difficulty.recommendedLevel + (picked.stage - 1),
+        roleTag: picked.roleTag,
+        rarity: picked.rarity,
+      })
+    : null;
 
   return {
     type: 'wild',
+    wildTier: isElite ? 'elite' : 'normal',
+    capturable: true,
     wave: run.wave,
     localWave: run.localWave,
     waveLabelKo: waveSlot.slotLabelKo,
     biomeId: biome.id,
     biomeNameKo: biome.nameKo,
     rarity,
-    enemyCount: enemies.length,
-    enemies,
+    enemies: enemy ? [enemy] : [],
     difficulty,
     rewardHint: {
-      credits: 16 + Math.round(difficulty.dangerScore * 5),
+      credits: 16 + Math.round(difficulty.dangerScore * (isElite ? 8 : 5)),
       captureChance: rarity === 'rare' ? 0.5 : rarity === 'uncommon' ? 0.35 : 0.22,
     },
   };
 }
 
-function createTrainerEncounter({ run, biome, waveSlot, database, difficulty }) {
-  const tier = waveSlot.slotType === 'elite' ? 'elite' : 'standard';
+// --- NPC 전투 (trainer + boss) ---
+// 상대 파티 1~6마리, 물약 사용 가능
+function createNpcEncounter({ run, biome, waveSlot, database, difficulty }) {
+  const isBoss = waveSlot.slotType === 'boss';
+
+  if (isBoss) {
+    return createBossNpcEncounter({ run, biome, waveSlot, database, difficulty });
+  }
+  return createTrainerNpcEncounter({ run, biome, waveSlot, database, difficulty });
+}
+
+function createTrainerNpcEncounter({ run, biome, waveSlot, database, difficulty }) {
+  // difficulty_bias >= 1.0 이면 엘리트 트레이너
+  const tier = waveSlot.difficultyBias >= 1.0 ? 'elite' : 'standard';
   const pools = (database.trainerPoolsByBiome.get(biome.id) || []).filter(pool =>
     pool.tier === tier &&
     run.wave >= pool.minWave &&
@@ -86,30 +98,27 @@ function createTrainerEncounter({ run, biome, waveSlot, database, difficulty }) 
     ? randomInt(run, picked.partySizeMin, picked.partySizeMax)
     : 1;
   const sourceIds = picked?.partyMonIds || [];
-  const enemies = [];
-
-  for (let i = 0; i < partySize; i++) {
-    const monId = sourceIds.length
-      ? sourceIds[randomInt(run, 0, sourceIds.length - 1)]
-      : run.party[0]?.monId;
-    enemies.push(buildEnemySummary(monId, {
-      level: difficulty.recommendedLevel + i + (tier === 'elite' ? 2 : 0),
-      roleTag: picked?.templateTag || tier,
-      rarity: tier,
-    }));
-  }
+  const enemies = buildNpcParty(run, sourceIds, partySize, {
+    baseLevel: difficulty.recommendedLevel,
+    levelBonus: tier === 'elite' ? 2 : 0,
+    roleTag: picked?.templateTag || tier,
+    rarity: tier,
+  });
 
   return {
-    type: tier,
+    type: 'npc',
+    npcType: 'trainer',
     wave: run.wave,
     localWave: run.localWave,
     waveLabelKo: waveSlot.slotLabelKo,
     biomeId: biome.id,
     biomeNameKo: biome.nameKo,
-    trainerId: picked?.trainerId || null,
-    trainerNameKo: picked?.nameKo || (tier === 'elite' ? '엘리트 트레이너' : '트레이너'),
+    npcId: picked?.trainerId || null,
+    nameKo: picked?.nameKo || (tier === 'elite' ? '엘리트 트레이너' : '트레이너'),
+    tier,
     templateTag: picked?.templateTag || tier,
     enemies,
+    potionCount: tier === 'elite' ? 1 : 0,
     difficulty,
     rewardHint: {
       credits: 28 + Math.round(difficulty.trainerBudget * 1.2),
@@ -118,43 +127,61 @@ function createTrainerEncounter({ run, biome, waveSlot, database, difficulty }) 
   };
 }
 
-function createBossEncounter({ run, biome, waveSlot, database, difficulty }) {
+function createBossNpcEncounter({ run, biome, waveSlot, database, difficulty }) {
   const pools = (database.bossPoolsByBiome.get(biome.id) || []).filter(pool =>
     run.wave >= pool.minWave && run.wave <= pool.maxWave,
   );
   const picked = pickWeighted(run, pools);
   const partySize = picked?.partySize || 1;
   const sourceIds = picked?.partyMonIds || [];
-  const enemies = [];
+  const enemies = buildNpcParty(run, sourceIds, partySize, {
+    baseLevel: difficulty.recommendedLevel + (picked?.waveBonus || 0),
+    levelBonus: 0,
+    roleTag: picked?.tier || 'boss',
+    rarity: 'boss',
+  });
 
-  for (let i = 0; i < partySize; i++) {
-    const monId = sourceIds[i % sourceIds.length] || run.party[0]?.monId;
-    enemies.push(buildEnemySummary(monId, {
-      level: difficulty.recommendedLevel + (picked?.waveBonus || 0) + i,
-      roleTag: picked?.tier || 'boss',
-      rarity: 'boss',
-    }));
-  }
+  const isFinalBoss = picked?.tier === 'final' || biome.isFinal;
+  const potionCount = isFinalBoss ? 3 : 2;
 
   return {
-    type: 'boss',
+    type: 'npc',
+    npcType: 'boss',
     wave: run.wave,
     localWave: run.localWave,
     waveLabelKo: waveSlot.slotLabelKo,
     biomeId: biome.id,
     biomeNameKo: biome.nameKo,
-    bossId: picked?.bossId || null,
-    bossNameKo: picked?.nameKo || '지역 보스',
-    bossTier: picked?.tier || 'boss',
+    npcId: picked?.bossId || null,
+    nameKo: picked?.nameKo || '지역 보스',
+    tier: picked?.tier || 'boss',
     enemies,
+    potionCount,
     difficulty,
     rewardHint: {
       credits: 40 + Math.round(difficulty.bossBudget * 1.5),
-      shards: biome.isFinal ? 3 : 1,
+      shards: isFinalBoss ? 3 : 1,
       grantsNextBiomeChoice: !biome.isFinal,
     },
   };
 }
+
+function buildNpcParty(run, sourceIds, partySize, { baseLevel, levelBonus, roleTag, rarity }) {
+  const enemies = [];
+  for (let i = 0; i < partySize; i++) {
+    const monId = sourceIds.length
+      ? sourceIds[randomInt(run, 0, sourceIds.length - 1)]
+      : run.party[0]?.monId;
+    enemies.push(buildEnemySummary(monId, {
+      level: baseLevel + levelBonus + i,
+      roleTag,
+      rarity,
+    }));
+  }
+  return enemies;
+}
+
+// --- 비전투 이벤트 ---
 
 function createRewardEncounter({ run, biome, waveSlot, difficulty }) {
   return {
@@ -206,14 +233,22 @@ function createRestEncounter({ run, biome, waveSlot, difficulty }) {
   };
 }
 
-function pickWildRarity(run, biome) {
+// --- 공통 유틸 ---
+
+function pickWildRarity(run, biome, isElite) {
   const localWave = run.localWave;
-  const weights = [
-    { rarity: 'common', weight: biome.wildCommonWeight },
-    { rarity: 'uncommon', weight: biome.wildUncommonWeight + (localWave >= 6 ? 4 : 0) },
-    { rarity: 'rare', weight: biome.wildRareWeight + (localWave >= 8 ? 6 : 0) },
-  ];
-  return pickWeighted(run, weights)?.rarity || 'common';
+  // elite 슬롯은 common 없음, uncommon 이상 보장
+  const weights = isElite
+    ? [
+        { rarity: 'uncommon', weight: biome.wildUncommonWeight + 8 },
+        { rarity: 'rare', weight: biome.wildRareWeight + (localWave >= 8 ? 8 : 4) },
+      ]
+    : [
+        { rarity: 'common', weight: biome.wildCommonWeight },
+        { rarity: 'uncommon', weight: biome.wildUncommonWeight + (localWave >= 6 ? 4 : 0) },
+        { rarity: 'rare', weight: biome.wildRareWeight + (localWave >= 8 ? 6 : 0) },
+      ];
+  return pickWeighted(run, weights)?.rarity || (isElite ? 'uncommon' : 'common');
 }
 
 function buildEnemySummary(monId, { level, roleTag, rarity }) {

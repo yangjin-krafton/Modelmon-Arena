@@ -13,7 +13,7 @@ import {
 } from '../core/save.js';
 
 const adventure = await loadAdventureSystem();
-const COMBAT_TYPES = new Set(['wild', 'standard', 'elite', 'boss']);
+const COMBAT_TYPES = new Set(['wild', 'npc']);
 
 let toastTimer;
 let ingameReady = false;

@@ -143,6 +143,7 @@
               <span class="bfm-name" id="enemy-mon-name">—</span>
               <span class="bfm-level" id="enemy-mon-level">Lv.—</span>
             </div>
+            <div class="bfm-roster hidden" id="enemy-team-count" aria-label="상대 보유 몬스터 수"></div>
             <div class="bfm-hprow">
               <span class="bfm-hplabel">HP</span>
               <div class="bfm-hpbar">
@@ -173,12 +174,16 @@
           </div>
         </div>
 
+        <!-- NPC 훈련사 / 관장 등장 레이어 -->
+        <img class="bf-npc" id="battle-npc" src="" alt="" aria-hidden="true">
+
         <!-- 전투 모션 효과 레이어 -->
         <div class="bf-fx" aria-hidden="true">
           <div class="bf-fx__field"></div>
           <div class="bf-fx__beam"></div>
           <div class="bf-fx__self"></div>
           <div class="bf-fx__impact"></div>
+          <div class="bf-fx__ball"></div>
         </div>
 
         <!-- 결과 오버레이 -->
@@ -275,6 +280,9 @@
           </div>
 
         </div><!-- /battle-panel -->
+
+        <!-- 포스트배틀 선택 패널 (battle-panel과 독립 — 로그 표시 중 위에 오버레이) -->
+        <div class="post-action-panel hidden" id="post-action-panel"></div>
 
       </div><!-- /battle-lower -->
 

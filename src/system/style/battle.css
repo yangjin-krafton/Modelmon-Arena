@@ -83,6 +83,39 @@
 .bfm-nameline { display: flex; align-items: baseline; gap: 5px; margin-bottom: 4px; }
 .bfm-name  { font-size: 12px; font-weight: 800; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px; }
 .bfm-level { font-size: 9px;  font-weight: 600; color: var(--text3); white-space: nowrap; }
+.bfm-roster {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: -1px 0 5px;
+  min-height: 11px;
+}
+.bfm-roster.hidden { display: none; }
+.bfm-ball {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  position: relative;
+  background: radial-gradient(circle at 35% 35%, #ffffff 0 24%, #f36f6f 25% 56%, #6e1212 100%);
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  box-shadow: 0 0 0 1px rgba(18, 22, 34, 0.42);
+}
+.bfm-ball::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2px;
+  height: 2px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+}
+.bfm-ball.is-defeated {
+  background: radial-gradient(circle at 35% 35%, rgba(200, 206, 218, 0.5) 0 24%, rgba(96, 104, 120, 0.7) 25% 56%, rgba(38, 42, 50, 0.95) 100%);
+  border-color: rgba(160, 170, 192, 0.38);
+  opacity: 0.52;
+}
 
 .bfm-hprow   { display: flex; align-items: center; gap: 4px; }
 .bfm-hplabel { font-size: 9px; font-weight: 900; color: var(--text3); letter-spacing: 0.5px; flex-shrink: 0; }
@@ -99,45 +132,144 @@
 .battle-result {
   flex: 1;
   min-height: 0;
-  padding: 18px 16px 20px;
+  padding: 10px 12px 12px;
   background:
     linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.025) 100%);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 8px;
   border-bottom: 1px solid var(--line);
 }
 .battle-result.hidden { display: none; }
-.br-icon  { font-size: 36px; line-height: 1; }
-.br-title { font-size: 20px; font-weight: 900; color: var(--text); text-align: center; }
-.br-sub   { font-size: 12px; color: var(--text3); text-align: center; line-height: 1.5; }
+.br-icon  {
+  align-self: center;
+  min-width: 48px;
+  height: 22px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--text2);
+  line-height: 1;
+}
+.br-title { font-size: 13px; font-weight: 900; color: var(--text); text-align: center; }
+.br-sub {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  padding-right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.18) transparent;
+}
+.br-sub::-webkit-scrollbar { width: 6px; }
+.br-sub::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.16);
+  border-radius: 999px;
+}
+.br-sub:empty::before {
+  content: '전투 정산 기록이 여기 쌓입니다.';
+  margin: auto 0;
+  font-size: 12px;
+  color: var(--text3);
+  text-align: center;
+}
+.br-feed-entry {
+  display: flex;
+}
+.br-feed-entry--system { justify-content: center; }
+.br-feed-entry--ally { justify-content: flex-start; }
+.br-feed-entry--enemy { justify-content: flex-end; }
+.br-feed-bubble {
+  max-width: 88%;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text2);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+}
+.br-feed-entry--ally .br-feed-bubble {
+  background: linear-gradient(180deg, rgba(255,140,92,0.18) 0%, rgba(255,115,72,0.12) 100%);
+  border-color: rgba(255,154,102,0.28);
+  border-top-left-radius: 6px;
+}
+.br-feed-entry--enemy .br-feed-bubble {
+  background: linear-gradient(180deg, rgba(100,150,255,0.18) 0%, rgba(70,118,255,0.12) 100%);
+  border-color: rgba(121,168,255,0.28);
+  border-top-right-radius: 6px;
+}
+.br-feed-bubble strong {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--text);
+}
+.br-feed-bubble span {
+  color: var(--text3);
+}
 .br-choices {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
   gap: 8px;
-  width: min(280px, calc(100% - 24px));
+  width: 100%;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,0.08);
 }
 .br-choices:empty { display: none; }
 .br-choice-btn {
-  min-height: 36px;
-  padding: 0 14px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 10px;
-  font-size: 12px;
+  flex: 1;
+  min-width: 80px;
+  min-height: 44px;
+  padding: 0 16px;
+  background: rgba(91,141,255,0.12);
+  border: 1px solid rgba(91,141,255,0.28);
+  border-radius: 12px;
+  font-size: 13px;
   font-weight: 800;
-  color: var(--text);
+  color: var(--accent);
   font-family: inherit;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s, border-color 0.12s;
+  white-space: nowrap;
+}
+.br-choice-btn:active {
+  background: rgba(91,141,255,0.24);
+  border-color: rgba(91,141,255,0.5);
+}
+/* 보관 / 스킵 계열 = 중성 색상 */
+.br-choice-btn:not(:first-child) {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.12);
+  color: var(--text2);
 }
 .br-retry {
-  margin-top: 6px; height: 40px; padding: 0 24px;
+  width: 100%;
+  min-height: 42px;
+  margin-top: auto;
+  padding: 0 18px;
   background: rgba(91,141,255,0.18); border: 1px solid rgba(91,141,255,0.4);
-  border-radius: 12px; font-size: 13px; font-weight: 800; color: var(--accent);
+  border-radius: 14px; font-size: 13px; font-weight: 800; color: var(--accent);
   font-family: inherit; cursor: pointer;
+}
+.br-retry[disabled] {
+  opacity: 0.45;
+  cursor: default;
 }
 
 /* ════════════════════════════════
@@ -196,47 +328,168 @@
   color: var(--text3);
   text-align: center;
 }
+/* ═══════════════════════════════════════════
+   메신저 말풍선 시스템
+═══════════════════════════════════════════ */
 .bl-entry {
   display: flex;
+  margin-bottom: 5px;
 }
-.bl-entry--ally { justify-content: flex-start; }
-.bl-entry--enemy { justify-content: flex-end; }
+.bl-entry:last-child { margin-bottom: 0; }
+
+/* ── 기본 정렬 ── */
+.bl-entry--ally   { justify-content: flex-start;  padding-left: 2px; }
+.bl-entry--enemy  { justify-content: flex-end;    padding-right: 2px; }
 .bl-entry--system { justify-content: center; }
+.bl-entry--event  { justify-content: center; margin: 1px 0; }
+.bl-entry--narrative { justify-content: flex-start; }
+
+/* ── 기본 말풍선 ── */
 .bl-bubble {
-  max-width: 86%;
-  padding: 10px 12px;
+  max-width: 84%;
+  padding: 9px 12px;
   border-radius: 16px;
   font-size: 12px;
   font-weight: 600;
   line-height: 1.55;
   color: var(--text);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.16);
   word-break: keep-all;
 }
+
+/* 아군 (좌측, 주황 그라데이션) — 꼬리: 왼쪽 상단 */
 .bl-entry--ally .bl-bubble {
-  background: linear-gradient(180deg, rgba(255,140,92,0.18) 0%, rgba(255,115,72,0.12) 100%);
-  border: 1px solid rgba(255,154,102,0.28);
-  border-top-left-radius: 6px;
+  background: linear-gradient(145deg, rgba(255,145,95,0.20) 0%, rgba(255,110,68,0.13) 100%);
+  border: 1px solid rgba(255,154,102,0.30);
+  border-top-left-radius: 4px;
+  box-shadow: 0 4px 12px rgba(255,110,68,0.08);
 }
+
+/* 적 (우측, 파란 그라데이션) — 꼬리: 오른쪽 상단 */
 .bl-entry--enemy .bl-bubble {
-  background: linear-gradient(180deg, rgba(100,150,255,0.18) 0%, rgba(70,118,255,0.12) 100%);
-  border: 1px solid rgba(121,168,255,0.28);
-  border-top-right-radius: 6px;
+  background: linear-gradient(145deg, rgba(110,158,255,0.20) 0%, rgba(72,120,255,0.13) 100%);
+  border: 1px solid rgba(121,168,255,0.30);
+  border-top-right-radius: 4px;
+  box-shadow: 0 4px 12px rgba(72,120,255,0.08);
 }
+
+/* 시스템 (중앙, 중성) */
 .bl-entry--system .bl-bubble {
-  max-width: 92%;
+  max-width: 90%;
   text-align: center;
+  padding: 6px 14px;
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
   color: var(--text2);
+  font-size: 11px;
 }
-/* 대화 이름/스킬 강조 (linter 추가) */
+
+/* ── 이벤트 칩 (중앙, 컴팩트) ── */
+.bl-entry--event .bl-bubble {
+  max-width: 78%;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 0.2px;
+  box-shadow: none;
+}
+.bl-bubble--event-positive {
+  background: rgba(255,205,60,0.16);
+  border: 1px solid rgba(255,205,60,0.38);
+  color: #ffd060;
+}
+.bl-bubble--event-none {
+  background: rgba(140,140,160,0.10);
+  border: 1px solid rgba(140,140,160,0.2);
+  color: var(--text3);
+}
+.bl-bubble--event-weak {
+  background: rgba(140,140,160,0.08);
+  border: 1px dashed rgba(140,140,160,0.18);
+  color: var(--text3);
+  font-weight: 600;
+}
+.bl-bubble--event-crit {
+  background: rgba(255,90,90,0.16);
+  border: 1px solid rgba(255,90,90,0.35);
+  color: #ff8878;
+}
+.bl-bubble--event-miss {
+  background: rgba(140,140,160,0.08);
+  border: 1px dashed rgba(140,140,160,0.15);
+  color: var(--text3);
+  font-weight: 600;
+  font-style: italic;
+}
+
+/* ── 내러티브 인용문 (배틀 다이얼로그 스토리) ── */
+.bl-entry--narrative .bl-bubble {
+  max-width: 94%;
+  padding: 5px 10px;
+  background: transparent;
+  border: none;
+  border-left: 2px solid rgba(91,141,255,0.35);
+  border-radius: 0 8px 8px 0;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--text3);
+  line-height: 1.5;
+  box-shadow: none;
+}
+
+/* ── 성장 버블 (EXP·레벨업·기술) ── */
+.bl-bubble--growth-exp {
+  background: rgba(60,210,120,0.12);
+  border: 1px solid rgba(60,210,120,0.26);
+  color: #78e8a0;
+}
+.bl-bubble--growth-level {
+  background: rgba(255,205,60,0.15);
+  border: 1px solid rgba(255,205,60,0.38);
+  color: #ffd060;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+}
+.bl-bubble--growth-evolution {
+  background: linear-gradient(135deg, rgba(180,80,255,0.15), rgba(120,60,255,0.12));
+  border: 1px solid rgba(180,80,255,0.38);
+  color: #d090ff;
+  font-weight: 800;
+  font-size: 13px;
+  text-align: center;
+}
+.bl-bubble--growth-skill {
+  background: rgba(80,185,255,0.13);
+  border: 1px solid rgba(80,185,255,0.30);
+  color: #82ccff;
+}
+
+/* ── 포획 버블 ── */
+.bl-bubble--capture-success {
+  background: linear-gradient(135deg, rgba(91,141,255,0.20), rgba(150,80,255,0.16));
+  border: 1px solid rgba(120,100,255,0.38);
+  color: #c0b0ff;
+  font-weight: 800;
+  font-size: 13px;
+  text-align: center;
+}
+.bl-bubble--capture-fail {
+  background: rgba(130,130,150,0.10);
+  border: 1px solid rgba(130,130,150,0.20);
+  color: var(--text3);
+  font-style: italic;
+}
+
+/* ── 강조 텍스트 ── */
 .bl-bubble .bd-name      { font-weight: 800; letter-spacing: 0.1px; }
-.bl-bubble .bd-name-ally  { color: #ffb18b; text-shadow: 0 0 10px rgba(255,120,80,0.18); }
-.bl-bubble .bd-name-enemy { color: #9bc0ff; text-shadow: 0 0 10px rgba(91,141,255,0.2); }
+.bl-bubble .bd-name-ally  { color: #ffb18b; }
+.bl-bubble .bd-name-enemy { color: #9bc0ff; }
 .bl-bubble .bd-skill      { font-weight: 800; }
-.bl-bubble .bd-skill-ally  { color: #ffd38a; text-shadow: 0 0 10px rgba(255,186,80,0.18); }
-.bl-bubble .bd-skill-enemy { color: #bed6ff; text-shadow: 0 0 10px rgba(120,170,255,0.18); }
+.bl-bubble .bd-skill-ally  { color: #ffd38a; }
+.bl-bubble .bd-skill-enemy { color: #bed6ff; }
 
 .bl-arrow {
   position: absolute; right: 16px; bottom: 8px;
@@ -253,6 +506,57 @@
   flex-direction: column;
 }
 .battle-panel.hidden { display: none; }
+/* ─── 포스트배틀 선택 패널 ─────────────────────────
+   battle-panel과 독립된 형제 노드.
+   battle-log가 보이는 상태에서 그 아래에 자연스럽게 표시.
+   battle-panel을 건드리지 않으므로 전투 UI가 갑자기 나타나는 버그 없음.
+──────────────────────────────────────────────────── */
+.post-action-panel {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+}
+.post-action-panel.hidden { display: none; }
+
+/* 카드 헤더 */
+.pap-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+.pap-card-icon {
+  font-size: 24px;
+  line-height: 1;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+.pap-card-body { flex: 1; min-width: 0; }
+.pap-card-title {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.pap-card-sub {
+  font-size: 11px;
+  color: var(--text3);
+  line-height: 1.4;
+}
+
+/* 선택지 버튼 행 */
+.pap-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 
 /* 교체 / 아이템 스크롤 행 (28px) */
 .bp-scroll-row {

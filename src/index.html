@@ -177,6 +177,7 @@
           <div class="br-icon">🏆</div>
           <div class="br-title">승리!</div>
           <div class="br-sub"></div>
+          <div class="br-choices" id="battle-result-choices"></div>
           <button class="br-retry" id="battle-retry-btn">다음 여정</button>
         </div>
 
@@ -261,21 +262,6 @@
               <div class="sk-effect" id="bp-sk-eff-2"></div>
             </button>
 
-            <button class="bp-skill-card" id="bp-skill-3" data-idx="3">
-              <div class="sk-card-top">
-                <span class="sk-name" id="bp-sk-name-3">—</span>
-                <div class="sk-chips">
-                  <span class="sk-chip" id="bp-sk-elem-3"></span>
-                  <span class="sk-pattern-chip" id="bp-sk-pat-3"></span>
-                </div>
-              </div>
-              <div class="sk-stats">
-                <div class="sk-stat"><span class="sk-stat-lbl">위력</span><span class="sk-stat-val" id="bp-sk-pow-3">—</span></div>
-                <div class="sk-stat"><span class="sk-stat-lbl">명중</span><span class="sk-stat-val" id="bp-sk-acc-3">—</span></div>
-                <div class="sk-stat"><span class="sk-stat-lbl">PP</span><span class="sk-stat-val" id="bp-sk-pp-3">—</span></div>
-              </div>
-              <div class="sk-effect" id="bp-sk-eff-3"></div>
-            </button>
 
           </div>
 
@@ -442,6 +428,13 @@
 
   <!-- 토스트 -->
   <div class="toast" id="toast"></div>
+  <div class="adventure-choice-modal hidden" id="adventure-choice-modal">
+    <div class="adventure-choice-panel">
+      <div class="ac-title">다음 지역 선택</div>
+      <div class="ac-sub">관장을 돌파했다. 다음 여정의 방향을 고른다.</div>
+      <div class="adventure-choice-list" id="adventure-choice-list"></div>
+    </div>
+  </div>
 
 </div><!-- /phone-shell -->
 

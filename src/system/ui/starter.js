@@ -8,7 +8,7 @@
 import { MONS } from '../data/mons.js';
 import { SKILLS } from '../data/skills.js';
 import { calcStat, SPRITE, typeInfo } from '../core/state.js';
-import { isStarterEligible } from '../core/save.js';
+import { getMonLevel, isStarterEligible } from '../core/save.js';
 import { getSkillsAtLevel } from '../core/battle-engine.js';
 
 export const STARTER_LEVEL = 15;
@@ -175,7 +175,7 @@ function renderDetail(monId) {
   const mon = MONS.find(m => m.id === monId);
   if (!mon) return;
 
-  const lv  = STARTER_LEVEL;
+  const lv  = getMonLevel(monId, STARTER_LEVEL);
   const hp  = calcStat(mon.bs.hp,  lv, true);
   const atk = calcStat(mon.bs.atk, lv, false);
   const def = calcStat(mon.bs.def, lv, false);

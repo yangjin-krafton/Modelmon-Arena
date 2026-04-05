@@ -38,7 +38,7 @@ export function getTypeEffectiveness(skillElement, defenderType) {
 /* ════════════════════════════════════════
    스킬 조회
 ════════════════════════════════════════ */
-/** 현재 레벨에서 사용 가능한 최근 4개 스킬 반환 */
+/** 현재 레벨에서 사용 가능한 최근 3개 스킬 반환 (포켓몬 Gen1 동시 장착 3개) */
 export function getSkillsAtLevel(monId, level) {
   const tree = SKILL_TREE[monId] || [];
   const learnable = tree.filter(e => e.lv <= level);
@@ -51,7 +51,7 @@ export function getSkillsAtLevel(monId, level) {
       result.unshift(entry);
     }
   }
-  return result.slice(-4);
+  return result.slice(-3);
 }
 
 /* ════════════════════════════════════════

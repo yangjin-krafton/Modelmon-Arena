@@ -1,17 +1,3 @@
-/**
- * 전투 UI 컨트롤러
- * phase: idle → choosing → animating → ended
- *
- * 팀 시스템:
- *   teamMons[]   — 선택된 팀 전체 (buildBattleMon 결과)
- *   activeIdx    — 현재 전투 중인 몬 인덱스
- *   playerMon    — teamMons[activeIdx] 의 별칭 (참조 동기화)
- *
- * 교체:
- *   renderTeamGrid() — 팀 전체를 그리드 카드로 렌더 (active/fainted 상태 반영)
- *   executeSwitch()  — 무료 교체 (적 반격 없음, 로그라이크 특성)
- */
-
 import { buildBattleMon, resolveTurn, pickEnemySkill } from '../core/battle-engine.js';
 import {
   loadBattleDialogueLibrary,
@@ -19,203 +5,242 @@ import {
   renderBattleDialogueMarkup,
 } from '../battle-dialogue/index.js';
 import { STARTER_LEVEL } from './starter.js';
-import { ITEMS, RARITY_COLOR, initRunItems, getInventory, hasItem, consumeItem } from '../core/run-items.js';
+import {
+  ITEMS,
+  RARITY_COLOR,
+  initRunItems,
+  getInventory,
+  hasItem,
+  consumeItem,
+} from '../core/run-items.js';
+import { getMonLevel } from '../core/save.js';
+import { applyCaptureDecision, resolvePostBattle } from '../adventure/post-battle.js';
 
-/* ════════════════════════════════════════
-   상태
-════════════════════════════════════════ */
-let phase          = 'idle';
-let turn           = 0;
-let teamMons       = [];   // 팀 전체 mon 객체 배열
-let activeIdx      = 0;    // 현재 전투 mon 인덱스
-let playerMon      = null; // teamMons[activeIdx] 참조
-let enemyMon       = null;
-let msgQueue       = [];
+let phase = 'idle';
+let turn = 0;
+let teamMons = [];
+let activeIdx = 0;
+let playerMon = null;
+let enemyMon = null;
+let msgQueue = [];
 let dialogueEngine = null;
-let libraryLoaded  = false;
-let _onBattleEnd   = null;
+let libraryLoaded = false;
+let onBattleEnd = null;
+let lastBattleRewards = [];
+let lastBattleOutcome = null;
+let currentEncounterData = null;
+let enemyQueue = [];
+let resolvedTeamIds = [];
 
-const TEAM_GRID_MAX = 5; // 그리드 최대 표시 슬롯 수
+const TEAM_GRID_MAX = 5;
+const COMBAT_TYPES = new Set(['wild', 'standard', 'elite', 'boss']);
 
 const el = id => document.getElementById(id);
 
-/* ════════════════════════════════════════
-   초기화 (1회)
-════════════════════════════════════════ */
-export async function initBattle(onBattleEnd) {
-  _onBattleEnd = onBattleEnd;
+export async function initBattle(callback) {
+  onBattleEnd = callback;
 
-  // 이벤트 — await 전에 동기 등록
   el('battle-lower').addEventListener('click', onLowerClick);
   el('battle-panel').addEventListener('click', onPanelClick);
   el('battle-retry-btn').addEventListener('click', onRetry);
-
-    // 교체 그리드
   el('team-switch-grid').addEventListener('click', onTeamGridClick);
-  // 아이템 그리드
   el('item-grid').addEventListener('click', onItemGridClick);
 
   if (libraryLoaded) return;
+
   try {
     const library = await loadBattleDialogueLibrary({ baseUrl: './data' });
     dialogueEngine = createBattleDialogueEngine({ library });
-    libraryLoaded = true;
-  } catch (e) {
-    console.warn('[battle] dialogue load failed:', e);
-    libraryLoaded = true;
+  } catch (error) {
+    console.warn('[battle] dialogue load failed:', error);
   }
+
+  libraryLoaded = true;
 }
 
-/* ════════════════════════════════════════
-   전투 시작 (teamIds[] 받음)
-════════════════════════════════════════ */
-export function startBattle(teamIds) {
-  const level = STARTER_LEVEL;
-  const ids   = Array.isArray(teamIds) ? teamIds : [teamIds];
+export function startBattle(teamIds, encounterData = null) {
+  const ids = Array.isArray(teamIds) ? [...teamIds] : [teamIds];
 
-  // 팀 빌드
-  teamMons = ids.map(id => {
-    try { return buildBattleMon(id, level); } catch { return null; }
-  }).filter(Boolean);
+  teamMons = ids
+    .map(monId => {
+      try {
+        return buildBattleMon(monId, getMonLevel(monId, STARTER_LEVEL));
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean);
 
-  if (!teamMons.length) { console.error('[battle] 팀 빌드 실패'); return; }
+  if (!teamMons.length) {
+    console.error('[battle] failed to build team');
+    return;
+  }
+
+  if (encounterData && !COMBAT_TYPES.has(encounterData.type)) {
+    console.error('[battle] non-combat encounter passed to battle:', encounterData.type);
+    return;
+  }
 
   activeIdx = 0;
   playerMon = teamMons[0];
-
-  // 적: 팀에 없는 기본 스타터 중 랜덤
-  const enemyCandidates = ['001','004','007'].filter(id => !ids.includes(id));
-  const enemyId = enemyCandidates.length
-    ? enemyCandidates[Math.floor(Math.random() * enemyCandidates.length)]
-    : ['001','004','007'].find(id => id !== ids[0]);
-  try { enemyMon = buildBattleMon(enemyId, level); }
-  catch (e) { console.error('[battle] 적 빌드 실패', e); return; }
-
+  resolvedTeamIds = teamMons.map(mon => mon.id);
+  currentEncounterData = encounterData ? { ...encounterData, captureBonus: 0 } : null;
+  enemyQueue = [];
   turn = 0;
   msgQueue = [];
+  lastBattleRewards = [];
+  lastBattleOutcome = null;
+
+  setupEncounterEnemies(ids, encounterData);
+  applyFieldTheme(encounterData);
+
   if (dialogueEngine) dialogueEngine.reset();
-  initRunItems(); // 여정마다 아이템 초기화 (모델볼 10, 회복약 5)
+  initRunItems();
 
   el('battle-result').classList.add('hidden');
+  clearResultChoices();
   hidePanel();
   el('bl-arrow').style.display = 'none';
   el('battle-lower').classList.remove('is-talking');
 
   renderField();
-  
 
   phase = 'animating';
   enqueue(
-    `연구원 A가 ${enemyMon.name}을(를) 내보냈다!`,
-    `가자! ${playerMon.name}!`,
+    buildEncounterIntro(encounterData, enemyMon),
+    `가라! ${playerMon.name}!`,
   );
   showNextMessage();
 }
 
-export function getBattlePhase() { return phase; }
+export function getBattlePhase() {
+  return phase;
+}
 
-/* ════════════════════════════════════════
-   팀 교체 그리드
-════════════════════════════════════════ */
+function setupEncounterEnemies(teamIds, encounterData) {
+  const encounterEnemies = encounterData?.enemies || [];
+  enemyQueue = encounterEnemies.slice(1).map(enemy => ({ ...enemy }));
+
+  if (encounterEnemies.length) {
+    enemyMon = buildBattleMon(encounterEnemies[0].monId, encounterEnemies[0].level);
+    return;
+  }
+
+  const enemyCandidates = ['001', '004', '007'].filter(monId => !teamIds.includes(monId));
+  const enemyId = enemyCandidates.length
+    ? enemyCandidates[Math.floor(Math.random() * enemyCandidates.length)]
+    : ['001', '004', '007'].find(monId => monId !== teamIds[0]);
+  const teamAvgLevel = Math.round(teamMons.reduce((sum, mon) => sum + mon.level, 0) / teamMons.length);
+  const enemyLevel = Math.max(1, teamAvgLevel + (Math.random() < 0.5 ? 0 : 1));
+
+  enemyMon = buildBattleMon(enemyId, enemyLevel);
+}
+
+function applyFieldTheme(encounterData) {
+  const field = document.querySelector('.battle-field');
+  if (!field) return;
+
+  field.dataset.biome = encounterData?.biomeId || 'starter-zone';
+  field.dataset.time = encounterData?.localWave >= 6 ? 'night' : 'day';
+}
+
+function buildEncounterIntro(encounterData, firstEnemy) {
+  if (!encounterData) {
+    return `연구원 A가 ${firstEnemy.name}을 보냈다!`;
+  }
+
+  if (encounterData.type === 'wild') {
+    return `${encounterData.biomeNameKo}에서 야생 ${firstEnemy.name}이 나타났다!`;
+  }
+
+  if (encounterData.type === 'boss') {
+    const bossName = encounterData.bossNameKo || '관장';
+    return `${bossName}이 ${firstEnemy.name}을 내보냈다!`;
+  }
+
+  const trainerName = encounterData.trainerNameKo || '훈련사';
+  return `${trainerName}가 ${firstEnemy.name}을 내보냈다!`;
+}
+
 function renderTeamGrid() {
   const grid = el('team-switch-grid');
   grid.innerHTML = '';
 
-  const total = Math.max(teamMons.length, Math.min(TEAM_GRID_MAX, teamMons.length));
-
-  for (let i = 0; i < TEAM_GRID_MAX; i++) {
+  for (let i = 0; i < TEAM_GRID_MAX; i += 1) {
     const mon = teamMons[i];
-    const btn = document.createElement('button');
+    const button = document.createElement('button');
 
     if (!mon) {
-      btn.className = 'tsw-card tsw-empty';
-      btn.disabled  = true;
-      btn.textContent = '+';
-      grid.appendChild(btn);
+      button.className = 'tsw-card tsw-empty';
+      button.disabled = true;
+      button.textContent = '+';
+      grid.appendChild(button);
       continue;
     }
 
-    const isActive  = i === activeIdx;
+    const isActive = i === activeIdx;
     const isFainted = mon.hp <= 0;
     const pct = Math.max(0, (mon.hp / mon.maxHp) * 100);
     const hpClass = pct > 50 ? 'hp-high' : pct > 25 ? 'hp-mid' : 'hp-low';
 
-    btn.className  = 'tsw-card'
-      + (isActive  ? ' tsw-active'  : '')
+    button.className = 'tsw-card'
+      + (isActive ? ' tsw-active' : '')
       + (isFainted ? ' tsw-fainted' : '');
-    btn.disabled   = isActive || isFainted;
-    btn.dataset.teamIdx = i;
-    btn.title      = `${mon.name}  HP ${mon.hp}/${mon.maxHp}`;
-
-    btn.innerHTML = `
-      <img class="tsw-sprite" src="${mon.sprite}" alt="${mon.name}"
-           onerror="this.style.opacity=0">
+    button.disabled = isActive || isFainted;
+    button.dataset.teamIdx = String(i);
+    button.title = `${mon.name} HP ${mon.hp}/${mon.maxHp}`;
+    button.innerHTML = `
+      <img class="tsw-sprite" src="${mon.sprite}" alt="${mon.name}">
       <div class="tsw-hpbar">
         <div class="tsw-hpfill ${hpClass}" style="width:${pct}%"></div>
-      </div>`;
-
-    grid.appendChild(btn);
+      </div>
+    `;
+    grid.appendChild(button);
   }
 }
 
-function onTeamGridClick(e) {
-  const btn = e.target.closest('.tsw-card');
-  if (!btn || btn.disabled || phase !== 'choosing') return;
-  const idx = parseInt(btn.dataset.teamIdx);
-  if (Number.isFinite(idx)) executeSwitch(idx);
+function renderItemGrid() {
+  const grid = el('item-grid');
+  grid.innerHTML = '';
+
+  const inventory = getInventory();
+  if (!Object.keys(inventory).length) {
+    grid.innerHTML = '<span style="font-size:11px;color:var(--text3);padding:0 4px">아이템 없음</span>';
+    return;
+  }
+
+  Object.entries(inventory).forEach(([itemId, count]) => {
+    const def = ITEMS[itemId];
+    if (!def) return;
+
+    const button = document.createElement('button');
+    button.className = 'item-card';
+    button.disabled = count <= 0;
+    button.dataset.itemId = itemId;
+    button.title = `${def.name} · ${def.desc}`;
+    button.style.borderColor = RARITY_COLOR[def.rarity] ?? 'rgba(255,255,255,0.1)';
+    button.innerHTML = `
+      <div class="item-icon"><img src="${def.icon}" alt="${def.name}"></div>
+      <div class="item-info">
+        <div class="item-name-row">
+          <span class="item-name">${def.name}</span>
+          <span class="item-count-badge">x${count}</span>
+        </div>
+        <span class="item-desc">${def.desc ?? ''}</span>
+      </div>
+    `;
+    grid.appendChild(button);
+  });
 }
 
-function executeSwitch(newIdx) {
-  const prevMon = playerMon;
-  activeIdx = newIdx;
-  playerMon = teamMons[activeIdx];
-  
-
-  hidePanel();
-  phase = 'animating';
-
-  renderField(); // 플레이어 스프라이트 + HP 업데이트
-  
-
-  enqueue(
-    `${prevMon.name}은(는) 물러났다!`,
-    `가자! ${playerMon.name}!`,
-  );
-  showNextMessage();
-}
-
-/** 아군 쓰러짐 → 다음 살아있는 멤버로 강제 교체 */
-function forceNextMon() {
-  const next = teamMons.find((m, i) => i !== activeIdx && m.hp > 0);
-  if (!next) { showEndScreen(false); return; }
-
-  const prevMon = playerMon;
-  activeIdx  = teamMons.indexOf(next);
-  playerMon  = next;
-  
-
-  renderField();
-  
-
-  enqueue(
-    `${prevMon.name}이(가) 셧다운되었다!`,
-    `가자! ${playerMon.name}!`,
-  );
-  phase = 'animating';
-  showNextMessage();
-}
-
-/* ════════════════════════════════════════
-   렌더링
-════════════════════════════════════════ */
 function renderField() {
-  el('enemy-sprite').src             = enemyMon.sprite;
-  el('enemy-mon-name').textContent   = enemyMon.name;
-  el('enemy-mon-level').textContent  = `Lv.${enemyMon.level}`;
+  el('enemy-sprite').src = enemyMon.sprite;
+  el('enemy-mon-name').textContent = enemyMon.name;
+  el('enemy-mon-level').textContent = `Lv.${enemyMon.level}`;
   renderHP('enemy');
 
-  el('player-sprite').src            = playerMon.sprite;
-  el('player-mon-name').textContent  = playerMon.name;
+  el('player-sprite').src = playerMon.sprite;
+  el('player-mon-name').textContent = playerMon.name;
   el('player-mon-level').textContent = `Lv.${playerMon.level}`;
   renderHP('player');
 }
@@ -223,49 +248,47 @@ function renderField() {
 function renderHP(side) {
   const mon = side === 'player' ? playerMon : enemyMon;
   const pct = Math.max(0, (mon.hp / mon.maxHp) * 100);
-
   const fill = el(`${side}-hpfill`);
+
   fill.style.width = `${pct}%`;
-  fill.className   = 'bfm-hpfill ' + (pct > 50 ? 'hp-high' : pct > 25 ? 'hp-mid' : 'hp-low');
+  fill.className = `bfm-hpfill ${pct > 50 ? 'hp-high' : pct > 25 ? 'hp-mid' : 'hp-low'}`;
 
   if (side === 'player') {
-    el('player-hp-cur').textContent = mon.hp;
-    el('player-hp-max').textContent = mon.maxHp;
+    el('player-hp-cur').textContent = String(mon.hp);
+    el('player-hp-max').textContent = String(mon.maxHp);
   }
 }
 
 function renderPanel() {
-  for (let i = 0; i < 4; i++) {
-    const card  = el(`bp-skill-${i}`);
+  for (let i = 0; i < 3; i += 1) {
+    const card = el(`bp-skill-${i}`);
     const skill = playerMon.skills[i];
 
-    if (skill) {
-      card.disabled     = skill.pp <= 0;
-      card.dataset.elem = skill.element;
-      el(`bp-sk-name-${i}`).textContent = skill.name;
-      el(`bp-sk-elem-${i}`).textContent = skill.element;
-      el(`bp-sk-pat-${i}`).textContent  = skill.pattern || '';
-      el(`bp-sk-pow-${i}`).textContent  = skill.power === '—' || !skill.power ? '—' : skill.power;
-      el(`bp-sk-acc-${i}`).textContent  = skill.accuracy === '무한' || skill.accuracy === '—' ? '—' : skill.accuracy;
-      el(`bp-sk-pp-${i}`).textContent   = `${skill.pp}/${skill.maxPp}`;
-      el(`bp-sk-eff-${i}`).textContent  = skill.effect || '';
-    } else {
-      card.disabled     = true;
+    if (!skill) {
+      card.disabled = true;
       card.dataset.elem = '';
-      el(`bp-sk-name-${i}`).textContent = '—';
+      el(`bp-sk-name-${i}`).textContent = '-';
       el(`bp-sk-elem-${i}`).textContent = '';
-      el(`bp-sk-pat-${i}`).textContent  = '';
-      el(`bp-sk-pow-${i}`).textContent  = '—';
-      el(`bp-sk-acc-${i}`).textContent  = '—';
-      el(`bp-sk-pp-${i}`).textContent   = '—';
-      el(`bp-sk-eff-${i}`).textContent  = '';
+      el(`bp-sk-pat-${i}`).textContent = '';
+      el(`bp-sk-pow-${i}`).textContent = '-';
+      el(`bp-sk-acc-${i}`).textContent = '-';
+      el(`bp-sk-pp-${i}`).textContent = '-';
+      el(`bp-sk-eff-${i}`).textContent = '';
+      continue;
     }
+
+    card.disabled = skill.pp <= 0;
+    card.dataset.elem = skill.element;
+    el(`bp-sk-name-${i}`).textContent = skill.name;
+    el(`bp-sk-elem-${i}`).textContent = skill.element;
+    el(`bp-sk-pat-${i}`).textContent = skill.pattern || '';
+    el(`bp-sk-pow-${i}`).textContent = String(skill.power ?? '-');
+    el(`bp-sk-acc-${i}`).textContent = String(skill.accuracy ?? '-');
+    el(`bp-sk-pp-${i}`).textContent = `${skill.pp}/${skill.maxPp}`;
+    el(`bp-sk-eff-${i}`).textContent = skill.effect || '';
   }
 }
 
-/* ════════════════════════════════════════
-   패널 표시 제어
-════════════════════════════════════════ */
 function hidePanel() {
   el('battle-panel').classList.add('hidden');
 }
@@ -280,135 +303,169 @@ function showPanel() {
   el('bl-arrow').style.display = 'none';
 }
 
-/* ════════════════════════════════════════
-   아이템 그리드
-════════════════════════════════════════ */
-function renderItemGrid() {
-  const grid = el('item-grid');
-  grid.innerHTML = '';
+function onTeamGridClick(event) {
+  const button = event.target.closest('.tsw-card');
+  if (!button || button.disabled || phase !== 'choosing') return;
 
-  const inv = getInventory();
-  if (!Object.keys(inv).length) {
-    grid.innerHTML = '<span style="font-size:11px;color:var(--text3);padding:0 4px">아이템 없음</span>';
-    return;
-  }
+  const nextIndex = Number(button.dataset.teamIdx);
+  if (!Number.isFinite(nextIndex)) return;
 
-  for (const [itemId, count] of Object.entries(inv)) {
-    const def = ITEMS[itemId];
-    if (!def) continue;
+  const previous = playerMon;
+  activeIdx = nextIndex;
+  playerMon = teamMons[activeIdx];
 
-    const btn = document.createElement('button');
-    btn.className      = 'item-card';
-    btn.disabled       = count <= 0;
-    btn.dataset.itemId = itemId;
-    btn.title          = `${def.name} — ${def.desc}`;
-    // 희귀도 테두리 색상
-    btn.style.borderColor = RARITY_COLOR[def.rarity] ?? 'rgba(255,255,255,0.1)';
-
-    btn.innerHTML = `
-      <div class="item-icon"><img src="${def.icon}" alt="${def.name}"></div>
-      <span class="item-name">${def.name}</span>
-      <span class="item-count-badge">${count}</span>`;
-    grid.appendChild(btn);
-  }
+  hidePanel();
+  renderField();
+  phase = 'animating';
+  enqueue(
+    `${previous.name}, 돌아와!`,
+    `가라! ${playerMon.name}!`,
+  );
+  showNextMessage();
 }
 
-function onItemGridClick(e) {
-  const btn = e.target.closest('.item-card');
-  if (!btn || btn.disabled || phase !== 'choosing') return;
-  useItem(btn.dataset.itemId);
+function onItemGridClick(event) {
+  const button = event.target.closest('.item-card');
+  if (!button || button.disabled || phase !== 'choosing') return;
+  useItem(button.dataset.itemId);
 }
 
 function useItem(itemId) {
   const def = ITEMS[itemId];
   if (!def || !hasItem(itemId)) return;
 
-  // ── 볼 계열 ──────────────────────────────
   if (def.category === 'ball') {
-    enqueue(`${def.name}을(를) 던졌다!`, '포획 기능은 아직 구현 중이다...');
-    hidePanel(); phase = 'animating'; showNextMessage(); return;
+    if (currentEncounterData?.type !== 'wild') {
+      hidePanel();
+      phase = 'animating';
+      enqueue(`${def.name}은 야생 몬스터에게만 사용할 수 있다.`);
+      showNextMessage();
+      return;
+    }
+
+    consumeItem(itemId);
+    currentEncounterData.captureBonus = Math.max(
+      currentEncounterData.captureBonus ?? 0,
+      Math.min(0.65, Number(def.catchMult || 1) * 0.08),
+    );
+    renderItemGrid();
+    hidePanel();
+    phase = 'animating';
+    enqueue(
+      `${def.name}을 준비했다.`,
+      `이번 전투가 끝나면 포획 확률이 오른다.`,
+    );
+    showNextMessage();
+    return;
   }
 
-  // ── 부활 ─────────────────────────────────
   if (def.revivePct > 0) {
     if (playerMon.hp > 0) {
-      enqueue(`${playerMon.name}은 쓰러지지 않았다!`);
-      hidePanel(); phase = 'animating'; showNextMessage(); return;
+      hidePanel();
+      phase = 'animating';
+      enqueue(`${playerMon.name}은 아직 쓰러지지 않았다.`);
+      showNextMessage();
+      return;
     }
-    const hp = def.hpFull
+
+    const restoredHp = def.hpFull
       ? playerMon.maxHp
       : Math.floor(playerMon.maxHp * def.revivePct / 100);
     consumeItem(itemId);
-    playerMon.hp = hp;
-    renderHP('player'); renderItemGrid();
-    enqueue(`${def.name}을(를) 사용했다!`, `${playerMon.name}이(가) HP ${hp}로 부활!`);
-    hidePanel(); phase = 'animating'; showNextMessage(); return;
+    playerMon.hp = Math.max(1, restoredHp);
+    renderHP('player');
+    renderItemGrid();
+    hidePanel();
+    phase = 'animating';
+    enqueue(`${def.name}을 사용했다.`, `${playerMon.name}의 HP가 회복됐다.`);
+    showNextMessage();
+    return;
   }
 
-  // ── HP 회복 ──────────────────────────────
   if (def.hpFull || def.hpFlat > 0) {
     if (playerMon.hp >= playerMon.maxHp) {
-      enqueue(`${playerMon.name}의 HP는 이미 가득 찼다!`);
-      hidePanel(); phase = 'animating'; showNextMessage(); return;
+      hidePanel();
+      phase = 'animating';
+      enqueue(`${playerMon.name}의 HP는 이미 가득하다.`);
+      showNextMessage();
+      return;
     }
-    const prev = playerMon.hp;
+
+    const beforeHp = playerMon.hp;
     playerMon.hp = def.hpFull
       ? playerMon.maxHp
-      : Math.min(playerMon.hp + def.hpFlat, playerMon.maxHp);
-    const actual = playerMon.hp - prev;
+      : Math.min(playerMon.maxHp, playerMon.hp + def.hpFlat);
     consumeItem(itemId);
-    renderHP('player'); renderItemGrid();
-    enqueue(`${def.name}을(를) 사용했다!`, `${playerMon.name}의 HP가 ${actual} 회복됐다!`);
-    hidePanel(); phase = 'animating'; showNextMessage(); return;
+    renderHP('player');
+    renderItemGrid();
+    hidePanel();
+    phase = 'animating';
+    enqueue(
+      `${def.name}을 사용했다.`,
+      `${playerMon.name}의 HP가 ${playerMon.hp - beforeHp} 회복됐다.`,
+    );
+    showNextMessage();
+    return;
   }
 
-  // ── PP 회복 ──────────────────────────────
   if (def.ppFull || def.ppFlat > 0) {
-    consumeItem(itemId);
     let restored = 0;
+    consumeItem(itemId);
+
     for (const skill of playerMon.skills) {
       if (!skill) continue;
       const before = skill.pp;
-      if (def.ppFull)       skill.pp = skill.maxPp;
-      else if (def.ppFlat)  skill.pp = Math.min(skill.pp + def.ppFlat, skill.maxPp);
+      skill.pp = def.ppFull ? skill.maxPp : Math.min(skill.maxPp, skill.pp + def.ppFlat);
       restored += skill.pp - before;
-      if (!def.ppAll) break; // 단일 스킬이면 첫 번째만
+      if (!def.ppAll) break;
     }
-    renderPanel(); renderItemGrid();
-    enqueue(`${def.name}을(를) 사용했다!`, `스킬 PP가 ${restored} 회복됐다!`);
-    hidePanel(); phase = 'animating'; showNextMessage(); return;
+
+    renderPanel();
+    renderItemGrid();
+    hidePanel();
+    phase = 'animating';
+    enqueue(`${def.name}을 사용했다.`, `스킬 PP가 ${restored} 회복됐다.`);
+    showNextMessage();
+    return;
   }
 
-  // ── 콤보 (HP + PP) ───────────────────────
   if (def.category === 'combo') {
     consumeItem(itemId);
     playerMon.hp = playerMon.maxHp;
-    for (const skill of playerMon.skills) if (skill) skill.pp = skill.maxPp;
-    renderHP('player'); renderPanel(); renderItemGrid();
-    enqueue(`${def.name}을(를) 사용했다!`, `HP와 모든 PP가 완전 회복됐다!`);
-    hidePanel(); phase = 'animating'; showNextMessage();
+    playerMon.skills.forEach(skill => {
+      if (skill) skill.pp = skill.maxPp;
+    });
+    renderHP('player');
+    renderPanel();
+    renderItemGrid();
+    hidePanel();
+    phase = 'animating';
+    enqueue(`${def.name}을 사용했다.`, 'HP와 PP가 전부 회복됐다.');
+    showNextMessage();
   }
 }
 
-/* ════════════════════════════════════════
-   메시지 큐
-════════════════════════════════════════ */
 function enqueue(...texts) {
-  for (const t of texts) if (t) msgQueue.push({ text: t });
+  texts.filter(Boolean).forEach(text => {
+    msgQueue.push({ text });
+  });
 }
 
 function showNextMessage() {
-  if (!msgQueue.length) { onQueueEmpty(); return; }
+  if (!msgQueue.length) {
+    onQueueEmpty();
+    return;
+  }
 
-  const msg = msgQueue.shift();
-  if (msg.hpSnap) {
-    playerMon.hp = msg.hpSnap.playerHp;
-    enemyMon.hp  = msg.hpSnap.enemyHp;
+  const message = msgQueue.shift();
+  if (message.hpSnap) {
+    playerMon.hp = message.hpSnap.playerHp;
+    enemyMon.hp = message.hpSnap.enemyHp;
     renderHP('player');
     renderHP('enemy');
   }
 
-  el('bl-text').innerHTML = renderBattleLogHtml(msg.text, msg.highlight);
+  el('bl-text').innerHTML = renderBattleLogHtml(message.text, message.highlight);
   const hasMore = msgQueue.length > 0;
   el('bl-arrow').style.display = hasMore ? 'block' : 'none';
   el('battle-lower').classList.toggle('is-talking', hasMore);
@@ -417,13 +474,32 @@ function showNextMessage() {
 function onQueueEmpty() {
   el('battle-lower').classList.remove('is-talking');
 
-  // 적 쓰러짐 → 승리
-  if (enemyMon.hp <= 0) { showEndScreen(true); return; }
+  if (enemyMon.hp <= 0) {
+    if (enemyQueue.length) {
+      sendNextEnemy();
+      return;
+    }
+    showBattleResultScreen(true);
+    return;
+  }
 
-  // 아군 쓰러짐 → 팀에 살아있는 멤버 확인
   if (playerMon.hp <= 0) {
-    const hasNext = teamMons.some((m, i) => i !== activeIdx && m.hp > 0);
-    if (hasNext) { forceNextMon(); } else { showEndScreen(false); }
+    const nextMon = teamMons.find((mon, index) => index !== activeIdx && mon.hp > 0);
+    if (!nextMon) {
+      showBattleResultScreen(false);
+      return;
+    }
+
+    const previous = playerMon;
+    activeIdx = teamMons.indexOf(nextMon);
+    playerMon = nextMon;
+    renderField();
+    phase = 'animating';
+    enqueue(
+      `${previous.name}은 전투 불능이 됐다!`,
+      `가라! ${playerMon.name}!`,
+    );
+    showNextMessage();
     return;
   }
 
@@ -431,172 +507,301 @@ function onQueueEmpty() {
   showPanel();
 }
 
-/* ════════════════════════════════════════
-   이벤트 핸들러
-════════════════════════════════════════ */
-function onLowerClick(e) {
-  if (phase !== 'animating') return;
-  if (e.target.closest('button')) return;
+function sendNextEnemy() {
+  const nextEnemy = enemyQueue.shift();
+  if (!nextEnemy) {
+    showBattleResultScreen(true);
+    return;
+  }
+
+  enemyMon = buildBattleMon(nextEnemy.monId, nextEnemy.level);
+  renderField();
+  phase = 'animating';
+  enqueue(`상대가 다음 몬스터 ${enemyMon.name}을 내보냈다!`);
   showNextMessage();
 }
 
-function onPanelClick(e) {
-  const card = e.target.closest('.bp-skill-card');
-  if (!card || phase !== 'choosing' || card.disabled) return;
-  onSkillSelect(parseInt(card.dataset.idx));
+function onLowerClick(event) {
+  if (phase !== 'animating') return;
+  if (event.target.closest('button')) return;
+  showNextMessage();
 }
 
-function onRetry() {
-  phase = 'idle';
-  el('battle-result').classList.add('hidden');
-  if (_onBattleEnd) _onBattleEnd();
-}
+function onPanelClick(event) {
+  const card = event.target.closest('.bp-skill-card');
+  if (!card || card.disabled || phase !== 'choosing') return;
 
-/* ════════════════════════════════════════
-   턴 처리
-════════════════════════════════════════ */
-function onSkillSelect(idx) {
-  const skill = playerMon.skills[idx];
-  if (!skill) return;
+  const index = Number(card.dataset.idx);
+  if (!Number.isFinite(index)) return;
+
+  const playerSkill = playerMon.skills[index];
+  if (!playerSkill) return;
 
   hidePanel();
   phase = 'animating';
-  turn++;
+  turn += 1;
 
   const enemySkill = pickEnemySkill(enemyMon);
-  const events     = resolveTurn(playerMon, enemyMon, skill, enemySkill, turn);
+  const events = resolveTurn(playerMon, enemyMon, playerSkill, enemySkill, turn);
   msgQueue = buildMessages(events);
   showNextMessage();
 }
 
 function buildMessages(events) {
-  const msgs = [];
-  for (const evt of events) {
+  const messages = [];
+
+  for (const event of events) {
     const lines = [];
 
-    if (evt.type === 'miss') {
-      lines.push(`${evt.atkName}의 공격이 빗나갔다!`);
+    if (event.type === 'miss') {
+      lines.push(`${event.atkName}의 공격이 빗나갔다!`);
     } else {
-      lines.push(`${evt.atkName}이(가) ${evt.skillName}을(를) 사용했다!`);
-      if      (evt.effectiveness === 0)   lines.push('효과가 없는 것 같다...');
-      else if (evt.effectiveness >= 2)    lines.push('효과가 굉장한 것 같다!');
-      else if (evt.effectiveness <= 0.5)  lines.push('효과가 별로인 것 같다...');
-      if (evt.isCrit) lines.push('급소에 맞았다!');
+      lines.push(`${event.atkName}이 ${event.skillName}을 사용했다!`);
+      if (event.effectiveness === 0) lines.push('효과가 없는 것 같다...');
+      if (event.effectiveness >= 2) lines.push('효과가 굉장했다!');
+      if (event.effectiveness > 0 && event.effectiveness <= 0.5) lines.push('효과가 별로인 것 같다...');
+      if (event.isCrit) lines.push('급소에 맞았다!');
 
       if (dialogueEngine) {
         try {
           const result = dialogueEngine.generateTurn({
             turn,
-            skillName: evt.skillName, skillPattern: evt.skillPattern,
-            attackerName: evt.atkName, defenderName: evt.defName,
-            attackerBrand: evt.atkBrand, defenderBrand: evt.defBrand,
-            damage: evt.damage,
-            attackerHp: evt.atkHp,  attackerMaxHp: evt.atkMaxHp,
-            defenderHp: evt.defHp,  defenderMaxHp: evt.defMaxHp,
+            skillName: event.skillName,
+            skillPattern: event.skillPattern,
+            attackerName: event.atkName,
+            defenderName: event.defName,
+            attackerBrand: event.atkBrand,
+            defenderBrand: event.defBrand,
+            damage: event.damage,
+            attackerHp: event.atkHp,
+            attackerMaxHp: event.atkMaxHp,
+            defenderHp: event.defHp,
+            defenderMaxHp: event.defMaxHp,
             momentum: playerMon.hp >= enemyMon.hp ? 'player_ahead' : 'enemy_ahead',
           });
-          const extra = uniqueLines([
-            result.system, result.explain, result.quote,
-            ...(result.storyParagraphs || [])
-          ]);
-          lines.push(...extra);
-        } catch (_) {}
+          lines.push(
+            ...uniqueLines([
+              result.system,
+              result.explain,
+              result.quote,
+              ...(result.storyParagraphs || []),
+            ]),
+          );
+        } catch {
+          // no-op
+        }
       }
     }
 
-    const hpSnap   = { playerHp: evt.playerHp, enemyHp: evt.enemyHp };
-    const highlight = evt.side === 'player'
-      ? { allySkills: [evt.skillName], enemySkills: [] }
-      : { allySkills: [], enemySkills: [evt.skillName] };
+    const hpSnap = {
+      playerHp: event.playerHp,
+      enemyHp: event.enemyHp,
+    };
+    const highlight = event.side === 'player'
+      ? { allySkills: [event.skillName], enemySkills: [] }
+      : { allySkills: [], enemySkills: [event.skillName] };
 
-    msgs.push({ text: lines[0], hpSnap, highlight });
-    for (let i = 1; i < lines.length; i++) msgs.push({ text: lines[i], highlight });
+    messages.push({ text: lines[0], hpSnap, highlight });
+    lines.slice(1).forEach(text => {
+      messages.push({ text, highlight });
+    });
   }
-  return msgs;
+
+  return messages;
 }
 
 function uniqueLines(lines) {
   const seen = new Set();
-  return lines.filter(l => {
-    const k = String(l || '').trim().replace(/\s+/g, ' ');
-    if (!k || seen.has(k)) return false;
-    seen.add(k);
+  return lines.filter(line => {
+    const normalized = String(line || '').trim().replace(/\s+/g, ' ');
+    if (!normalized || seen.has(normalized)) return false;
+    seen.add(normalized);
     return true;
   });
 }
 
 function renderBattleLogHtml(text, highlight = null) {
   return renderBattleDialogueMarkup(text, {
-    allyNames:   playerMon ? [playerMon.name,  playerMon.brand]  : [],
-    enemyNames:  enemyMon  ? [enemyMon.name,   enemyMon.brand]   : [],
-    allySkills:  highlight?.allySkills  || [],
+    allyNames: playerMon ? [playerMon.name, playerMon.brand] : [],
+    enemyNames: enemyMon ? [enemyMon.name, enemyMon.brand] : [],
+    allySkills: highlight?.allySkills || [],
     enemySkills: highlight?.enemySkills || [],
   });
 }
 
-/* ════════════════════════════════════════
-   결과 화면
-════════════════════════════════════════ */
-function showEndScreen(win) {
+function showBattleResultScreen(win) {
   phase = 'ended';
   hidePanel();
   el('bl-arrow').style.display = 'none';
+  clearResultChoices();
 
-  const r = el('battle-result');
-  r.classList.remove('hidden');
-  r.querySelector('.br-icon').textContent  = win ? '🏆' : '💀';
-  r.querySelector('.br-title').textContent = win ? '승리!' : '전멸...';
-  r.querySelector('.br-sub').textContent   = win
-    ? `${enemyMon.name}을(를) 쓰러뜨렸다!`
-    : '팀 전원이 셧다운되었다...';
+  const result = el('battle-result');
+  result.classList.remove('hidden');
 
-  el('bl-text').textContent = win
-    ? `${enemyMon.name}을(를) 쓰러뜨렸다! 승리!`
-    : '팀 전원이 셧다운되었다...';
+  lastBattleOutcome = win ? 'win' : 'lose';
+  resolvedTeamIds = teamMons.map(mon => mon.id);
 
-  el('battle-retry-btn').textContent = win ? '다음 여정' : '재도전';
+  if (!win) {
+    lastBattleRewards = [];
+    result.querySelector('.br-icon').textContent = '패';
+    result.querySelector('.br-title').textContent = '전투 패배';
+    result.querySelector('.br-sub').textContent = '파티가 전투 불능이 됐다.';
+    el('bl-text').textContent = '파티가 쓰러졌다. 다시 준비해야 한다.';
+    el('battle-retry-btn').textContent = '재도전';
+    return;
+  }
+
+  const postBattle = resolvePostBattle({
+    teamMons,
+    defeatedEnemy: enemyMon,
+    encounter: currentEncounterData,
+  });
+
+  lastBattleRewards = postBattle.growth;
+  resolvedTeamIds = teamMons.map(mon => mon.id);
+
+  result.querySelector('.br-icon').textContent = '승';
+  result.querySelector('.br-title').textContent = buildResultTitle(currentEncounterData);
+  result.querySelector('.br-sub').textContent = buildResultSubtitle(postBattle);
+  el('bl-text').textContent = buildBattleLogSummary(postBattle);
+  el('battle-retry-btn').textContent = '다음 진행';
+
+  renderPostBattleChoices(postBattle);
 }
 
-/* ════════════════════════════════════════
-   Debug API
-════════════════════════════════════════ */
-export function debugWin() {
-  if (!enemyMon || (phase !== 'choosing' && phase !== 'animating')) {
-    console.warn('[mdm] 전투 중 아님 (phase:', phase, ')'); return;
+function buildResultTitle(encounter) {
+  if (encounter?.type === 'boss') return '관장 돌파';
+  if (encounter?.type === 'elite') return '엘리트 승리';
+  if (encounter?.type === 'standard') return '훈련사 승리';
+  return '전투 승리';
+}
+
+function buildResultSubtitle(postBattle) {
+  if (postBattle.summaryLines.length) {
+    return postBattle.summaryLines.slice(0, 3).join(' · ');
   }
-  msgQueue = []; enemyMon.hp = 0;
-  renderHP('enemy'); hidePanel(); showEndScreen(true);
+  return '전투 정산이 완료됐다.';
+}
+
+function buildBattleLogSummary(postBattle) {
+  if (postBattle.summaryLines.length) {
+    return postBattle.summaryLines.join(' / ');
+  }
+  return `${enemyMon.name}을 쓰러뜨렸다.`;
+}
+
+function clearResultChoices() {
+  const container = el('battle-result-choices');
+  if (container) container.innerHTML = '';
+}
+
+function renderPostBattleChoices(postBattle) {
+  const container = el('battle-result-choices');
+  if (!container) return;
+
+  const capture = postBattle.capture;
+  if (!capture?.success) return;
+
+  if (!capture.needsTeamChoice) {
+    container.appendChild(createChoiceButton('팀에 합류', () => {
+      resolvedTeamIds = applyCaptureDecision({
+        teamIds: resolvedTeamIds,
+        capture,
+        decision: 'add',
+      });
+      finalizeChoice(`${capture.candidate.name}이 팀에 합류했다.`);
+    }));
+  }
+
+  container.appendChild(createChoiceButton('보류', () => {
+    resolvedTeamIds = applyCaptureDecision({
+      teamIds: resolvedTeamIds,
+      capture,
+      decision: 'skip',
+    });
+    finalizeChoice(`${capture.candidate.name}은 보관 목록으로 보냈다.`);
+  }));
+
+  if (!capture.needsTeamChoice) return;
+
+  resolvedTeamIds.forEach((monId, index) => {
+    const mon = teamMons[index];
+    container.appendChild(createChoiceButton(`${mon?.name || monId} 교체`, () => {
+      resolvedTeamIds = applyCaptureDecision({
+        teamIds: resolvedTeamIds,
+        capture,
+        decision: 'replace',
+        replaceIndex: index,
+      });
+      finalizeChoice(`${capture.candidate.name}이 ${mon?.name || monId} 대신 합류했다.`);
+    }));
+  });
+}
+
+function createChoiceButton(label, onClick) {
+  const button = document.createElement('button');
+  button.className = 'br-choice-btn';
+  button.type = 'button';
+  button.textContent = label;
+  button.addEventListener('click', onClick);
+  return button;
+}
+
+function finalizeChoice(message) {
+  clearResultChoices();
+  el('bl-text').textContent = message;
+}
+
+function onRetry() {
+  phase = 'idle';
+  el('battle-result').classList.add('hidden');
+  clearResultChoices();
+
+  if (onBattleEnd) {
+    onBattleEnd({
+      outcome: lastBattleOutcome,
+      rewards: lastBattleRewards,
+      teamIds: [...resolvedTeamIds],
+      encounter: currentEncounterData,
+    });
+  }
+}
+
+export function debugWin() {
+  if (!enemyMon || (phase !== 'choosing' && phase !== 'animating')) return;
+  msgQueue = [];
+  enemyMon.hp = 0;
+  renderHP('enemy');
+  showBattleResultScreen(true);
 }
 
 export function debugLose() {
-  if (!playerMon || (phase !== 'choosing' && phase !== 'animating')) {
-    console.warn('[mdm] 전투 중 아님 (phase:', phase, ')'); return;
-  }
-  // 팀 전원 HP 0으로
-  teamMons.forEach(m => { m.hp = 0; });
+  if (!playerMon || (phase !== 'choosing' && phase !== 'animating')) return;
+  teamMons.forEach(mon => {
+    mon.hp = 0;
+  });
   msgQueue = [];
-  renderHP('player'); hidePanel(); showEndScreen(false);
+  renderHP('player');
+  showBattleResultScreen(false);
 }
 
 export function debugSkip() {
-  if (phase !== 'animating') {
-    console.warn('[mdm] 대화 중 아님 (phase:', phase, ')'); return;
-  }
-  msgQueue = []; onQueueEmpty();
+  if (phase !== 'animating') return;
+  msgQueue = [];
+  onQueueEmpty();
 }
 
 export function debugSetHp(side, value) {
-  const mon = side === 'player' ? playerMon : (side === 'enemy' ? enemyMon : null);
-  if (!mon) { console.warn('[mdm] side: "player" 또는 "enemy"'); return; }
+  const mon = side === 'player' ? playerMon : side === 'enemy' ? enemyMon : null;
+  if (!mon) return;
   mon.hp = Math.max(0, Math.min(Number(value) || 0, mon.maxHp));
   renderHP(side);
-  console.log(`[mdm] ${mon.name} HP → ${mon.hp}/${mon.maxHp}`);
 }
 
 export function debugState() {
-  if (!playerMon) { console.log('[mdm] 전투 없음'); return; }
-  const teamInfo = teamMons.map((m, i) =>
-    `${i === activeIdx ? '▶' : ' '} [${i}] ${m.name} ${m.hp}/${m.maxHp}`
+  if (!playerMon || !enemyMon) return;
+  const teamInfo = teamMons.map((mon, index) =>
+    `${index === activeIdx ? '*' : ' '} [${index}] ${mon.name} ${mon.hp}/${mon.maxHp}`,
   ).join('\n');
-  console.log(`[mdm] phase:${phase}  turn:${turn}\n팀:\n${teamInfo}\n적: ${enemyMon.name} ${enemyMon.hp}/${enemyMon.maxHp}`);
+  console.log(`[battle] phase:${phase} turn:${turn}\n${teamInfo}\nvs ${enemyMon.name} ${enemyMon.hp}/${enemyMon.maxHp}`);
 }

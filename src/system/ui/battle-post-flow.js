@@ -1,7 +1,7 @@
 export function buildResultTitle(encounter) {
   if (encounter?.type === 'npc' && encounter?.npcType === 'boss') return '관장전 승리';
-  if (encounter?.type === 'npc') return '훈련사 승리';
-  if (encounter?.wildTier === 'elite') return '엘리트 승리';
+  if (encounter?.type === 'npc') return '트레이너 승리';
+  if (encounter?.wildTier === 'elite') return '강화 조우 승리';
   return '전투 승리';
 }
 
@@ -16,7 +16,7 @@ export function buildBattleLogSummary(enemyMon, postBattle) {
   if (postBattle.summaryLines.length) {
     return postBattle.summaryLines.join(' / ');
   }
-  return `${enemyMon.name} 전투가 끝났다.`;
+  return `${enemyMon.name} 전투가 종료됐다.`;
 }
 
 export function createDefeatFlow() {
@@ -28,7 +28,7 @@ export function createDefeatFlow() {
         icon: '패배',
         title: '전투 패배',
         sub: '파티가 전투 불능 상태가 됐다.',
-        buttonLabel: '재도전',
+        buttonLabel: '종료',
         completesFlow: true,
       },
     ],
@@ -45,6 +45,7 @@ export function createVictoryFlow(encounter, postBattle) {
         icon: '승리',
         title: buildResultTitle(encounter),
         sub: buildResultSubtitle(postBattle),
+        growth: postBattle.growth,
         buttonLabel: '다음',
       },
     ],
@@ -72,57 +73,34 @@ export function createVictoryFlow(encounter, postBattle) {
 }
 
 export function buildGrowthSteps(entry) {
-  const steps = [
-    {
-      type: 'growth-exp',
-      icon: 'EXP',
-      title: `${entry.beforeName} 경험치 획득`,
-      sub: `${entry.gainedExp} EXP를 얻었다.`,
-      buttonLabel: '다음',
-    },
-  ];
+  const detailParts = [`${entry.gainedExp} EXP`];
+  let title = `${entry.beforeName} 성장`;
+  let icon = '성장';
 
   if (entry.levelsGained > 0) {
-    steps.push({
-      type: 'growth-level',
-      icon: '레벨',
-      title: `${entry.beforeName} 레벨 업`,
-      sub: `Lv.${entry.beforeLevel}에서 Lv.${entry.afterLevel}이 됐다.`,
-      buttonLabel: '다음',
-    });
+    detailParts.push(`Lv.${entry.beforeLevel} -> Lv.${entry.afterLevel}`);
+    title = `${entry.beforeName} 레벨 업`;
+    icon = '레벨';
   }
-
   if (entry.evolvedTo) {
-    steps.push({
-      type: 'growth-evolution',
-      icon: '진화',
-      title: `${entry.beforeName} 진화`,
-      sub: `${entry.beforeName}가 ${entry.evolvedName}(으)로 진화했다.`,
-      buttonLabel: '다음',
-    });
+    detailParts.push(`${entry.evolvedName} 진화`);
+    if (icon === '성장') icon = '진화';
   }
-
   if (entry.learnedSkills.length) {
-    steps.push({
-      type: 'growth-skill',
-      icon: '기술',
-      title: `${entry.name} 기술 습득`,
-      sub: `${entry.learnedSkillNames.join(', ')}${entry.learnedSkillNames.length > 1 ? '을' : '을'} 배웠다.`,
-      buttonLabel: '다음',
-    });
+    detailParts.push(`기술 ${entry.learnedSkillNames.join(', ')}`);
   }
-
   if (entry.forgottenSkills.length) {
-    steps.push({
-      type: 'growth-skill-refresh',
-      icon: '정리',
-      title: `${entry.name} 기술 정리`,
-      sub: '기술 구성이 최신 레벨 기준으로 갱신됐다.',
-      buttonLabel: '다음',
-    });
+    detailParts.push('기술 구성 갱신');
   }
 
-  return steps;
+  return [{
+    type: 'growth-result',
+    icon,
+    title,
+    sub: detailParts.join(' · '),
+    entry,
+    buttonLabel: '다음',
+  }];
 }
 
 export function createCaptureStep(capture) {
@@ -132,10 +110,10 @@ export function createCaptureStep(capture) {
       icon: '포획',
       title: `${capture.candidate.name} 포획 성공`,
       sub: capture.needsTeamChoice
-        ? '팀이 가득 찼다. 내보낼 멤버를 선택하세요.'
-        : `${capture.candidate.name}이(가) 팀에 합류한다.`,
+        ? '팀이 가득 찼다. 내보낼 멤버를 선택해라.'
+        : `${capture.candidate.name}이(가) 팀에 합류했다.`,
       buttonLabel: capture.needsTeamChoice ? '선택 필요' : '확인',
-      requiresDecision: capture.needsTeamChoice, // 팀 여유 시 자동 합류
+      requiresDecision: capture.needsTeamChoice,
       capture,
       resolved: false,
     };

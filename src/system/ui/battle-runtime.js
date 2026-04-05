@@ -671,8 +671,8 @@ function resetBattleLog() {
   S.battleLog?.reset();
 }
 
-export function appendBattleLogEntry(text, highlight = null, forcedSide = null) {
-  S.battleLog?.append(text, { highlight, forcedSide });
+export function appendBattleLogEntry(text, highlight = null, forcedSide = null, options = {}) {
+  return S.battleLog?.append(text, { highlight, forcedSide, ...options }) || null;
 }
 
 function onRetry() {

@@ -1,7 +1,7 @@
 import { MONS } from '../data/mons.js';
 import { buildBattleMon, getSkillsAtLevel } from '../core/battle-engine.js';
 import { SKILLS } from '../data/skills.js';
-import { captureMon, evolveMon, grantExp } from '../core/save.js';
+import { captureMon, evolveMon, expToNextLevel, getMonProgress, grantExp } from '../core/save.js';
 
 const MON_BY_ID = new Map(MONS.map(mon => [mon.id, mon]));
 
@@ -50,8 +50,13 @@ function resolveMonGrowth(mon, gainedExp) {
   const beforeId = mon.id;
   const beforeName = mon.name;
   const beforeLevel = mon.level;
+  const beforeProgress = getMonProgress(beforeId);
+  const beforeStats = { ...(mon.stats || {}) };
+  const beforeMaxHp = mon.maxHp;
   const beforeSkills = getSkillsAtLevel(beforeId, beforeLevel).map(entry => entry.no);
   const beforeSkillPp = new Map((mon.skills || []).map(skill => [skill.no, skill.pp]));
+  const beforeExp = beforeProgress.exp ?? 0;
+  const beforeNextLevelExp = expToNextLevel(beforeLevel);
   const expResult = grantExp(beforeId, gainedExp);
 
   let finalId = beforeId;
@@ -96,9 +101,18 @@ function resolveMonGrowth(mon, gainedExp) {
     name: mon.name,
     beforeName,
     beforeLevel,
+    beforeExp,
+    beforeNextLevelExp,
+    beforeStats,
+    beforeMaxHp,
     afterLevel: expResult.level,
+    afterExp: expResult.exp,
+    afterNextLevelExp: expResult.nextLevelExp,
+    afterStats: { ...(finalMon.stats || {}) },
+    afterMaxHp: finalMon.maxHp,
     gainedExp,
     levelsGained: expResult.levelsGained,
+    statGains: expResult.statGains,
     evolvedTo,
     evolvedName: evolvedTo ? MON_BY_ID.get(evolvedTo)?.nameKo || evolvedTo : null,
     learnedSkills,

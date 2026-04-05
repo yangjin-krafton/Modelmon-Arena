@@ -1,29 +1,29 @@
-item_id,name_ko,name_en,category,icon,rarity,catch_mult,type_affinity,catch_turn,hp_flat,hp_full,pp_flat,pp_all,pp_full,revive_pct,desc_ko
-modelball,모델볼,Model Ball,ball,ball-basic,common,1.0,,,0,false,0,false,false,0,기본 포획용 볼. 포획 성공률이 낮다
-superball,슈퍼볼,Super Ball,ball,ball-super,uncommon,1.5,,,0,false,0,false,false,0,포획 성공률이 1.5배 높다
-ultraball,울트라볼,Ultra Ball,ball,ball-ultra,rare,2.0,,,0,false,0,false,false,0,포획 성공률이 2배 높다
-masterball,마스터볼,Master Ball,ball,ball-master,legendary,255.0,,,0,false,0,false,false,0,어떤 모델몬도 반드시 포획한다
-premierball,프리미엄볼,Premier Ball,ball,ball-basic,common,1.0,,,0,false,0,false,false,0,특별 증정 볼. 성능은 모델볼과 동일
-quickball,퀵볼,Quick Ball,ball,ball-quick,uncommon,4.0,,early,0,false,0,false,false,0,첫 턴에만 포획률 4배. 이후에는 1배
-timerball,타이머볼,Timer Ball,ball,ball-timer,uncommon,1.0,,late,0,false,0,false,false,0,전투 턴 수가 늘수록 포획률 상승. 최대 4배
-dualball,듀얼볼,Dual Ball,ball,ball-super,uncommon,2.0,,low_hp,0,false,0,false,false,0,아군 HP 절반 이하일 때 포획률 2배
-chatball,대화볼,Chat Ball,ball,ball-type,rare,3.0,대화,,0,false,0,false,false,0,대화 타입 모델몬에 포획률 3배
-reasonball,추론볼,Reason Ball,ball,ball-type,rare,3.0,추론,,0,false,0,false,false,0,추론 타입 모델몬에 포획률 3배
-codeball,코드볼,Code Ball,ball,ball-type,rare,3.0,코드,,0,false,0,false,false,0,코드 타입 모델몬에 포획률 3배
-agentball,에이전트볼,Agent Ball,ball,ball-type,rare,3.0,에이전트,,0,false,0,false,false,0,에이전트 타입 모델몬에 포획률 3배
-visionball,비전볼,Vision Ball,ball,ball-type,rare,3.0,멀티모달,,0,false,0,false,false,0,멀티모달 타입 모델몬에 포획률 3배
-memoryball,메모리볼,Memory Ball,ball,ball-type,rare,3.0,메모리,,0,false,0,false,false,0,메모리 타입 모델몬에 포획률 3배
-alignball,정렬볼,Align Ball,ball,ball-type,rare,3.0,정렬,,0,false,0,false,false,0,정렬 타입 모델몬에 포획률 3배
-systemball,시스템볼,System Ball,ball,ball-type,rare,3.0,시스템,,0,false,0,false,false,0,시스템 타입 모델몬에 포획률 3배
-learnball,학습볼,Learn Ball,ball,ball-type,rare,3.0,학습,,0,false,0,false,false,0,학습 타입 모델몬에 포획률 3배
-potion,회복약,Potion,potion,potion-sm,common,0,,,20,false,0,false,false,0,HP를 20 회복한다
-superpotion,슈퍼회복약,Super Potion,potion,potion-md,uncommon,0,,,50,false,0,false,false,0,HP를 50 회복한다
-hyperpotion,하이퍼회복약,Hyper Potion,potion,potion-md,rare,0,,,200,false,0,false,false,0,HP를 200 회복한다
-maxpotion,풀회복약,Max Potion,potion,potion-max,rare,0,,,0,true,0,false,false,0,HP를 완전히 회복한다
-revive,부활약,Revive,potion,revive,uncommon,0,,,0,false,0,false,false,50,빈사 상태 몬스터를 HP 절반으로 부활
-maxrevive,만능부활약,Max Revive,potion,revive,rare,0,,,0,true,0,false,false,100,빈사 상태 몬스터를 HP 완전 회복으로 부활
-fullrestore,풀리스토어,Full Restore,combo,potion-max,legendary,0,,,0,true,0,true,true,0,HP 완전 회복 + 모든 스킬 PP 회복
-ether,에테르,Ether,pp,ether,uncommon,0,,,0,false,10,false,false,0,하나의 스킬 PP를 10 회복한다
-maxether,맥스에테르,Max Ether,pp,ether,rare,0,,,0,false,0,false,false,0,하나의 스킬 PP를 완전 회복한다
-elixir,엘릭서,Elixir,pp,elixir,rare,0,,,0,false,10,true,false,0,모든 스킬 PP를 10씩 회복한다
-maxelixir,맥스엘릭서,Max Elixir,pp,elixir,legendary,0,,,0,false,0,true,true,0,모든 스킬 PP를 완전 회복한다
+item_id,name_ko,name_en,category,icon,rarity,shop_cost,catch_mult,type_affinity,catch_turn,hp_flat,hp_full,pp_flat,pp_all,pp_full,revive_pct,desc_ko
+modelball,모델볼,Model Ball,ball,ball-basic,common,1,1.0,,,0,false,0,false,false,0,기본 포획용 볼. 포획 성공률이 낮다
+superball,슈퍼볼,Super Ball,ball,ball-super,uncommon,1,1.5,,,0,false,0,false,false,0,포획 성공률이 1.5배 높다
+ultraball,울트라볼,Ultra Ball,ball,ball-ultra,rare,2,2.0,,,0,false,0,false,false,0,포획 성공률이 2배 높다
+masterball,마스터볼,Master Ball,ball,ball-master,legendary,3,255.0,,,0,false,0,false,false,0,어떤 모델몬도 반드시 포획한다
+premierball,프리미엄볼,Premier Ball,ball,ball-basic,common,1,1.0,,,0,false,0,false,false,0,특별 증정 볼. 성능은 모델볼과 동일
+quickball,퀵볼,Quick Ball,ball,ball-quick,uncommon,2,4.0,,early,0,false,0,false,false,0,첫 턴에만 포획률 4배. 이후에는 1배
+timerball,타이머볼,Timer Ball,ball,ball-timer,uncommon,2,1.0,,late,0,false,0,false,false,0,전투 턴 수가 늘수록 포획률 상승. 최대 4배
+dualball,듀얼볼,Dual Ball,ball,ball-super,uncommon,2,2.0,,low_hp,0,false,0,false,false,0,아군 HP 절반 이하일 때 포획률 2배
+chatball,대화볼,Chat Ball,ball,ball-type,rare,3,3.0,대화,,0,false,0,false,false,0,대화 타입 모델몬에 포획률 3배
+reasonball,추론볼,Reason Ball,ball,ball-type,rare,3,3.0,추론,,0,false,0,false,false,0,추론 타입 모델몬에 포획률 3배
+codeball,코드볼,Code Ball,ball,ball-type,rare,3,3.0,코드,,0,false,0,false,false,0,코드 타입 모델몬에 포획률 3배
+agentball,에이전트볼,Agent Ball,ball,ball-type,rare,1,3.0,에이전트,,0,false,0,false,false,0,에이전트 타입 모델몬에 포획률 3배
+visionball,비전볼,Vision Ball,ball,ball-type,rare,2,3.0,멀티모달,,0,false,0,false,false,0,멀티모달 타입 모델몬에 포획률 3배
+memoryball,메모리볼,Memory Ball,ball,ball-type,rare,2,3.0,메모리,,0,false,0,false,false,0,메모리 타입 모델몬에 포획률 3배
+alignball,정렬볼,Align Ball,ball,ball-type,rare,3,3.0,정렬,,0,false,0,false,false,0,정렬 타입 모델몬에 포획률 3배
+systemball,시스템볼,System Ball,ball,ball-type,rare,2,3.0,시스템,,0,false,0,false,false,0,시스템 타입 모델몬에 포획률 3배
+learnball,학습볼,Learn Ball,ball,ball-type,rare,1,3.0,학습,,0,false,0,false,false,0,학습 타입 모델몬에 포획률 3배
+potion,회복약,Potion,potion,potion-sm,common,1,0,,,20,false,0,false,false,0,HP를 20 회복한다
+superpotion,슈퍼회복약,Super Potion,potion,potion-md,uncommon,1,0,,,50,false,0,false,false,0,HP를 50 회복한다
+hyperpotion,하이퍼회복약,Hyper Potion,potion,potion-md,rare,2,0,,,200,false,0,false,false,0,HP를 200 회복한다
+maxpotion,풀회복약,Max Potion,potion,potion-max,rare,2,0,,,0,true,0,false,false,0,HP를 완전히 회복한다
+revive,부활약,Revive,potion,revive,uncommon,2,0,,,0,false,0,false,false,50,빈사 상태 몬스터를 HP 절반으로 부활
+maxrevive,만능부활약,Max Revive,potion,revive,rare,0,0,,,0,true,0,false,false,100,빈사 상태 몬스터를 HP 완전 회복으로 부활
+fullrestore,풀리스토어,Full Restore,combo,potion-max,legendary,3,0,,,0,true,0,true,true,0,HP 완전 회복 + 모든 스킬 PP 회복
+ether,에테르,Ether,pp,ether,uncommon,1,0,,,0,false,10,false,false,0,하나의 스킬 PP를 10 회복한다
+maxether,맥스에테르,Max Ether,pp,ether,rare,2,0,,,0,false,0,false,false,0,하나의 스킬 PP를 완전 회복한다
+elixir,엘릭서,Elixir,pp,elixir,rare,2,0,,,0,false,10,true,false,0,모든 스킬 PP를 10씩 회복한다
+maxelixir,맥스엘릭서,Max Elixir,pp,elixir,legendary,3,0,,,0,false,0,true,true,0,모든 스킬 PP를 완전 회복한다

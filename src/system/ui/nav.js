@@ -3,7 +3,8 @@ import { initStarterScreen, showStarterScreen } from './starter.js';
 import { initBattle, startBattle, getBattlePhase } from './battle.js';
 import { buildBattleMon } from '../core/battle-engine.js';
 import { loadCSV } from '../core/csv.js';
-import { ITEMS, createDefaultInventory, getInventory, setInventory } from '../core/run-items.js';
+import { ITEMS, RARITY_COLOR, createDefaultInventory, getInventory, setInventory } from '../core/run-items.js';
+import { buildMonCardHtml } from './battle-scene.js';
 import { loadAdventureSystem } from '../adventure/index.js';
 import {
   clearAdventureSession,
@@ -266,6 +267,7 @@ function groupServiceRowsByCost(rows) {
     if (!acc[cost]) acc[cost] = [];
     acc[cost].push({
       serviceId: row.service_id,
+      category: row.category || null,
       title: row.title,
       detail: row.detail,
       iconItemId: row.icon_item_id,
@@ -364,41 +366,15 @@ function renderServicePanel(state) {
 
   const offerTarget = state.offers.find(offer => offer.id === state.pendingTargetOfferId) || null;
 
-  const byCost = { 3: [], 2: [], 1: [] };
-  for (const offer of state.offers) {
-    if (byCost[offer.cost]) byCost[offer.cost].push(offer);
-  }
-
-  const tierRows = [3, 2, 1].map(cost => {
-    const offers = byCost[cost];
-    if (!offers.length) return '';
-    const label = '★'.repeat(cost);
-    const chips = offers.map(offer => buildServiceOfferChip(offer, state.coins)).join('');
-    return `
-      <div class="slp-tier-row is-cost-${cost}">
-        <span class="slp-row-label">${label}</span>
-        <div class="slp-chip-scroll">${chips}</div>
-      </div>
-    `;
-  }).join('');
-
-  const targetRow = offerTarget ? `
-    <div class="slp-target-row">
-      <span class="slp-row-label">대상</span>
-      <div class="slp-chip-scroll">
-        ${currentRun.party.map(member => buildServiceTargetChip(offerTarget, member)).join('')}
-      </div>
-    </div>
-  ` : '';
-
-  panel.innerHTML = `
+  const headerHtml = `
     <div class="slp-header">
       <span class="slp-header__label">${icon} 웨이브 코인</span>
       <strong class="slp-header__coin">${state.coins}</strong>
       <span class="slp-header__hint">남은 코인은 이 웨이브에서만 유효합니다</span>
     </div>
-    ${targetRow}
-    ${tierRows}
+  `;
+
+  const footerHtml = `
     <div class="slp-footer">
       <button class="slp-footer__btn slp-footer__btn--ghost" id="service-skip-btn" type="button">
         ${offerTarget ? '선택 취소' : '종료'}
@@ -409,6 +385,38 @@ function renderServicePanel(state) {
     </div>
   `;
 
+  let bodyHtml;
+  if (offerTarget) {
+    // 대상 선택 모드 — tsw-card 가로 스크롤로 팀원 표시
+    const targetCards = currentRun.party
+      .map(member => buildServiceTargetCard(offerTarget, member))
+      .join('');
+    bodyHtml = `
+      <div class="slp-target-row">
+        <div class="slp-target-title">${offerTarget.title} — 대상 선택</div>
+        <div class="slp-chip-scroll">${targetCards}</div>
+      </div>
+    `;
+  } else {
+    // 오퍼 선택 모드 — 코스트 티어 행
+    const byCost = { 3: [], 2: [], 1: [] };
+    for (const offer of state.offers) {
+      if (byCost[offer.cost]) byCost[offer.cost].push(offer);
+    }
+    bodyHtml = [3, 2, 1].map(cost => {
+      const offers = byCost[cost];
+      if (!offers.length) return '';
+      const chips = offers.map(offer => buildServiceOfferChip(state.type, offer, state.coins)).join('');
+      return `
+        <div class="slp-tier-row is-cost-${cost}">
+          <span class="slp-row-label">${'★'.repeat(cost)}</span>
+          <div class="slp-chip-scroll">${chips}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  panel.innerHTML = headerHtml + bodyHtml + footerHtml;
   panel.classList.remove('hidden');
 
   panel.querySelectorAll('[data-service-offer-id]').forEach(btn => {
@@ -429,38 +437,78 @@ function renderServicePanel(state) {
   panel.querySelector('#service-continue-btn')?.addEventListener('click', finishServiceEncounter);
 }
 
-function buildServiceOfferChip(offer, coins) {
+const COST_BORDER = {
+  3: 'rgba(255,205,96,0.38)',
+  2: 'rgba(91,141,255,0.28)',
+  1: 'rgba(104,248,152,0.24)',
+};
+
+function buildServiceOfferChip(type, offer, coins) {
   const disabled = offer.purchased || offer.cost > coins;
   const stateText = offer.purchased ? '구매 완료' : offer.targetMode === 'single' ? '대상 지정' : '즉시 적용';
-  const classes = [
-    'slp-offer-chip',
-    `is-cost-${offer.cost}`,
-    offer.purchased ? 'is-purchased' : disabled ? 'is-disabled' : '',
-  ].filter(Boolean).join(' ');
+  const disabledCls = offer.purchased ? ' is-purchased' : disabled ? ' is-disabled' : '';
 
-  const detailHtml = offer.cost === 3
-    ? `<span class="slp-chip-detail">${offer.detail}</span>`
-    : '';
+  if (type === 'shop') {
+    const def = ITEMS[offer.itemId];
+    const borderColor = RARITY_COLOR[def?.rarity] ?? 'rgba(255,255,255,0.12)';
+    return `
+      <button class="item-card shop-offer-card${disabledCls}" type="button"
+        data-service-offer-id="${offer.id}"
+        style="border-color:${borderColor}"
+        ${disabled ? 'disabled' : ''}>
+        <div class="item-icon"><img src="${def?.icon ?? ''}" alt="${def?.name ?? offer.itemId}"></div>
+        <div class="item-info">
+          <div class="item-name-row">
+            <span class="item-name">${def?.name ?? offer.itemId}</span>
+            <span class="item-count-badge">x${offer.qty}</span>
+          </div>
+          <span class="item-desc">${def?.desc ?? ''}</span>
+        </div>
+        <div class="shop-offer-cost">${offer.cost}<span class="shop-offer-cost__unit">코인</span></div>
+      </button>
+    `;
+  }
 
+  // rest — item-card 동일 레이아웃, 코스트별 테두리 색상
+  const borderColor = COST_BORDER[offer.cost] ?? 'rgba(255,255,255,0.12)';
   return `
-    <button class="${classes}" type="button" data-service-offer-id="${offer.id}" ${disabled ? 'disabled' : ''}>
-      ${offer.icon ? `<img class="slp-chip-icon" src="${offer.icon}" alt="">` : ''}
-      <strong class="slp-chip-title">${offer.title}</strong>
-      ${detailHtml}
-      <span class="slp-chip-state">${stateText}</span>
+    <button class="item-card shop-offer-card${disabledCls}" type="button"
+      data-service-offer-id="${offer.id}"
+      style="border-color:${borderColor}"
+      ${disabled ? 'disabled' : ''}>
+      <div class="item-icon">${offer.icon ? `<img src="${offer.icon}" alt="${offer.title}">` : ''}</div>
+      <div class="item-info">
+        <div class="item-name-row">
+          <span class="item-name">${offer.title}</span>
+          <span class="item-count-badge soc-state">${stateText}</span>
+        </div>
+        <span class="item-desc">${offer.detail}</span>
+      </div>
+      <div class="shop-offer-cost">${offer.cost}<span class="shop-offer-cost__unit">코인</span></div>
     </button>
   `;
 }
 
-function buildServiceTargetChip(offer, member) {
-  const preview = buildPartyPreview(member);
+function buildServiceTargetCard(offer, member) {
   const disabled = !isOfferTargetEligible(offer, member);
+  const template = buildBattleMon(member.monId, member.level ?? 5);
+  const currentHp = Number.isFinite(member.hp) ? member.hp : template.maxHp;
+  const ppMap = new Map((member.skills || []).map(s => [s.no, s.pp]));
+  const monObj = {
+    ...template,
+    hp: currentHp,
+    skills: template.skills.map(skill => ({
+      ...skill,
+      pp: ppMap.has(skill.no) ? ppMap.get(skill.no) : skill.maxPp,
+    })),
+  };
+  const isFainted = currentHp <= 0;
+  const classes = ['tsw-card', isFainted ? 'tsw-fainted' : '', disabled ? 'is-disabled' : '']
+    .filter(Boolean).join(' ');
   return `
-    <button class="slp-target-chip${disabled ? ' is-disabled' : ''}" type="button"
+    <button class="${classes}" type="button"
       data-service-target-mon-id="${member.monId}" ${disabled ? 'disabled' : ''}>
-      <strong>${preview.name}</strong>
-      <span>Lv.${preview.level}</span>
-      <span>HP ${preview.hp}/${preview.maxHp}</span>
+      ${buildMonCardHtml(monObj)}
     </button>
   `;
 }
@@ -561,6 +609,9 @@ function rebuildPartyMember(member, offer) {
   if (previousHp <= 0) {
     if (offer.reviveTo) {
       nextHp = Math.max(1, Math.floor(template.maxHp * offer.reviveTo));
+    } else if (offer.healHp === 'full') {
+      // healHp:'full' 은 기절 상태도 완전 회복 (service_level_1/2 등)
+      nextHp = template.maxHp;
     } else {
       nextHp = 0;
     }
@@ -649,23 +700,6 @@ function isOfferTargetEligible(offer, member) {
   return true;
 }
 
-function buildPartyPreview(member) {
-  const level = member.level ?? getMonLevel(member.monId, 5);
-  const template = buildBattleMon(member.monId, level);
-  const hp = Number.isFinite(member.hp) ? member.hp : template.maxHp;
-  const ppText = template.skills.map(skill => {
-    const current = (member.skills || []).find(entry => entry.no === skill.no)?.pp ?? skill.maxPp;
-    return `${current}/${skill.maxPp}`;
-  }).join(' · ');
-
-  return {
-    name: template.name,
-    level,
-    hp,
-    maxHp: template.maxHp,
-    ppText,
-  };
-}
 
 function finishServiceEncounter() {
   if (!currentRun) return;
@@ -701,20 +735,11 @@ function handleAdventureProgression(progression) {
   showStarterUI();
 }
 
-function applyNonCombatEncounter(encounter) {
-  if (!currentRun) return;
-  if (encounter.type === 'rest') {
-    currentRun.party = currentRun.party.map(member => rebuildPartyMember(member, {
-      healHp: 'full',
-      healPp: 'full',
-      reviveTo: 1,
-    }));
-  }
+function applyNonCombatEncounter(_encounter) {
+  // shop·rest 는 SERVICE_TYPES 로 분기되어 이 함수에 도달하지 않음
 }
 
-function buildNonCombatToast(encounter) {
-  if (encounter.type === 'shop') return '상점을 지나며 장비를 정비했다.';
-  if (encounter.type === 'rest') return '휴식 지점을 지나며 HP와 PP를 회복했다.';
+function buildNonCombatToast(_encounter) {
   return '다음 구간으로 이동한다.';
 }
 

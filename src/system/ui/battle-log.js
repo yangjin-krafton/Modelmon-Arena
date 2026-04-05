@@ -17,18 +17,21 @@ export function createBattleLogController({
     append(text, {
       highlight = null,
       forcedSide = null,
+      markup = false,
+      bubbleClass = '',
     } = {}) {
       const side = forcedSide || getBattleLogSide(highlight);
       const entry = document.createElement('div');
       const bubble = document.createElement('div');
 
       entry.className = `bl-entry bl-entry--${side}`;
-      bubble.className = 'bl-bubble';
-      bubble.innerHTML = renderMarkup(text, highlight);
+      bubble.className = ['bl-bubble', bubbleClass].filter(Boolean).join(' ');
+      bubble.innerHTML = markup ? String(text || '') : renderMarkup(text, highlight);
 
       entry.appendChild(bubble);
       logContainer.appendChild(entry);
       logContainer.scrollTop = logContainer.scrollHeight;
+      return { entry, bubble };
     },
 
     setArrowVisible(visible) {

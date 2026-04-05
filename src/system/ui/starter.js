@@ -8,7 +8,7 @@
 import { MONS } from '../data/mons.js';
 import { SKILLS } from '../data/skills.js';
 import { calcStat, SPRITE, typeInfo } from '../core/state.js';
-import { getMonLevel, isStarterEligible } from '../core/save.js';
+import { getMonLevel, getMonStatBonus, isStarterEligible } from '../core/save.js';
 import { getSkillsAtLevel } from '../core/battle-engine.js';
 
 export const STARTER_LEVEL = 15;
@@ -176,11 +176,12 @@ function renderDetail(monId) {
   if (!mon) return;
 
   const lv  = getMonLevel(monId, STARTER_LEVEL);
-  const hp  = calcStat(mon.bs.hp,  lv, true);
-  const atk = calcStat(mon.bs.atk, lv, false);
-  const def = calcStat(mon.bs.def, lv, false);
-  const spd = calcStat(mon.bs.spd, lv, false);
-  const spc = calcStat(mon.bs.spc, lv, false);
+  const statBonus = getMonStatBonus(monId);
+  const hp  = calcStat(mon.bs.hp,  lv, true) + statBonus.hp;
+  const atk = calcStat(mon.bs.atk, lv, false) + statBonus.atk;
+  const def = calcStat(mon.bs.def, lv, false) + statBonus.def;
+  const spd = calcStat(mon.bs.spd, lv, false) + statBonus.spd;
+  const spc = calcStat(mon.bs.spc, lv, false) + statBonus.spc;
   const ti  = typeInfo(mon.coreConcept);
 
   document.getElementById('sd-sprite').src             = SPRITE(monId);

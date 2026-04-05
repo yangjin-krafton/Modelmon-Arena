@@ -16,6 +16,7 @@ export const ITEMS = Object.fromEntries(
     category:     r.category,
     icon:         `./asset/items/${r.icon}.svg`,
     rarity:       r.rarity,
+    shopCost:     parseInt(r.shop_cost) || 0,
     catchMult:    parseFloat(r.catch_mult) || 0,
     typeAffinity: r.type_affinity || null,
     catchTurn:    r.catch_turn || null,

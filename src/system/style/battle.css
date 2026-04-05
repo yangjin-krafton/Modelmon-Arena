@@ -551,6 +551,229 @@
   color: var(--text3);
   line-height: 1.4;
 }
+.bl-bubble--growth-card {
+  max-width: min(92vw, 560px);
+  width: 100%;
+  padding: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 18px;
+}
+
+.bl-growth-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.bl-growth-focus {
+  display: flex;
+}
+
+.bl-growth-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 104px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+.bl-growth-card.is-compact {
+  min-height: 92px;
+  padding: 10px 11px;
+}
+
+.bl-growth-card.is-compact .bl-growth-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.bl-growth-card.is-focus {
+  min-height: 118px;
+  background:
+    linear-gradient(135deg, rgba(255,214,102,0.12) 0%, rgba(91,141,255,0.08) 100%);
+  border-color: rgba(255,214,102,0.24);
+}
+
+.bl-growth-card__glow {
+  position: absolute;
+  inset: -30% auto auto -10%;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, rgba(255,214,102,0.22) 0%, rgba(255,214,102,0) 72%);
+  pointer-events: none;
+  animation: papGrowthGlow 1.6s ease-out both;
+}
+
+.bl-growth-card__sprite {
+  width: 54px;
+  height: 54px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 8px 18px rgba(0,0,0,0.25));
+  animation: papGrowthFloat 0.7s ease-out both;
+}
+
+.bl-growth-card__body {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bl-growth-card__level-chip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(255,214,102,0.15);
+  border: 1px solid rgba(255,214,102,0.28);
+  color: #ffd666;
+  font-size: 9px;
+  font-weight: 900;
+  white-space: nowrap;
+  animation: papGrowthPulse 0.7s ease-out both;
+}
+
+.bl-growth-card__levelup {
+  white-space: nowrap;
+}
+
+.bl-growth-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.bl-growth-stats {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.bl-growth-stat {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "label delta"
+    "before after";
+  gap: 1px 5px;
+  padding: 4px 6px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.bl-growth-stat em {
+  grid-area: label;
+  font-style: normal;
+  font-size: 8px;
+  font-weight: 800;
+  color: var(--text3);
+}
+
+.bl-growth-stat strong,
+.bl-growth-stat i,
+.bl-growth-stat b {
+  font-style: normal;
+  white-space: nowrap;
+}
+
+.bl-growth-stat strong {
+  grid-area: before;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text3);
+}
+
+.bl-growth-stat i {
+  grid-area: after;
+  font-size: 10px;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.bl-growth-stat b {
+  grid-area: delta;
+  justify-self: end;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.bl-growth-stat.is-up b {
+  color: #9af0b6;
+}
+
+.bl-growth-stat.is-down b {
+  color: #ff9c9c;
+}
+
+.bl-growth-stat.is-same b {
+  color: var(--text3);
+}
+
+.bl-growth-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.bl-growth-badge.is-level {
+  background: rgba(255,214,102,0.15);
+  color: #ffd666;
+}
+
+.bl-growth-badge.is-evo {
+  background: rgba(188,118,255,0.16);
+  color: #d8a2ff;
+}
+
+.bl-growth-badge.is-skill {
+  background: rgba(109,198,255,0.16);
+  color: #8ed8ff;
+}
+
+.bl-growth-badge.is-exp {
+  background: rgba(80,224,148,0.14);
+  color: #90f0bd;
+}
+
+.bl-growth-card__meter {
+  position: relative;
+  overflow: hidden;
+}
+
+.bl-growth-card__meter-fill {
+  transition: width 0.35s ease;
+}
+
+@keyframes papGrowthPulse {
+  0% { transform: scale(0.84); opacity: 0; }
+  65% { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes papGrowthFloat {
+  0% { transform: translateY(6px) scale(0.94); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+@keyframes papGrowthGlow {
+  0% { opacity: 0; transform: scale(0.7); }
+  100% { opacity: 1; transform: scale(1); }
+}
 
 /* 선택지 버튼 행 */
 .pap-actions {
@@ -1238,16 +1461,31 @@
   text-overflow: ellipsis;
 }
 
-/* 대상 선택 행 */
+/* 대상 선택 행 — 오퍼 행들이 숨겨지므로 남은 공간 전부 사용 */
 .slp-target-row {
-  flex-shrink: 0;
-  height: 84px;
+  flex: 1;
+  min-height: 0;
   display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 10px;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px 8px;
+  background: rgba(91,141,255,0.04);
   border-bottom: 1px solid var(--line);
-  background: rgba(91,141,255,0.05);
+}
+
+.slp-target-title {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text3);
+  letter-spacing: 0.2px;
+}
+
+/* 대상 카드 스크롤 컨테이너 — tsw-card 높이에 맞춤 */
+.slp-target-row .slp-chip-scroll {
+  flex: 1;
+  min-height: 0;
+  align-items: flex-start;
 }
 
 /* 코스트 티어 행 (3행이 남은 공간 균등 분할) */
@@ -1280,128 +1518,33 @@
 .slp-chip-scroll {
   flex: 1;
   display: flex;
-  gap: 6px;
+  gap: 8px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   align-items: center;
-  padding: 4px 0;
+  padding: 6px 0;
 }
 .slp-chip-scroll::-webkit-scrollbar { display: none; }
 
-/* 오퍼 칩 베이스 */
-.slp-offer-chip {
+/* 티어 행 내 item-card 는 행 높이에서 패딩 제외한 영역 채움 */
+.slp-tier-row .item-card {
   flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 3px;
-  padding: 7px 9px;
-  border-radius: 10px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.1);
-  color: var(--text);
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: filter 0.12s, opacity 0.12s;
-  position: relative;
-  overflow: hidden;
-  -webkit-tap-highlight-color: transparent;
+  height: auto;
+  min-height: 68px;
+  align-self: stretch;
 }
 
-/* 코스트별 칩 크기·색상 */
-.slp-offer-chip.is-cost-3 {
-  width: 150px;
-  min-height: 66px;
-  border-color: rgba(255,205,96,0.32);
-  background: linear-gradient(155deg, rgba(255,205,96,0.14) 0%, rgba(255,255,255,0.04) 100%);
-}
-.slp-offer-chip.is-cost-2 {
-  width: 112px;
-  min-height: 58px;
-  border-color: rgba(91,141,255,0.24);
-  background: linear-gradient(155deg, rgba(91,141,255,0.12) 0%, rgba(255,255,255,0.04) 100%);
-}
-.slp-offer-chip.is-cost-1 {
-  width: 90px;
-  min-height: 54px;
-  border-color: rgba(104,248,152,0.20);
-  background: linear-gradient(155deg, rgba(104,248,152,0.09) 0%, rgba(255,255,255,0.04) 100%);
-}
+/* .slp-offer-chip 제거됨 — 모든 서비스 오퍼는 item-card + shop-offer-card 로 통일 */
+/* .slp-target-chip 제거됨 — tsw-card 로 교체 */
 
-.slp-offer-chip:not(:disabled):not(.is-purchased):hover  { filter: brightness(1.22); }
-.slp-offer-chip:not(:disabled):not(.is-purchased):active { opacity: 0.70; }
-.slp-offer-chip.is-disabled  { opacity: 0.30; cursor: default; }
-.slp-offer-chip.is-purchased { opacity: 0.45; cursor: default; }
-
-/* 칩 아이콘 (우상단 절대 배치) */
-.slp-chip-icon {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
-  opacity: 0.85;
+/* rest 서비스 뱃지 색상 오버라이드 (대상지정 / 즉시적용) */
+.soc-state {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  color: var(--text3) !important;
+  white-space: nowrap;
 }
-
-/* 칩 텍스트 */
-.slp-chip-title {
-  font-size: 11px;
-  font-weight: 900;
-  color: var(--text);
-  line-height: 1.25;
-  padding-right: 22px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  width: 100%;
-}
-.slp-chip-detail {
-  font-size: 9px;
-  color: var(--text3);
-  line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  width: 100%;
-}
-.slp-chip-state {
-  font-size: 9px;
-  font-weight: 700;
-  color: var(--text3);
-  letter-spacing: 0.2px;
-  margin-top: auto;
-}
-
-/* 대상 칩 */
-.slp-target-chip {
-  flex-shrink: 0;
-  width: 100px;
-  height: 62px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 3px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  background: rgba(91,141,255,0.09);
-  border: 1px solid rgba(91,141,255,0.22);
-  color: var(--text);
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: filter 0.12s;
-  -webkit-tap-highlight-color: transparent;
-}
-.slp-target-chip:not(:disabled):hover  { filter: brightness(1.18); }
-.slp-target-chip:not(:disabled):active { opacity: 0.70; }
-.slp-target-chip.is-disabled { opacity: 0.30; cursor: default; }
-.slp-target-chip strong { font-size: 12px; font-weight: 800; color: var(--text); }
-.slp-target-chip span   { font-size: 10px; color: var(--text3); line-height: 1.3; }
 
 /* 서비스 푸터 */
 .slp-footer {
@@ -1431,4 +1574,55 @@
   border-color: rgba(255,255,255,0.1);
   background: rgba(255,255,255,0.05);
   color: var(--text2);
+}
+
+/* ── 상점 item-card 오버라이드 ── */
+/* 서비스 패널에서 item-card 는 relative 포지션이 필요 (코인 배지 절대 배치) */
+.shop-offer-card {
+  position: relative;
+  cursor: pointer;
+  transition: filter 0.12s, opacity 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.shop-offer-card:not(:disabled):not(.is-purchased):hover  { filter: brightness(1.18); }
+.shop-offer-card:not(:disabled):not(.is-purchased):active { opacity: 0.72; }
+.shop-offer-card.is-disabled  { opacity: 0.30; cursor: default; }
+.shop-offer-card.is-purchased { opacity: 0.45; cursor: default; }
+
+/* 코인 가격 배지 — 카드 우하단 절대 배치 */
+.shop-offer-cost {
+  position: absolute;
+  bottom: 7px;
+  right: 8px;
+  font-size: 11px;
+  font-weight: 900;
+  color: #ffd060;
+  line-height: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+.shop-offer-cost__unit {
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(255,208,96,0.7);
+}
+
+/* 가격 배지 공간 확보 — item-desc 아래 여백 */
+.shop-offer-card .item-desc {
+  padding-bottom: 14px;
+}
+
+/* tsw-card 서비스 대상용 오버라이드 */
+.slp-target-row .tsw-card {
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.slp-target-row .tsw-card.is-disabled {
+  opacity: 0.30;
+  cursor: default;
+}
+.slp-target-row .tsw-card:not(:disabled):not(.tsw-fainted):not(.is-disabled):active {
+  background: rgba(91,141,255,0.16) !important;
+  border-color: rgba(91,141,255,0.50) !important;
 }

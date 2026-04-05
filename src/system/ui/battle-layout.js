@@ -72,7 +72,7 @@ export function createBattleLayoutController(el) {
     // 카드 헤더 (포획몬 스탯 미리보기 포함 가능)
     if (card) {
       const cardEl = document.createElement('div');
-      cardEl.className = 'pap-card pap-card--capture';
+      cardEl.className = ['pap-card', card.className || ''].filter(Boolean).join(' ');
 
       if (card.icon) {
         const iconEl = document.createElement('div');
@@ -95,6 +95,13 @@ export function createBattleLayoutController(el) {
         subEl.className = 'pap-card-sub';
         subEl.textContent = card.sub;
         bodyEl.appendChild(subEl);
+      }
+
+      if (card.bodyHtml) {
+        const bodyHtmlEl = document.createElement('div');
+        bodyHtmlEl.className = 'pap-card-extra';
+        bodyHtmlEl.innerHTML = card.bodyHtml;
+        bodyEl.appendChild(bodyHtmlEl);
       }
 
       cardEl.appendChild(bodyEl);

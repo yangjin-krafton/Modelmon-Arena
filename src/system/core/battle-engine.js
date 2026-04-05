@@ -6,6 +6,7 @@
 import { MONS } from '../data/mons.js';
 import { SKILLS, SKILL_TREE } from '../data/skills.js';
 import { calcStat } from './state.js';
+import { getMonStatBonus } from './save.js';
 
 /* ════════════════════════════════════════
    원소 상성표 (공격 원소 기준)
@@ -60,12 +61,13 @@ export function getSkillsAtLevel(monId, level) {
 export function buildBattleMon(monId, level) {
   const mon = MONS.find(m => m.id === monId);
   if (!mon) throw new Error(`Mon not found: ${monId}`);
+  const statBonus = getMonStatBonus(monId);
 
-  const maxHp = calcStat(mon.bs.hp,  level, true);
-  const atk   = calcStat(mon.bs.atk, level, false);
-  const def   = calcStat(mon.bs.def, level, false);
-  const spd   = calcStat(mon.bs.spd, level, false);
-  const spc   = calcStat(mon.bs.spc, level, false);
+  const maxHp = calcStat(mon.bs.hp,  level, true) + statBonus.hp;
+  const atk   = calcStat(mon.bs.atk, level, false) + statBonus.atk;
+  const def   = calcStat(mon.bs.def, level, false) + statBonus.def;
+  const spd   = calcStat(mon.bs.spd, level, false) + statBonus.spd;
+  const spc   = calcStat(mon.bs.spc, level, false) + statBonus.spc;
 
   const skillEntries = getSkillsAtLevel(monId, level);
   const skills = skillEntries.map(entry => {

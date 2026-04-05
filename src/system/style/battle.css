@@ -1502,33 +1502,7 @@
   align-items: flex-start;
 }
 
-/* 코스트 티어 행 (3행이 남은 공간 균등 분할) */
-.slp-tier-row {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 10px;
-  border-bottom: 1px solid var(--line);
-}
-.slp-tier-row:last-of-type { border-bottom: none; }
-
-/* 행 레이블 */
-.slp-row-label {
-  width: 26px;
-  flex-shrink: 0;
-  font-size: 9px;
-  font-weight: 900;
-  letter-spacing: 0.3px;
-  text-align: center;
-  line-height: 1.2;
-}
-.slp-tier-row.is-cost-3 .slp-row-label { color: #ffd060; }
-.slp-tier-row.is-cost-2 .slp-row-label { color: #9bc0ff; }
-.slp-tier-row.is-cost-1 .slp-row-label { color: #78e8a0; }
-
-/* 칩 가로 스크롤 컨테이너 */
+/* 칩 가로 스크롤 컨테이너 (대상 선택 전용) */
 .slp-chip-scroll {
   flex: 1;
   display: flex;
@@ -1536,29 +1510,166 @@
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  align-items: center;
-  padding: 6px 0;
+  align-items: flex-start;
+  padding: 4px 0;
 }
 .slp-chip-scroll::-webkit-scrollbar { display: none; }
 
-/* 티어 행 내 item-card 는 행 높이에서 패딩 제외한 영역 채움 */
-.slp-tier-row .item-card {
-  flex-shrink: 0;
-  height: auto;
-  min-height: 68px;
-  align-self: stretch;
+/* 2×3 오퍼 그리드 */
+.slp-offer-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(3, 1fr);
+  gap: 6px;
+  padding: 6px 8px;
+  overflow: hidden;
 }
 
-/* .slp-offer-chip 제거됨 — 모든 서비스 오퍼는 item-card + shop-offer-card 로 통일 */
-/* .slp-target-chip 제거됨 — tsw-card 로 교체 */
+/* 프리뷰 카드 (read-only) */
+.slp-preview-card {
+  cursor: default !important;
+  pointer-events: none;
+}
 
-/* rest 서비스 뱃지 색상 오버라이드 (대상지정 / 즉시적용) */
-.soc-state {
-  font-size: 9px !important;
-  font-weight: 700 !important;
-  color: var(--text3) !important;
+/* ════════════════════════════════
+   svc-offer-card — 2×3 그리드 전용 오퍼 카드
+════════════════════════════════ */
+.svc-offer-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: filter 0.12s, opacity 0.12s;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* REST 코스트별 */
+.svc-offer-card.cost-3 {
+  border-color: rgba(255,205,96,0.38);
+  background: linear-gradient(155deg, rgba(255,205,96,0.12) 0%, rgba(255,255,255,0.04) 100%);
+}
+.svc-offer-card.cost-2 {
+  border-color: rgba(91,141,255,0.28);
+  background: linear-gradient(155deg, rgba(91,141,255,0.10) 0%, rgba(255,255,255,0.04) 100%);
+}
+.svc-offer-card.cost-1 {
+  border-color: rgba(104,248,152,0.24);
+  background: linear-gradient(155deg, rgba(104,248,152,0.08) 0%, rgba(255,255,255,0.04) 100%);
+}
+
+/* SHOP rarity별 */
+.svc-offer-card.rarity-legendary {
+  border-color: rgba(240,192,32,0.50);
+  background: linear-gradient(155deg, rgba(240,192,32,0.14) 0%, rgba(255,255,255,0.04) 100%);
+}
+.svc-offer-card.rarity-rare {
+  border-color: rgba(128,204,255,0.38);
+  background: linear-gradient(155deg, rgba(128,204,255,0.10) 0%, rgba(255,255,255,0.04) 100%);
+}
+.svc-offer-card.rarity-uncommon {
+  border-color: rgba(112,255,176,0.30);
+  background: linear-gradient(155deg, rgba(112,255,176,0.08) 0%, rgba(255,255,255,0.04) 100%);
+}
+.svc-offer-card.rarity-common {
+  border-color: rgba(255,255,255,0.14);
+}
+
+/* 상태 */
+.svc-offer-card:not(:disabled):not(.is-purchased):hover  { filter: brightness(1.20); }
+.svc-offer-card:not(:disabled):not(.is-purchased):active { opacity: 0.72; }
+.svc-offer-card.is-disabled  { opacity: 0.28; cursor: default; }
+.svc-offer-card.is-purchased { opacity: 0.48; cursor: default; }
+
+/* 상단 행: 아이콘 + 이름 + 수량 + 코인 */
+.svc-card-top {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+.svc-card-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.svc-card-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.svc-card-name {
+  flex: 1;
+  font-size: 11.5px;
+  font-weight: 900;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1;
+  min-width: 0;
+}
+.svc-card-qty {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+}
+.svc-card-cost {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 900;
+  color: #ffd060;
+  line-height: 1;
   white-space: nowrap;
 }
+.svc-card-cost small {
+  font-size: 8px;
+  font-weight: 700;
+  color: rgba(255,208,96,0.65);
+  margin-left: 1px;
+}
+
+/* 설명 */
+.svc-card-desc {
+  flex: 1;
+  min-height: 0;
+  font-size: 9.5px;
+  color: var(--text3);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 상태 뱃지 */
+.svc-card-state {
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: 0.15px;
+  line-height: 1;
+}
+.svc-offer-card.is-purchased .svc-card-state { color: #78e8a0; }
 
 /* 서비스 푸터 */
 .slp-footer {
@@ -1590,42 +1701,7 @@
   color: var(--text2);
 }
 
-/* ── 상점 item-card 오버라이드 ── */
-/* 서비스 패널에서 item-card 는 relative 포지션이 필요 (코인 배지 절대 배치) */
-.shop-offer-card {
-  position: relative;
-  cursor: pointer;
-  transition: filter 0.12s, opacity 0.12s;
-  -webkit-tap-highlight-color: transparent;
-}
-.shop-offer-card:not(:disabled):not(.is-purchased):hover  { filter: brightness(1.18); }
-.shop-offer-card:not(:disabled):not(.is-purchased):active { opacity: 0.72; }
-.shop-offer-card.is-disabled  { opacity: 0.30; cursor: default; }
-.shop-offer-card.is-purchased { opacity: 0.45; cursor: default; }
-
-/* 코인 가격 배지 — 카드 우하단 절대 배치 */
-.shop-offer-cost {
-  position: absolute;
-  bottom: 7px;
-  right: 8px;
-  font-size: 11px;
-  font-weight: 900;
-  color: #ffd060;
-  line-height: 1;
-  display: flex;
-  align-items: baseline;
-  gap: 2px;
-}
-.shop-offer-cost__unit {
-  font-size: 9px;
-  font-weight: 700;
-  color: rgba(255,208,96,0.7);
-}
-
-/* 가격 배지 공간 확보 — item-desc 아래 여백 */
-.shop-offer-card .item-desc {
-  padding-bottom: 14px;
-}
+/* shop-offer-card 제거됨 — svc-offer-card 로 교체 */
 
 /* tsw-card 서비스 대상용 오버라이드 */
 .slp-target-row .tsw-card {

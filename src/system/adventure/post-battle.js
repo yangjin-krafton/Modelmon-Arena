@@ -47,17 +47,18 @@ export function resolvePostBattle({ teamMons, defeatedEnemy, encounter, preCaptu
 }
 
 function resolveMonGrowth(mon, gainedExp) {
+  const monRef = mon.instanceId || mon.id;
   const beforeId = mon.id;
   const beforeName = mon.name;
   const beforeLevel = mon.level;
-  const beforeProgress = getMonProgress(beforeId);
+  const beforeProgress = getMonProgress(monRef);
   const beforeStats = { ...(mon.stats || {}) };
   const beforeMaxHp = mon.maxHp;
   const beforeSkills = getSkillsAtLevel(beforeId, beforeLevel).map(entry => entry.no);
   const beforeSkillPp = new Map((mon.skills || []).map(skill => [skill.no, skill.pp]));
   const beforeExp = beforeProgress.exp ?? 0;
   const beforeNextLevelExp = expToNextLevel(beforeLevel);
-  const expResult = grantExp(beforeId, gainedExp);
+  const expResult = grantExp(monRef, gainedExp);
 
   let finalId = beforeId;
   let evolvedTo = null;
@@ -68,18 +69,19 @@ function resolveMonGrowth(mon, gainedExp) {
     const currentIndex = evoLine.indexOf(beforeId);
     if (currentIndex >= 0 && currentIndex < evoLine.length - 1) {
       evolvedTo = evoLine[currentIndex + 1];
-      evolveMon(beforeId, evolvedTo);
+      evolveMon(monRef, evolvedTo);
       finalId = evolvedTo;
     }
   }
 
-  const finalMon = buildBattleMon(finalId, expResult.level);
+  const finalMon = buildBattleMon(finalId, expResult.level, { monRef });
   const afterSkills = getSkillsAtLevel(finalId, expResult.level).map(entry => entry.no);
   const learnedSkills = afterSkills.filter(skillNo => !beforeSkills.includes(skillNo));
   const learnedSkillNames = learnedSkills.map(skillNo => SKILLS[skillNo]?.[0] || String(skillNo));
   const forgottenSkills = beforeSkills.filter(skillNo => !afterSkills.includes(skillNo));
 
   mon.id = finalMon.id;
+  mon.instanceId = monRef;
   mon.name = finalMon.name;
   mon.brand = finalMon.brand;
   mon.level = finalMon.level;
@@ -96,6 +98,7 @@ function resolveMonGrowth(mon, gainedExp) {
   mon.sprite = finalMon.sprite;
 
   return {
+    monRef,
     monId: finalId,
     beforeId,
     name: mon.name,
@@ -187,18 +190,18 @@ function buildSummaryLines(growth, capture) {
 export function applyCaptureDecision({ teamIds, capture, decision, replaceIndex = -1 }) {
   if (!capture?.success) return teamIds;
 
-  captureMon(capture.candidate.monId, capture.candidate.level);
+  const captured = captureMon(capture.candidate.monId, capture.candidate.level);
 
   // 팀원 교체 (풀 팀에서 선택)
   if (decision === 'replace' && replaceIndex >= 0 && replaceIndex < teamIds.length) {
     const next = [...teamIds];
-    next[replaceIndex] = capture.candidate.monId;
+    next[replaceIndex] = captured.instanceId;
     return next;
   }
 
   // 팀에 추가 (슬롯 6개 한도)
   if (teamIds.length < 6) {
-    return [...teamIds, capture.candidate.monId];
+    return [...teamIds, captured.instanceId];
   }
 
   return teamIds;

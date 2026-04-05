@@ -18,7 +18,7 @@ export function buildMonCardHtml(mon) {
   const hpClass   = hpPct > 50 ? 'hp-high' : hpPct > 25 ? 'hp-mid' : 'hp-low';
   const typeClass = TYPE_CLS[mon.type] || '';
 
-  const prog    = getMonProgress(mon.id);
+  const prog    = getMonProgress(mon.instanceId || mon.id);
   const curExp  = prog?.exp ?? 0;
   const nextExp = expToNextLevel(mon.level);
   const expPct  = Math.min(100, Math.round((curExp / nextExp) * 100));

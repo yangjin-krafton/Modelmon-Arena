@@ -13,6 +13,7 @@ import {
   getMetaProgress,
   getMonLevel,
   getMonProgress,
+  getMonSpeciesId,
   grantExp,
   recordBiomeClear,
   recordBiomeSeen,
@@ -110,9 +111,10 @@ function showBattleUI(teamIds, encounter = null) {
 
 function startAdventureRun(teamIds) {
   currentBattleTeamIds = [...teamIds];
+  const starter = getMonProgress(teamIds[0]);
   currentRun = adventure.createRun({
-    starterId: teamIds[0],
-    starterLevel: getMonLevel(teamIds[0], 5),
+    starterId: starter?.monId || getMonSpeciesId(teamIds[0]) || teamIds[0],
+    starterLevel: starter?.lv || getMonLevel(teamIds[0], 5),
     seed: Date.now(),
   });
   currentRun.party = buildPartyState(currentBattleTeamIds);
@@ -387,7 +389,7 @@ function renderServicePanel(state) {
 
   let bodyHtml;
   if (offerTarget) {
-    // 대상 선택 모드 — tsw-card 가로 스크롤로 팀원 표시
+    // 대상 선택 모드 — tsw-card 가로 스크롤
     const targetCards = currentRun.party
       .map(member => buildServiceTargetCard(offerTarget, member))
       .join('');
@@ -398,22 +400,11 @@ function renderServicePanel(state) {
       </div>
     `;
   } else {
-    // 오퍼 선택 모드 — 코스트 티어 행
-    const byCost = { 3: [], 2: [], 1: [] };
-    for (const offer of state.offers) {
-      if (byCost[offer.cost]) byCost[offer.cost].push(offer);
-    }
-    bodyHtml = [3, 2, 1].map(cost => {
-      const offers = byCost[cost];
-      if (!offers.length) return '';
-      const chips = offers.map(offer => buildServiceOfferChip(state.type, offer, state.coins)).join('');
-      return `
-        <div class="slp-tier-row is-cost-${cost}">
-          <span class="slp-row-label">${'★'.repeat(cost)}</span>
-          <div class="slp-chip-scroll">${chips}</div>
-        </div>
-      `;
-    }).join('');
+    // 일반 모드 — 상단 인게임 패널 + 하단 2×3 오퍼 그리드
+    const offerCards = state.offers
+      .map(offer => buildServiceOfferChip(state.type, offer, state.coins))
+      .join('');
+    bodyHtml = buildServicePreviewRow(state.type) + `<div class="slp-offer-grid">${offerCards}</div>`;
   }
 
   panel.innerHTML = headerHtml + bodyHtml + footerHtml;
@@ -437,61 +428,105 @@ function renderServicePanel(state) {
   panel.querySelector('#service-continue-btn')?.addEventListener('click', finishServiceEncounter);
 }
 
-const COST_BORDER = {
-  3: 'rgba(255,205,96,0.38)',
-  2: 'rgba(91,141,255,0.28)',
-  1: 'rgba(104,248,152,0.24)',
-};
+function buildServicePreviewRow(type) {
+  if (type === 'rest') {
+    // 현재 팀 상태 — team-switch-row 그대로 (read-only)
+    const teamCards = currentRun.party.map(member => {
+      const template = buildBattleMon(member.monId, member.level ?? 5, { monRef: member.instanceId || member.monId });
+      const currentHp = Number.isFinite(member.hp) ? member.hp : template.maxHp;
+      const ppMap = new Map((member.skills || []).map(s => [s.no, s.pp]));
+      const monObj = {
+        ...template,
+        hp: currentHp,
+        skills: template.skills.map(skill => ({
+          ...skill,
+          pp: ppMap.has(skill.no) ? ppMap.get(skill.no) : skill.maxPp,
+        })),
+      };
+      const isFainted = currentHp <= 0;
+      return `<div class="tsw-card${isFainted ? ' tsw-fainted' : ''} slp-preview-card">${buildMonCardHtml(monObj)}</div>`;
+    }).join('');
+
+    return `
+      <div class="team-switch-row">
+        <span class="bp-row-tag">아군</span>
+        <div class="team-switch-grid">${teamCards}</div>
+      </div>
+    `;
+  }
+
+  // shop — 현재 보유 아이템 — item-switch-row 그대로 (read-only)
+  const inventory = getInventory();
+  const entries = Object.entries(inventory);
+  const itemCards = entries.length
+    ? entries.map(([itemId, count]) => {
+        const def = ITEMS[itemId];
+        if (!def) return '';
+        return `
+          <div class="item-card slp-preview-card"
+            style="border-color:${RARITY_COLOR[def.rarity] ?? 'rgba(255,255,255,0.1)'}">
+            <div class="item-icon"><img src="${def.icon}" alt="${def.name}"></div>
+            <div class="item-info">
+              <div class="item-name-row">
+                <span class="item-name">${def.name}</span>
+                <span class="item-count-badge">x${count}</span>
+              </div>
+              <span class="item-desc">${def.desc}</span>
+            </div>
+          </div>
+        `;
+      }).join('')
+    : '<span style="font-size:11px;color:var(--text3);padding:0 4px">아이템 없음</span>';
+
+  return `
+    <div class="item-switch-row">
+      <span class="bp-row-tag">보유</span>
+      <div class="item-grid">${itemCards}</div>
+    </div>
+  `;
+}
 
 function buildServiceOfferChip(type, offer, coins) {
   const disabled = offer.purchased || offer.cost > coins;
-  const stateText = offer.purchased ? '구매 완료' : offer.targetMode === 'single' ? '대상 지정' : '즉시 적용';
+  const stateText = offer.purchased ? '✓ 완료' : offer.targetMode === 'single' ? '대상 지정' : '즉시 적용';
   const disabledCls = offer.purchased ? ' is-purchased' : disabled ? ' is-disabled' : '';
 
   if (type === 'shop') {
     const def = ITEMS[offer.itemId];
-    const borderColor = RARITY_COLOR[def?.rarity] ?? 'rgba(255,255,255,0.12)';
+    const rarity = def?.rarity ?? 'common';
     return `
-      <button class="item-card shop-offer-card${disabledCls}" type="button"
-        data-service-offer-id="${offer.id}"
-        style="border-color:${borderColor}"
-        ${disabled ? 'disabled' : ''}>
-        <div class="item-icon"><img src="${def?.icon ?? ''}" alt="${def?.name ?? offer.itemId}"></div>
-        <div class="item-info">
-          <div class="item-name-row">
-            <span class="item-name">${def?.name ?? offer.itemId}</span>
-            <span class="item-count-badge">x${offer.qty}</span>
-          </div>
-          <span class="item-desc">${def?.desc ?? ''}</span>
+      <button class="svc-offer-card rarity-${rarity}${disabledCls}" type="button"
+        data-service-offer-id="${offer.id}" ${disabled ? 'disabled' : ''}>
+        <div class="svc-card-top">
+          <div class="svc-card-icon"><img src="${def?.icon ?? ''}" alt="${def?.name ?? ''}"></div>
+          <span class="svc-card-name">${def?.name ?? offer.itemId}</span>
+          <span class="svc-card-qty">x${offer.qty}</span>
+          <span class="svc-card-cost">${offer.cost}<small>코인</small></span>
         </div>
-        <div class="shop-offer-cost">${offer.cost}<span class="shop-offer-cost__unit">코인</span></div>
+        <span class="svc-card-desc">${def?.desc ?? ''}</span>
+        <span class="svc-card-state">${stateText}</span>
       </button>
     `;
   }
 
-  // rest — item-card 동일 레이아웃, 코스트별 테두리 색상
-  const borderColor = COST_BORDER[offer.cost] ?? 'rgba(255,255,255,0.12)';
+  // rest — 코스트별 색상 클래스
   return `
-    <button class="item-card shop-offer-card${disabledCls}" type="button"
-      data-service-offer-id="${offer.id}"
-      style="border-color:${borderColor}"
-      ${disabled ? 'disabled' : ''}>
-      <div class="item-icon">${offer.icon ? `<img src="${offer.icon}" alt="${offer.title}">` : ''}</div>
-      <div class="item-info">
-        <div class="item-name-row">
-          <span class="item-name">${offer.title}</span>
-          <span class="item-count-badge soc-state">${stateText}</span>
-        </div>
-        <span class="item-desc">${offer.detail}</span>
+    <button class="svc-offer-card cost-${offer.cost}${disabledCls}" type="button"
+      data-service-offer-id="${offer.id}" ${disabled ? 'disabled' : ''}>
+      <div class="svc-card-top">
+        <div class="svc-card-icon">${offer.icon ? `<img src="${offer.icon}" alt="">` : ''}</div>
+        <span class="svc-card-name">${offer.title}</span>
+        <span class="svc-card-cost">${offer.cost}<small>코인</small></span>
       </div>
-      <div class="shop-offer-cost">${offer.cost}<span class="shop-offer-cost__unit">코인</span></div>
+      <span class="svc-card-desc">${offer.detail}</span>
+      <span class="svc-card-state">${stateText}</span>
     </button>
   `;
 }
 
 function buildServiceTargetCard(offer, member) {
   const disabled = !isOfferTargetEligible(offer, member);
-  const template = buildBattleMon(member.monId, member.level ?? 5);
+  const template = buildBattleMon(member.monId, member.level ?? 5, { monRef: member.instanceId || member.monId });
   const currentHp = Number.isFinite(member.hp) ? member.hp : template.maxHp;
   const ppMap = new Map((member.skills || []).map(s => [s.no, s.pp]));
   const monObj = {
@@ -507,7 +542,7 @@ function buildServiceTargetCard(offer, member) {
     .filter(Boolean).join(' ');
   return `
     <button class="${classes}" type="button"
-      data-service-target-mon-id="${member.monId}" ${disabled ? 'disabled' : ''}>
+      data-service-target-mon-id="${member.instanceId || member.monId}" ${disabled ? 'disabled' : ''}>
       ${buildMonCardHtml(monObj)}
     </button>
   `;
@@ -587,21 +622,22 @@ function applyRestOffer(offer, targetMonId = null) {
   }
 
   currentRun.party = currentRun.party.map(member =>
-    member.monId === targetMonId
+    (member.instanceId || member.monId) === targetMonId
       ? rebuildPartyMember(member, offer)
       : member,
   );
 }
 
 function rebuildPartyMember(member, offer) {
+  const monRef = member.instanceId || member.monId;
   const levelGain = Number(offer.levelGain || 0);
   if (levelGain > 0) {
-    grantLevels(member.monId, levelGain);
+    grantLevels(monRef, levelGain);
   }
-  grantOfferExp(member.monId, offer);
+  grantOfferExp(monRef, offer);
 
-  const nextLevel = getMonLevel(member.monId, member.level ?? 5);
-  const template = buildBattleMon(member.monId, nextLevel);
+  const nextLevel = getMonLevel(monRef, member.level ?? 5);
+  const template = buildBattleMon(member.monId, nextLevel, { monRef });
   const previousHp = Number.isFinite(member.hp) ? member.hp : template.maxHp;
   const previousSkills = new Map((member.skills || []).map(skill => [skill.no, skill.pp]));
 
@@ -646,6 +682,7 @@ function rebuildPartyMember(member, offer) {
 
   return {
     ...member,
+    instanceId: monRef,
     monId: member.monId,
     level: nextLevel,
     slot: member.slot || 'active',
@@ -655,11 +692,11 @@ function rebuildPartyMember(member, offer) {
   };
 }
 
-function grantLevels(monId, levels) {
+function grantLevels(monRef, levels) {
   const totalLevels = Math.max(0, Math.floor(Number(levels) || 0));
   if (!totalLevels) return;
 
-  const progress = getMonProgress(monId);
+  const progress = getMonProgress(monRef);
   let levelCursor = progress.lv;
   let expCursor = progress.exp;
   let totalExp = 0;
@@ -670,22 +707,22 @@ function grantLevels(monId, levels) {
     expCursor = 0;
   }
 
-  if (totalExp > 0) grantExp(monId, totalExp);
+  if (totalExp > 0) grantExp(monRef, totalExp);
 }
 
-function grantOfferExp(monId, offer) {
+function grantOfferExp(monRef, offer) {
   const flatExp = Math.max(0, Math.floor(Number(offer.expGain) || 0));
   const nextRatio = Math.max(0, Number(offer.expNextRatio) || 0);
   let totalExp = flatExp;
 
   if (nextRatio > 0) {
-    const progress = getMonProgress(monId);
+    const progress = getMonProgress(monRef);
     const required = expToNextLevel(progress.lv);
     const missing = Math.max(0, required - progress.exp);
     totalExp += Math.floor(missing * nextRatio);
   }
 
-  if (totalExp > 0) grantExp(monId, totalExp);
+  if (totalExp > 0) grantExp(monRef, totalExp);
 }
 
 function isOfferTargetEligible(offer, member) {
@@ -744,32 +781,39 @@ function buildNonCombatToast(_encounter) {
 }
 
 function buildPartyState(teamIds) {
-  return teamIds.map(monId => ({
-    monId,
-    level: getMonLevel(monId, 5),
-    slot: 'active',
-  }));
+  return teamIds.map(monRef => {
+    const progress = getMonProgress(monRef);
+    return {
+      instanceId: progress.instanceId,
+      monId: progress.monId,
+      level: progress.lv || getMonLevel(monRef, 5),
+      slot: 'active',
+    };
+  });
 }
 
 function syncRunPartyState(existingParty, teamIds) {
   const currentById = new Map(
     (existingParty || [])
       .filter(Boolean)
-      .map(member => [member.monId || member.id, member]),
+      .map(member => [member.instanceId || member.monId || member.id, member]),
   );
 
-  return teamIds.map(monId => {
-    const existing = currentById.get(monId);
+  return teamIds.map(monRef => {
+    const progress = getMonProgress(monRef);
+    const existing = currentById.get(monRef);
     return existing
       ? {
           ...existing,
-          monId,
-          level: getMonLevel(monId, existing.level ?? 5),
+          instanceId: progress.instanceId,
+          monId: progress.monId,
+          level: getMonLevel(monRef, existing.level ?? 5),
           slot: 'active',
         }
       : {
-          monId,
-          level: getMonLevel(monId, 5),
+          instanceId: progress.instanceId,
+          monId: progress.monId,
+          level: getMonLevel(monRef, 5),
           slot: 'active',
         };
   });
@@ -815,6 +859,7 @@ function restoreAdventureSession() {
   currentEncounter = session.encounter ?? null;
   currentRun.pendingBiomeChoices = session.pendingBiomeChoices ?? currentRun.pendingBiomeChoices ?? null;
   currentRun.party = syncRunPartyState(currentRun.party, currentBattleTeamIds);
+  currentBattleTeamIds = currentRun.party.map(member => member.instanceId || member.monId);
   currentRun.inventory = normalizeRunInventory(currentRun.inventory);
   ingameReady = true;
 

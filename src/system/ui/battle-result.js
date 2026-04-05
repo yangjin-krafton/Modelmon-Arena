@@ -33,7 +33,7 @@ export function showBattleResultScreen(win) {
   S.battleLog?.setArrowVisible(false);
 
   S.lastBattleOutcome = win ? 'win' : 'lose';
-  S.resolvedTeamIds = S.teamMons.map(mon => mon.id);
+  S.resolvedTeamIds = S.teamMons.map(mon => mon.instanceId || mon.id);
 
   if (!win) {
     S.lastBattleRewards = [];
@@ -52,7 +52,7 @@ export function showBattleResultScreen(win) {
   S._pendingCapture = null;
 
   S.lastBattleRewards = postBattle.growth;
-  S.resolvedTeamIds = S.teamMons.map(mon => mon.id);
+  S.resolvedTeamIds = S.teamMons.map(mon => mon.instanceId || mon.id);
   if (postBattle.capture?.success) playCapture();
   S.postBattleFlow = createVictoryFlowModel(S.currentEncounterData, postBattle);
   renderCurrentPostBattleStep();
@@ -76,7 +76,7 @@ export function renderCurrentPostBattleStep() {
     const { capture } = step;
     let capturedMonHtml = '';
     try {
-      const capturedMon = buildBattleMon(capture.candidate.monId, capture.candidate.level);
+      const capturedMon = buildBattleMon(capture.candidate.monId, capture.candidate.level, { applySavedGrowth: false });
       capturedMonHtml = buildMonCardHtml(capturedMon);
     } catch {}
 
@@ -142,7 +142,7 @@ function buildGrowthCardHtml(entry, { compact = false, highlight = '' } = {}) {
   const hpPct = mon.maxHp > 0 ? Math.max(0, Math.min(100, (mon.hp / mon.maxHp) * 100)) : 0;
   const beforeHpPct = beforeMon.maxHp > 0 ? Math.max(0, Math.min(100, (beforeMon.hp / beforeMon.maxHp) * 100)) : 0;
   const hpClass = hpPct > 50 ? 'hp-high' : hpPct > 25 ? 'hp-mid' : 'hp-low';
-  const progress = getMonProgress(mon.id);
+  const progress = getMonProgress(mon.instanceId || mon.id);
   const beforeExp = entry.beforeExp ?? 0;
   const beforeNextExp = entry.beforeNextLevelExp ?? expToNextLevel(entry.beforeLevel);
   const curExp = entry.afterExp ?? progress.exp ?? 0;
@@ -240,7 +240,7 @@ function buildStatDeltaHtml(label, key, before, after) {
 
 function resolveGrowthBeforeMon(entry, fallbackMon) {
   try {
-    const beforeTemplate = buildBattleMon(entry.beforeId, entry.beforeLevel);
+    const beforeTemplate = buildBattleMon(entry.beforeId, entry.beforeLevel, { monRef: entry.monRef || entry.beforeId });
     return {
       ...beforeTemplate,
       name: entry.beforeName || beforeTemplate.name,
@@ -262,10 +262,10 @@ function resolveGrowthBeforeMon(entry, fallbackMon) {
 }
 
 function resolveGrowthDisplayMon(entry) {
-  const current = S.teamMons.find(mon => mon.id === entry.monId);
+  const current = S.teamMons.find(mon => (mon.instanceId || mon.id) === (entry.monRef || entry.monId));
   if (current) return current;
   try {
-    return buildBattleMon(entry.monId, entry.afterLevel);
+    return buildBattleMon(entry.monId, entry.afterLevel, { monRef: entry.monRef || entry.monId });
   } catch {
     return null;
   }
@@ -447,6 +447,7 @@ export function onRetry(deps) {
 
 function serializeBattlePartyState(teamMons) {
   return (teamMons || []).map(mon => ({
+    instanceId: mon.instanceId || mon.id,
     monId: mon.id,
     level: mon.level,
     slot: 'active',

@@ -58,10 +58,14 @@ export function getSkillsAtLevel(monId, level) {
 /* ════════════════════════════════════════
    배틀몬 생성
 ════════════════════════════════════════ */
-export function buildBattleMon(monId, level) {
+export function buildBattleMon(monId, level, options = {}) {
   const mon = MONS.find(m => m.id === monId);
   if (!mon) throw new Error(`Mon not found: ${monId}`);
-  const statBonus = getMonStatBonus(monId);
+  const {
+    monRef = monId,
+    applySavedGrowth = true,
+  } = options;
+  const statBonus = applySavedGrowth ? getMonStatBonus(monRef) : { hp: 0, atk: 0, def: 0, spd: 0, spc: 0 };
 
   const maxHp = calcStat(mon.bs.hp,  level, true) + statBonus.hp;
   const atk   = calcStat(mon.bs.atk, level, false) + statBonus.atk;
@@ -89,6 +93,7 @@ export function buildBattleMon(monId, level) {
 
   return {
     id:      monId,
+    instanceId: monRef,
     name:    mon.nameKo,
     brand:   mon.nameEn,
     level,

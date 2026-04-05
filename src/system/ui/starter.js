@@ -1,26 +1,21 @@
 /**
- * 스타터 선택 화면
- * - 카드 탭 → 팀 토글 (추가/제거)
- * - 최대 6마리, 최소 1마리 이상이어야 모험 시작 활성화
- * - onConfirm(teamIds[]) 로 팀 배열 전달
+ * Starter selection screen.
+ * Cards are shown per species, but confirmed team entries use roster instance ids.
  */
 
 import { MONS } from '../data/mons.js';
 import { SKILLS } from '../data/skills.js';
 import { calcStat, SPRITE, typeInfo } from '../core/state.js';
-import { getMonLevel, getMonStatBonus, isStarterEligible } from '../core/save.js';
+import { getMonLevel, getMonStatBonus, getPreferredMonInstance, isStarterEligible } from '../core/save.js';
 import { getSkillsAtLevel } from '../core/battle-engine.js';
 
 export const STARTER_LEVEL = 15;
 const MAX_TEAM = 6;
 
 let _onConfirm = null;
-let _teamIds   = [];   // 선택된 팀 (순서 유지)
-let _previewId = null; // 상세 패널에 표시 중인 몬
+let _teamIds = [];
+let _previewId = null;
 
-/* ════════════════════════════════════════
-   초기화 (1회)
-════════════════════════════════════════ */
 export function initStarterScreen(onConfirm) {
   _onConfirm = onConfirm;
 
@@ -29,18 +24,14 @@ export function initStarterScreen(onConfirm) {
   });
 }
 
-/* ════════════════════════════════════════
-   화면 표시
-════════════════════════════════════════ */
 export function showStarterScreen() {
-  _teamIds   = [];
+  _teamIds = [];
   _previewId = null;
 
   buildGrid();
   renderTeamSlots();
   syncGridBadges();
 
-  // 상세 패널: 첫 해금 몬 미리보기
   const firstId = ['001', '004', '007'].find(isStarterEligible)
     ?? MONS.find(m => isStarterEligible(m.id))?.id;
   if (firstId) renderDetail(firstId);
@@ -48,14 +39,11 @@ export function showStarterScreen() {
   document.getElementById('starter-confirm-btn').disabled = true;
 }
 
-/* ════════════════════════════════════════
-   그리드 구성
-════════════════════════════════════════ */
 function buildGrid() {
   const grid = document.getElementById('starter-grid');
   grid.innerHTML = '';
 
-  const baseMons  = MONS.filter(m => m.evoTier === 'base');
+  const baseMons = MONS.filter(m => m.evoTier === 'base');
   const extraMons = MONS.filter(m => m.evoTier !== 'base' && isStarterEligible(m.id));
 
   for (const mon of [...baseMons, ...extraMons]) {
@@ -72,40 +60,33 @@ function makeCard(mon) {
   card.dataset.monId = mon.id;
 
   card.innerHTML = eligible
-    ? `<img class="sc-sprite" src="${SPRITE(mon.id)}" alt="${mon.nameKo}"
-           onerror="this.style.opacity=0.2">
+    ? `<img class="sc-sprite" src="${SPRITE(mon.id)}" alt="${mon.nameKo}" onerror="this.style.opacity=0.2">
        <div class="sc-name">${mon.nameKo}</div>
        <div class="sc-badge type-${ti.type}">${mon.coreConcept}</div>`
     : `<div class="sc-sprite sc-locked-sprite">?</div>
        <div class="sc-name sc-locked-name">???</div>
-       <div class="sc-lock-icon">🔒</div>`;
+       <div class="sc-lock-icon">?</div>`;
 
   if (eligible) {
     card.addEventListener('click', () => onCardClick(mon.id));
   } else {
-    card.title = '포획하거나 팀에 합류시키면 해금됩니다';
+    card.title = '포획하거나 진화시키면 해금됩니다.';
   }
 
   return card;
 }
 
-/* ════════════════════════════════════════
-   카드 탭 처리
-════════════════════════════════════════ */
 function onCardClick(monId) {
-  // 항상 상세 표시
+  const teamRef = getPreferredMonInstance(monId)?.instanceId || monId;
   renderDetail(monId);
   _previewId = monId;
 
-  // 팀 토글
-  const idx = _teamIds.indexOf(monId);
+  const idx = _teamIds.indexOf(teamRef);
   if (idx >= 0) {
-    // 팀에서 제거
     _teamIds.splice(idx, 1);
   } else {
-    // 팀에 추가 (최대 6)
     if (_teamIds.length >= MAX_TEAM) return;
-    _teamIds.push(monId);
+    _teamIds.push(teamRef);
   }
 
   renderTeamSlots();
@@ -113,15 +94,12 @@ function onCardClick(monId) {
   document.getElementById('starter-confirm-btn').disabled = _teamIds.length === 0;
 }
 
-/* ════════════════════════════════════════
-   팀 슬롯 렌더
-════════════════════════════════════════ */
 function renderTeamSlots() {
   const container = document.getElementById('team-slots');
   container.innerHTML = '';
 
-  // 채워진 슬롯
-  for (const monId of _teamIds) {
+  for (const monRef of _teamIds) {
+    const monId = getPreferredMonInstance(monRef)?.monId || monRef;
     const mon = MONS.find(m => m.id === monId);
     if (!mon) continue;
 
@@ -129,18 +107,17 @@ function renderTeamSlots() {
     slot.className = 'team-slot filled';
     slot.innerHTML = `
       <img src="${SPRITE(monId)}" alt="${mon.nameKo}" onerror="this.style.opacity=0.2">
-      <button class="team-slot-remove" title="${mon.nameKo} 제거">✕</button>`;
+      <button class="team-slot-remove" title="${mon.nameKo} 제거">×</button>`;
 
-    slot.querySelector('.team-slot-remove').addEventListener('click', e => {
-      e.stopPropagation();
-      onCardClick(monId); // 제거 = 다시 토글
+    slot.querySelector('.team-slot-remove').addEventListener('click', event => {
+      event.stopPropagation();
+      onCardClick(monId);
     });
 
     container.appendChild(slot);
   }
 
-  // 빈 슬롯
-  for (let i = _teamIds.length; i < MAX_TEAM; i++) {
+  for (let i = _teamIds.length; i < MAX_TEAM; i += 1) {
     const slot = document.createElement('div');
     slot.className = 'team-slot empty';
     slot.textContent = '+';
@@ -150,13 +127,11 @@ function renderTeamSlots() {
   document.getElementById('team-count').textContent = `${_teamIds.length} / ${MAX_TEAM}`;
 }
 
-/* ════════════════════════════════════════
-   그리드 배지 동기화
-════════════════════════════════════════ */
 function syncGridBadges() {
   document.querySelectorAll('.starter-card[data-mon-id]').forEach(card => {
     const monId = card.dataset.monId;
-    const idx   = _teamIds.indexOf(monId);
+    const teamRef = getPreferredMonInstance(monId)?.instanceId || monId;
+    const idx = _teamIds.indexOf(teamRef);
 
     if (idx >= 0) {
       card.classList.add('in-team');
@@ -168,38 +143,35 @@ function syncGridBadges() {
   });
 }
 
-/* ════════════════════════════════════════
-   상세 패널 렌더
-════════════════════════════════════════ */
 function renderDetail(monId) {
   const mon = MONS.find(m => m.id === monId);
   if (!mon) return;
 
-  const lv  = getMonLevel(monId, STARTER_LEVEL);
+  const lv = getMonLevel(monId, STARTER_LEVEL);
   const statBonus = getMonStatBonus(monId);
-  const hp  = calcStat(mon.bs.hp,  lv, true) + statBonus.hp;
+  const hp = calcStat(mon.bs.hp, lv, true) + statBonus.hp;
   const atk = calcStat(mon.bs.atk, lv, false) + statBonus.atk;
   const def = calcStat(mon.bs.def, lv, false) + statBonus.def;
   const spd = calcStat(mon.bs.spd, lv, false) + statBonus.spd;
   const spc = calcStat(mon.bs.spc, lv, false) + statBonus.spc;
-  const ti  = typeInfo(mon.coreConcept);
+  const ti = typeInfo(mon.coreConcept);
 
-  document.getElementById('sd-sprite').src             = SPRITE(monId);
-  document.getElementById('sd-name').textContent       = mon.nameKo;
-  document.getElementById('sd-level').textContent      = `Lv.${lv}`;
+  document.getElementById('sd-sprite').src = SPRITE(monId);
+  document.getElementById('sd-name').textContent = mon.nameKo;
+  document.getElementById('sd-level').textContent = `Lv.${lv}`;
   document.getElementById('sd-type-badge').textContent = mon.coreConcept;
-  document.getElementById('sd-type-badge').className   = `sd-type-badge type-${ti.type}`;
+  document.getElementById('sd-type-badge').className = `sd-type-badge type-${ti.type}`;
   document.getElementById('sd-temperament').textContent = mon.temperament || '';
 
-  document.getElementById('sd-hp').textContent  = hp;
+  document.getElementById('sd-hp').textContent = hp;
   document.getElementById('sd-atk').textContent = atk;
   document.getElementById('sd-def').textContent = def;
   document.getElementById('sd-spd').textContent = spd;
   document.getElementById('sd-spc').textContent = spc;
 
   const skillEntries = getSkillsAtLevel(monId, lv);
-  const skillNames   = skillEntries.map(e => SKILLS[e.no]?.[0] ?? '—');
+  const skillNames = skillEntries.map(entry => SKILLS[entry.no]?.[0] ?? '??');
   document.getElementById('sd-skills').innerHTML = skillNames
-    .map(n => `<span class="sd-skill-chip">${n}</span>`)
+    .map(name => `<span class="sd-skill-chip">${name}</span>`)
     .join('');
 }

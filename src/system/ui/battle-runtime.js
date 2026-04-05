@@ -12,7 +12,7 @@ import {
   hasItem,
   consumeItem,
 } from '../core/run-items.js';
-import { getMonLevel } from '../core/save.js';
+import { getMonLevel, getMonSpeciesId } from '../core/save.js';
 import { createBattleLogController } from './battle-log.js';
 import { createBattleLayoutController } from './battle-layout.js';
 import {
@@ -75,13 +75,13 @@ export function startBattle(teamIds, encounterData = null, teamState = null) {
   const stateById = new Map(
     (Array.isArray(teamState) ? teamState : [])
       .filter(Boolean)
-      .map(member => [member.monId || member.id, member]),
+      .map(member => [member.instanceId || member.monId || member.id, member]),
   );
 
   S.teamMons = ids
-    .map(monId => {
+    .map(monRef => {
       try {
-        return buildBattleMonFromState(monId, stateById.get(monId));
+        return buildBattleMonFromState(monRef, stateById.get(monRef));
       } catch {
         return null;
       }
@@ -100,7 +100,7 @@ export function startBattle(teamIds, encounterData = null, teamState = null) {
 
   S.activeIdx = 0;
   S.playerMon = S.teamMons[0];
-  S.resolvedTeamIds = S.teamMons.map(mon => mon.id);
+  S.resolvedTeamIds = S.teamMons.map(mon => mon.instanceId || mon.id);
   S.currentEncounterData = encounterData ? { ...encounterData, captureBonus: 0 } : null;
   S.enemyQueue = [];
   S.turn = 0;
@@ -146,9 +146,10 @@ export function getBattlePhase() {
   return S.phase;
 }
 
-function buildBattleMonFromState(monId, memberState = null) {
-  const level = memberState?.level ?? getMonLevel(monId, STARTER_LEVEL);
-  const mon = buildBattleMon(monId, level);
+function buildBattleMonFromState(monRef, memberState = null) {
+  const monId = memberState?.monId || getMonSpeciesId(monRef) || monRef;
+  const level = memberState?.level ?? getMonLevel(monRef, STARTER_LEVEL);
+  const mon = buildBattleMon(monId, level, { monRef });
 
   if (!memberState) return mon;
 
@@ -174,6 +175,7 @@ function buildBattleMonFromState(monId, memberState = null) {
 
 export function serializeBattlePartyState(teamMons) {
   return (teamMons || []).map(mon => ({
+    instanceId: mon.instanceId || mon.id,
     monId: mon.id,
     level: mon.level,
     slot: 'active',
@@ -192,18 +194,19 @@ function setupEncounterEnemies(teamIds, encounterData) {
   S.enemyQueue = encounterEnemies.slice(1).map(enemy => ({ ...enemy }));
 
   if (encounterEnemies.length) {
-    S.enemyMon = buildBattleMon(encounterEnemies[0].monId, encounterEnemies[0].level);
+    S.enemyMon = buildBattleMon(encounterEnemies[0].monId, encounterEnemies[0].level, { applySavedGrowth: false });
     return;
   }
 
-  const enemyCandidates = ['001', '004', '007'].filter(monId => !teamIds.includes(monId));
+  const teamSpecies = teamIds.map(monRef => getMonSpeciesId(monRef) || monRef);
+  const enemyCandidates = ['001', '004', '007'].filter(monId => !teamSpecies.includes(monId));
   const enemyId = enemyCandidates.length
     ? enemyCandidates[Math.floor(Math.random() * enemyCandidates.length)]
-    : ['001', '004', '007'].find(monId => monId !== teamIds[0]);
+    : ['001', '004', '007'].find(monId => monId !== teamSpecies[0]);
   const teamAvgLevel = Math.round(S.teamMons.reduce((sum, mon) => sum + mon.level, 0) / S.teamMons.length);
   const enemyLevel = Math.max(1, teamAvgLevel + (Math.random() < 0.5 ? 0 : 1));
 
-  S.enemyMon = buildBattleMon(enemyId, enemyLevel);
+  S.enemyMon = buildBattleMon(enemyId, enemyLevel, { applySavedGrowth: false });
 }
 
 function applyFieldTheme(encounterData) {
@@ -524,7 +527,7 @@ function sendNextEnemy() {
     return;
   }
 
-  S.enemyMon = buildBattleMon(nextEnemy.monId, nextEnemy.level);
+  S.enemyMon = buildBattleMon(nextEnemy.monId, nextEnemy.level, { applySavedGrowth: false });
   renderField();
   playMonEnter('enemy');
   S.phase = 'animating';

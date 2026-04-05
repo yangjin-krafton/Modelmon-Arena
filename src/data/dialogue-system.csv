@@ -1,8 +1,14 @@
 id,weight,phase,importance,commentary_role,skill_pattern,skill_family,status_name,momentum,length_band,usage_bucket,damage_band,hp_band,tags,text
-system-001,3,*,*,*,단일 공격,strike,없음,*,short|medium,fresh|repeat,small|medium,*,*,{{attacker_name}}의 {{skill_name}}. {{defender_name}} 쪽 체력이 {{damage}}만큼 빠졌다.
-system-002,3,*,*,*,연타,multi-hit,없음,*,short|medium,fresh|repeat,small|medium,*,*,{{attacker_name}}의 {{skill_name}} 연타가 들어갔다. {{defender_name}}이(가) 연속으로 밀렸다.
-system-003,2,*,*,analysis,버프,setup,*,*,short|medium,*,zero,*,analysis,{{attacker_name}}이(가) {{skill_name}}으로 자기 페이스를 먼저 올렸다. 다음 턴 준비에 가깝다.
-system-004,2,*,*,analysis,보호막,setup,보호,*,short|medium,*,zero,*,analysis,{{attacker_name}}이(가) {{skill_name}}으로 방어를 깔았다. 일단 버티겠다는 선택이다.
-system-005,2,*,high,highlight|climax,*,control|utility,노출|속박|지연|회복|보호,*,medium|long,*,small|medium|big,*,highlight,{{attacker_name}}의 {{skill_name}} 이후 {{defender_name}}에게 {{status_name}} 효과가 남았다. 이번 턴 여파가 꽤 길게 간다.
-system-006,1,*,low,setup|transition,*,*,없음,*,short,fresh,small,high|mid,*,{{skill_name}} 적중. 일단 들어갔다.
-system-007,1,전|결,high,highlight|climax,단일 공격|연타,strike|multi-hit,없음,left|right,long,repeat|spam,big,low|critical,highlight,{{attacker_name}}의 {{skill_name}}이(가) 제대로 박혔다. {{defender_name}}은(는) {{damage}} 피해를 입었고, 숫자보다 더 큰 건 지금 이 한 번으로 전장 분위기가 눈에 띄게 기울었다는 점이다.
+system-001,3,기,low|mid,setup|transition,단일 공격,strike,없음,*,short|medium,fresh,small,high|mid,*,{{attacker_name}}의 {{skill_name}}. {{defender_name}} 쪽 체력이 {{damage}}만큼 깎였다.
+system-002,3,승|전,mid,transition,단일 공격,strike,없음,left|right,medium,fresh|repeat,small|medium,mid|low,*,{{attacker_name}}이 {{skill_name}}로 먼저 압박했다. {{defender_name}}이 바로 흔들린다.
+system-003,3,승|전,mid,transition,연타,multi-hit,없음,left|right,short|medium,fresh|repeat,small|medium,mid|low,*,{{attacker_name}}의 {{skill_name}} 연속타. {{defender_name}}이 연달아 맞는다.
+system-004,2,전|결,high,highlight|climax,연타,multi-hit,없음,left|right,long,repeat|spam,medium|big,low|critical,*,{{attacker_name}}이 {{skill_name}} 박자를 끊지 않았다. {{defender_name}}은 한 번 밀린 뒤로 리듬을 다시 못 잡고 있다.
+system-005,3,*,mid|high,analysis|highlight,버프,setup,없음,*,short|medium|long,*,zero,*,*,{{attacker_name}}이 {{skill_name}}로 다음 수를 준비한다. 지금은 딜보다 세팅 쪽이다.
+system-006,3,*,mid|high,analysis|highlight,보호막,setup,보호|없음,*,medium|long,*,zero,*,*,{{attacker_name}}이 {{skill_name}}로 보호막을 세웠다. 이번 턴은 버티는 선택이다.
+system-007,2,*,high,highlight|climax,행동 제어,control,속박|지연,left|right,medium|long,fresh|repeat|spam,small|medium|big,mid|low|critical,*,{{attacker_name}}의 {{skill_name}} 이후 {{defender_name}}에게 {{status_name}} 효과가 남았다. 다음 선택지까지 무거워진다.
+system-008,2,전|결,high,highlight|climax,충전 공격,charge,지연|없음,left|right,long,fresh|repeat,medium|big,low|critical,*,{{attacker_name}}이 {{skill_name}}를 크게 꽂아 넣었다. 숫자 이상으로 흐름이 넘어가는 장면이다.
+system-009,2,*,mid|high,analysis|highlight,회복,recovery,회복,right,medium|long,fresh|repeat,zero,low|critical,*,{{attacker_name}}이 {{skill_name}}로 숨을 돌린다. 무너질 뻔한 라인을 다시 세우는 중이다.
+system-010,2,*,mid,transition,*,utility,없음|보호|회복,*,short|medium,fresh|repeat,zero|small,*,*,{{skill_name}} 영향이 전장에 남는다. 바로 큰 피해는 아니어도 다음 턴 계산이 달라진다.
+system-011,1,*,low,setup|transition,*,*,없음,*,short,fresh,small,high,*,{{skill_name}} 적중. 일단 들어갔다.
+system-012,1,결,high,climax,단일 공격|행동 제어,strike|control,없음|속박|지연,left|right,long,repeat|spam,big,critical,*,{{attacker_name}}의 {{skill_name}}가 끝까지 밀어붙였다. {{defender_name}}은 이제 한 번 더 버티기 어려운 체력선이다.
+system-013,1,결,high,climax,충전 공격,charge,지연|없음,left|right,long,fresh|repeat,big,critical,*,{{skill_name}}가 그대로 승부를 닫을 각도로 들어간다. {{defender_name}} 쪽은 반응할 시간도 넉넉하지 않다.

@@ -1,8 +1,15 @@
 id,weight,phase,importance,commentary_role,skill_pattern,skill_family,status_name,momentum,length_band,usage_bucket,damage_band,hp_band,tags,text
-quote-001,2,*,*,*,단일 공격|연타,strike|multi-hit,*,*,short|medium,fresh,small|medium,*,*,좋아, 지금 타이밍 괜찮아. 그대로 간다.
-quote-002,2,*,*,analysis,버프|보호막,setup,*,*,short|medium,*,zero,*,analysis,급할 거 없지. 여기서 판만 내 쪽으로 돌리면 돼.
-quote-003,2,전|결,high,highlight|climax,*,*,*,left,short|medium,repeat|spam,medium|big,low|critical,*,응, 지금이야. 여기서 확 밀어붙인다.
-quote-004,2,전|결,high,highlight|climax,*,*,*,right,short|medium,repeat|spam,medium|big,low|critical,*,아직 안 끝났거든. 마지막까지는 가 봐야지.
-quote-005,2,*,*,*,*,control|utility,노출|속박|지연,*,short,fresh|repeat,*,*,*,어, 이제 좀 흔들리기 시작하는데?
-quote-006,1,*,*,*,*,*,없음,*,short,spam,small,*,*,들어가.
-quote-007,1,전|결,high,highlight|climax,*,control|strike|multi-hit,노출|속박|지연,left|right,long,repeat|spam,medium|big,low|critical,*,좋아, 지금 반응 왔어. 그냥 데미지만 들어간 게 아니라 흐름까지 넘어왔거든. 여기서 한 번 더만 정확하게 잡으면 분위기 완전히 우리 쪽으로 굳어.
+quote-001,2,*,*,*,단일 공격|연타,strike|multi-hit,*,*,short|medium,fresh,small|medium,*,*,좋아. 지금 박자 안 놓쳤어.
+quote-002,2,*,mid|high,analysis|highlight,버프|보호막,setup,없음|보호,*,short|medium|long,*,zero,*,*,급할 거 없어. 여기만 정리하면 돼.
+quote-003,2,결,high,highlight|climax,*,*,*,left,short|medium,repeat|spam,medium|big,low|critical,*,지금이야. 여기서 그냥 밀어.
+quote-004,2,결,high,highlight|climax,*,*,*,right,short|medium,repeat|spam,medium|big,low|critical,*,아직 안 끝났어. 한 번은 더 버텨.
+quote-005,2,*,high,highlight|climax,행동 제어,control,속박|지연,*,short|medium,fresh|repeat|spam,small|medium|big,*,*,이제 좀 발 묶이기 시작하는데.
+quote-006,2,*,mid|high,analysis|highlight,회복,recovery,회복,right,short|medium|long,fresh|repeat,zero,low|critical,*,괜찮아. 아직 다시 세울 수 있어.
+quote-007,2,전|결,high,highlight|climax,충전 공격,charge,지연|없음,left|right,medium|long,fresh|repeat,medium|big,low|critical,*,좋아. 이건 맞는 순간보다 그다음이 더 크게 온다.
+quote-008,1,*,low,setup,*,*,없음,*,short,spam,small,*,*,또 들어가.
+quote-009,1,승|전,mid|high,transition|highlight,연타,multi-hit,없음,left|right,short|medium|long,repeat|spam,medium|big,mid|low,*,같은 기술이라고 만만하게 보면 안 돼. 한 번 밀리기 시작하면 끊어내는 쪽이 더 힘들어.
+quote-010,1,*,mid,transition,단일 공격,strike,없음,*,medium,fresh|repeat,small|medium,*,*,한 번만 정확하게 맞추면 돼. 괜히 크게 휘두를 필요 없어.
+quote-011,1,*,mid|high,analysis|highlight,보호막,setup,보호,*,medium|long,repeat|spam,zero,*,*,조용할 때 정리해 둬. 흔들리기 시작하면 늦어.
+quote-012,1,전|결,high,highlight|climax,행동 제어,control,속박|지연,left|right,long,repeat|spam,small|medium|big,low|critical,*,좋아. 지금 반응이 비었어. 이럴 때 한 번 묶어 두면 다음 선택도 같이 무거워져.
+quote-013,1,결,high,climax,연타,multi-hit,없음,left|right,long,spam,medium|big,low|critical,*,좋아. 이번엔 그냥 이어 가는 게 아니야. 끝까지 몰아붙여.
+quote-014,1,*,high,highlight|climax,행동 제어,control,속박|지연,left|right,medium|long,fresh|repeat,small|medium|big,mid|low|critical,*,지금 묶였어. 여기서 호흡 못 찾게 해.

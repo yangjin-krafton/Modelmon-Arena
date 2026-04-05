@@ -1,9 +1,14 @@
 id,weight,phase,importance,commentary_role,skill_pattern,skill_family,status_name,momentum,length_band,usage_bucket,damage_band,hp_band,tags,text
-explain-001,3,기,low|mid,setup|transition,*,*,없음,*,short|medium,fresh,small,high|mid,기,쉽게 보면 아직 초반이에요. 지금은 누가 먼저 템포를 잡는지 보는 구간이라 한 번 한 번이 다 체크포인트예요.
-explain-002,3,승|전,mid,transition,단일 공격|연타,strike|multi-hit,없음,*,medium,fresh|repeat,small|medium,mid|low,전|승,쉽게 보면 {{attacker_name}}이(가) 이번 교환에서 한 번 더 앞섰어요. {{defender_name}}은(는) 체력도 빠지고 흐름도 조금 흔들렸고요.
-explain-003,3,*,mid,analysis,버프|보호막,setup,*,*,medium,*,zero,*,analysis,쉽게 보면 지금은 세게 때리는 턴이라기보다 준비 턴이에요. 여기서 정리 잘해 두면 다음 장면이 훨씬 편해져요.
-explain-004,2,*,high,highlight|climax,*,control|utility,노출|속박|지연,*,medium|long,*,small|medium|big,*,highlight,쉽게 보면 핵심은 데미지보다 상태예요. {{defender_name}} 입장에서는 다음 턴 선택지가 확 줄 수 있어요.
-explain-005,2,결,high,climax,*,*,*,left|right,long,*,medium|big,low|critical,결,쉽게 보면 거의 마무리 직전이에요. 여기서 한 번 더 성공하면 그대로 끝까지 밀릴 수 있는 분위기예요.
-explain-006,1,*,low,setup,*,*,없음,*,short,fresh,small,high,*,지금은 탐색전이에요.
-explain-007,1,승|전,mid|high,transition|highlight,단일 공격|연타,strike|multi-hit,left|right,*,long,repeat|spam,medium|big,mid|low,repeat,쉽게 말하면 이번 장면은 그냥 한 번 맞고 끝난 턴이 아니에요. {{attacker_name}} 쪽이 리듬을 먼저 잡으면서 {{defender_name}}에게 선택을 강요한 턴이라, 다음 교환에서도 압박을 계속 이어 갈 가능성이 커졌어요.
-explain-008,1,*,mid,analysis,보호막|버프,setup,*,*,long,repeat|spam,zero,*,analysis,겉으로 보기엔 조용해서 별일 아닌 것 같아도 이런 턴이 생각보다 중요해요. 지금 {{attacker_name}}이(가) 해 둔 준비가 쌓이면 다음 공격은 데미지 하나보다 체감 압박이 훨씬 크게 들어올 수 있거든요.
+explain-001,3,기,low|mid,setup|transition,*,*,없음,*,short|medium,fresh,small,high|mid,*,쉽게 보면 아직 초반 체크예요. 누가 먼저 템포를 잡는지만 보고 있는 구간이에요.
+explain-002,3,승|전,mid,transition,단일 공격|연타,strike|multi-hit,없음,left,short|medium,fresh|repeat,small|medium,mid|low,*,쉽게 보면 지금은 {{attacker_name}} 쪽이 교환을 더 편하게 하고 있어요. 한 번 때린 것보다 맞고 난 뒤 리듬이 더 차이 나요.
+explain-003,3,*,mid,analysis,버프|보호막,setup,없음|보호,*,medium|long,*,zero,*,*,쉽게 보면 이 턴은 당장 세게 때리는 장면이 아니에요. 대신 다음 턴에 더 유리하게 들어가려고 바닥을 먼저 깔아 두는 느낌에 가까워요.
+explain-004,2,*,high,highlight|climax,행동 제어,control,속박|지연,left|right,medium|long,fresh|repeat|spam,small|medium|big,mid|low|critical,*,쉽게 보면 피해량보다 상태가 더 아파요. {{defender_name}} 입장에서는 다음 선택 자체가 묶일 수 있어서 체감 압박이 커요.
+explain-005,2,결,high,climax,*,*,*,left|right,long,*,medium|big,low|critical,*,쉽게 보면 거의 마무리 직전이에요. 여기서 한 번 더 흐름을 잡는 쪽이 그대로 끝까지 갈 가능성이 높아요.
+explain-006,2,*,mid|high,analysis|highlight,회복,recovery,회복,right,medium|long,fresh|repeat,zero,low|critical,*,쉽게 보면 이건 단순 회복이 아니에요. 끊길 뻔한 전투 호흡을 다시 붙여서 다음 교환을 해볼 만하게 만드는 턴이에요.
+explain-007,2,전|결,high,highlight|climax,충전 공격,charge,지연|없음,left|right,long,fresh|repeat,medium|big,low|critical,*,쉽게 보면 큰 한 방이 제대로 들어간 장면이에요. 숫자만 센 게 아니라 분위기까지 한 번에 밀어 버렸다고 보는 게 맞아요.
+explain-008,1,*,low,setup,*,*,없음,*,short,fresh,small,high,*,지금은 탐색전이에요.
+explain-009,1,승|전,mid|high,transition|highlight,연타,multi-hit,없음,left|right,short|medium|long,repeat|spam,medium|big,mid|low,*,쉽게 말하면 같은 기술을 또 썼는데도 부담이 안 줄어요. 오히려 같은 박자를 계속 보게 되니까 상대는 그 리듬 자체에 밀리기 시작해요.
+explain-010,1,*,mid|high,analysis|highlight,보호막,setup,보호,*,medium|long,repeat|spam,zero,*,*,겉으로는 조용해 보여도 이런 준비 턴이 누적되면 차이가 커져요. 지금은 숫자가 안 움직여도 다음 공격이 어디까지 받아지는지 기준선이 이미 바뀌고 있거든요.
+explain-011,1,전|결,high,highlight|climax,단일 공격,strike,없음,left|right,medium|long,repeat|spam,big,low|critical,*,한 번 세게 맞은 것도 맞는데 더 큰 문제는 {{defender_name}}이 바로 반응을 못 하고 있다는 점이에요. 그래서 이 한 턴이 다음 턴까지 길게 끌고 가요.
+explain-012,1,*,mid,transition,*,utility,없음|보호|회복,*,medium,fresh|repeat,zero|small,*,*,당장 화려한 장면은 아닌데 전장 계산이 조금씩 바뀌고 있어요. 이런 턴이 쌓이면 나중에 손해가 한꺼번에 보여요.
+explain-013,1,승|전|결,high,highlight|climax,보호막,setup,보호,*,medium|long,fresh|repeat,zero,mid|high,*,쉽게 보면 이건 수비적인 턴인데도 흐름상 꽤 커요. 지금 벽을 제대로 세워 두면 상대가 다음에 들어올 각도 자체가 많이 줄어들어요.

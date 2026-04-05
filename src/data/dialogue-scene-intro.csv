@@ -1,5 +1,14 @@
 id,weight,phase,importance,commentary_role,skill_pattern,skill_family,status_name,momentum,length_band,usage_bucket,damage_band,hp_band,tags,text
-scene-intro-001,3,기|승,low|mid,setup|transition,*,*,*,*,short|medium,fresh,*,high|mid,*,처음엔 그냥 탐색전처럼 보여요. 아직 다들 한 번 더 보고 움직이려는 느낌이 있거든요.
-scene-intro-002,3,전|결,mid|high,highlight|climax,*,*,left|right,*,medium|long,repeat|spam,medium|big,low|critical,전|결,근데 지금은 그 여유가 거의 없어요. 한 번만 삐끗해도 그대로 주도권이 넘어갈 수 있는 구간이라, 공기 자체가 좀 다르게 느껴져요.
-scene-intro-003,2,*,*,analysis,버프|보호막,setup,*,*,medium,*,zero,*,analysis,겉으로는 조용한 턴 같아도 준비 턴일수록 은근히 더 중요해요. 여기서 정리 잘해 두면 다음 장면 밀도가 확 달라지거든요.
-scene-intro-004,1,*,low,setup,*,*,*,*,short,fresh,*,*,*,잠깐 조용했어요.
+scene-intro-001,3,기,low|mid,setup|transition,*,*,*,*,short|medium,fresh,*,high|mid,*,처음엔 그냥 가볍게 간 보는 장면처럼 보여요. 아직 서로 어느 박자로 들어올지 재는 느낌이 더 커요.
+scene-intro-002,3,전|결,mid|high,highlight|climax,*,*,*,left|right,medium|long,repeat|spam,medium|big,low|critical,*,근데 지금은 그 탐색이 끝난 뒤예요. 방금 턴부터는 누가 먼저 밀리면 그대로 끝까지 끌려갈 수 있는 공기가 깔려 있어요.
+scene-intro-003,2,*,mid|high,analysis|highlight,버프,setup,없음,*,medium|long,*,zero,*,*,겉으로는 조용해 보여도 이런 준비 턴이 은근히 중요해요. 여기서 리듬을 정리해 두면 다음 한 번이 훨씬 편하게 들어가거든요.
+scene-intro-004,1,*,low,setup,*,*,*,*,short,fresh,*,*,*,지금은 숨 고르는 구간이에요.
+scene-intro-005,2,승|전,mid,transition,단일 공격,strike,없음,left|right,medium,fresh|repeat,small|medium,mid|low,*,아까부터 미묘하게 기울던 흐름이 이번엔 조금 더 선명해요. {{attacker_name}} 쪽이 먼저 칠 타이밍을 계속 잡고 있거든요.
+scene-intro-006,2,결,high,climax,*,*,*,left|right,long,repeat|spam,medium|big,critical,*,이쯤 되면 숫자보다 공기부터 달라져요. 누구 하나 크게 흔들리면 그대로 끝까지 밀려도 이상하지 않은 장면이에요.
+scene-intro-007,2,*,mid|high,analysis|highlight,회복,recovery,회복,right,medium|long,fresh|repeat,zero,low|critical,*,무너질 듯하다가도 한 번 숨을 고르면 다시 버틸 선은 생겨요. 지금 {{attacker_name}}이 딱 그 선을 다시 세우려는 중이에요.
+scene-intro-008,2,전|결,high,highlight|climax,충전 공격,charge,지연|없음,left|right,long,fresh|repeat,medium|big,low|critical,*,한 번 모은 힘이 이제 터질 차례예요. 다들 그걸 알고 있어서 전장 분위기까지 괜히 더 조용해졌어요.
+scene-intro-009,2,전|결,high,highlight|climax,행동 제어,control,속박|지연,left|right,medium|long,fresh|repeat|spam,small|medium|big,mid|low|critical,*,이런 장면은 데미지보다 선택지를 어디까지 묶느냐가 더 중요해요. 지금부터는 한 번 늦는 쪽이 계속 답답해질 수 있어요.
+scene-intro-010,1,*,low|mid,transition,*,utility,없음|보호|회복,*,short|medium,fresh,zero|small,*,*,큰 소음은 없는데 계산은 조금씩 바뀌고 있어요.
+scene-intro-011,1,승|전,mid|high,transition|highlight,연타,multi-hit,없음,left|right,medium|long,repeat|spam,small|medium|big,mid|low,*,같은 리듬이 계속 이어지면 보는 쪽도 긴장돼요. 이번엔 또 어디서부터 무너지기 시작할지 다들 눈치를 보고 있거든요.
+scene-intro-012,1,*,mid|high,analysis|highlight,보호막,setup,보호,*,medium|long,repeat|spam,zero,*,*,조용히 버티는 턴처럼 보여도 막상 이어서 보면 달라요. 이렇게 방어선을 정리해 둔 쪽이 다음 교환에서 훨씬 덜 흔들려요.
+scene-intro-013,1,승|전|결,high,highlight|climax,보호막,setup,보호,*,medium|long,fresh|repeat,zero,mid|high,*,조용한 턴처럼 보여도 지금은 달라요. 방어선을 어디까지 단단하게 세워 두느냐가 곧 다음 교환의 주도권으로 이어질 수 있어요.

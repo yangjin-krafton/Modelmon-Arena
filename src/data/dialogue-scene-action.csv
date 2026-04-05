@@ -1,6 +1,14 @@
 id,weight,phase,importance,commentary_role,skill_pattern,skill_family,status_name,momentum,length_band,usage_bucket,damage_band,hp_band,tags,text
-scene-action-001,3,*,*,*,단일 공격,strike,*,*,short|medium,fresh|repeat,small|medium,*,*,{{attacker_name}}이(가) {{skill_name}}을(를) 짧고 빠르게 밀어 넣었어요.
-scene-action-002,3,*,*,*,연타,multi-hit,*,*,medium|long,fresh|repeat,small|medium,*,*,{{attacker_name}} 쪽 손이 한 번 붙더니 끊기질 않았어요. {{skill_name}} 연속 박자가 생각보다 훨씬 촘촘하게 이어졌거든요.
-scene-action-003,2,*,*,analysis,버프|보호막,setup,*,*,medium|long,*,zero,*,analysis,{{attacker_name}}은(는) 여기서 무리하게 끝내려 하지 않았어요. {{skill_name}}으로 먼저 판을 정리하고, 다음 턴에 더 유리한 자리를 만들려는 쪽에 가까웠죠.
-scene-action-004,2,전|결,high,highlight|climax,행동 봉쇄,control,속박|지연,*,long,repeat|spam,small|medium,low|critical,repeat,느리게 들어오는 것처럼 보였는데 그게 오히려 포인트였어요. {{attacker_name}}이(가) {{skill_name}} 타이밍을 끝까지 보고 눌렀고, 그래서 {{defender_name}} 쪽 리듬이 정면으로 꼬였어요.
-scene-action-005,1,*,low,setup,단일 공격|연타,strike|multi-hit,*,*,short,fresh,small,high|mid,*,바로 붙었어요.
+scene-action-001,3,*,*,*,단일 공격,strike,*,*,short|medium,fresh|repeat,small|medium,*,*,{{attacker_name}}이 {{skill_name}}를 짧게 끊어 넣어요. 괜히 크게 휘두르지 않고 필요한 자리만 정확하게 찌르는 식이에요.
+scene-action-002,3,*,*,*,연타,multi-hit,*,*,medium|long,fresh|repeat,small|medium,*,*,{{attacker_name}} 쪽 템포가 한 번 붙더니 끊기질 않아요. {{skill_name}} 박자가 생각보다 촘촘해서 {{defender_name}}은 중심을 다시 세울 틈을 못 받아요.
+scene-action-003,2,*,mid|high,analysis|highlight,버프,setup,없음,*,medium|long,*,zero,*,*,{{attacker_name}}은 여기서 무리하게 앞만 보지 않아요. {{skill_name}}로 먼저 판을 정리해 두고 다음 교환에서 더 편하게 밀어 넣을 자리를 만들어요.
+scene-action-004,2,전|결,high,highlight|climax,행동 제어,control,속박|지연,left|right,long,fresh|repeat|spam,small|medium,low|critical,*,겉으로는 조용히 스며드는 것처럼 보여도 실은 그게 더 아파요. {{attacker_name}}의 {{skill_name}}가 들어가는 순간 {{defender_name}}은 반 박자 늦고 그 늦음이 그대로 몸에 남아요.
+scene-action-005,1,*,low,setup,단일 공격|연타,strike|multi-hit,*,*,short,fresh,small,high|mid,*,바로 붙어요.
+scene-action-006,2,전|결,high,highlight|climax,충전 공격,charge,지연|없음,left|right,long,fresh|repeat,medium|big,low|critical,*,한 번 끌어올린 힘이 늦지 않게 떨어져요. {{skill_name}}는 화려하게 흩어지기보다 한 점으로 모여 들어가서 더 묵직하게 박혀요.
+scene-action-007,2,*,mid|high,analysis|highlight,회복,recovery,회복,right,medium|long,fresh|repeat,zero,low|critical,*,{{attacker_name}}은 이 턴을 버리는 대신 다시 세우는 쪽을 택해요. {{skill_name}}가 크게 요란하진 않아도 흐트러진 호흡을 붙잡는 데는 딱 맞아요.
+scene-action-008,2,*,mid,transition,*,utility,없음|보호|회복,*,medium,fresh|repeat,zero|small,*,*,{{skill_name}}가 전장 위에 가볍게 흔적을 남겨요. 당장 폭발하는 기술은 아니지만 다음 선택을 조금 더 까다롭게 만들기엔 충분해 보여요.
+scene-action-009,1,승|전,mid|high,transition|highlight,단일 공격,strike,없음,left|right,medium|long,repeat|spam,medium|big,mid|low,*,같은 기술을 또 쓴다고 장면이 밋밋해지진 않아요. {{attacker_name}}이 익숙한 리듬을 더 자신 있게 밀어 넣으면서 이번엔 각도와 속도까지 조금 더 날카롭게 맞춰 와요.
+scene-action-010,1,*,mid|high,analysis|highlight,보호막,setup,보호,*,medium|long,repeat|spam,zero,*,*,{{attacker_name}}은 굳이 서두르지 않아요. {{skill_name}}로 한 번 더 벽을 세우면서 상대가 들어올 길부터 천천히 좁혀 버려요.
+scene-action-011,1,전|결,high,highlight|climax,연타,multi-hit,없음,left|right,long,spam,medium|big,low|critical,*,이번엔 그냥 연속타가 아니에요. 첫 타가 닿자마자 둘째 셋째가 거의 겹쳐 들어가서 {{defender_name}}이 어느 지점에서부터 밀렸는지조차 흐려질 정도예요.
+scene-action-012,1,*,mid,transition,행동 제어,control,속박|지연,left|right,medium,fresh|repeat,small|medium,mid|low,*,{{skill_name}}는 세게 터뜨리는 기술이 아니라 타이밍을 틀어 버리는 쪽이에요. 그래서 맞는 순간보다 그 직후가 더 불편하게 남아요.
+scene-action-013,1,승|전|결,high,highlight|climax,보호막,setup,보호,*,medium|long,fresh|repeat,zero,mid|high,*,{{attacker_name}}은 물러서듯 보이지만 실제로는 선을 다시 그어요. {{skill_name}}로 세운 벽이 다음 공격이 닿는 방식 자체를 바꾸려는 거예요.

@@ -1,6 +1,13 @@
 id,weight,phase,importance,commentary_role,skill_pattern,skill_family,status_name,momentum,length_band,usage_bucket,damage_band,hp_band,tags,text
-scene-result-001,3,*,mid|high,*,단일 공격|연타,strike|multi-hit,없음,*,medium|long,*,small|medium|big,*,*,맞는 순간보다 그다음이 더 확실했어요. {{defender_name}} 쪽 호흡이 한 번 꺾이면서 방금 공격이 얼마나 깊게 들어갔는지가 뒤늦게 드러났거든요.
-scene-result-002,3,*,high,highlight|climax,*,control|utility,노출|속박|지연,*,medium|long,*,small|medium|big,*,highlight,이번 장면이 위험한 건 딱 여기예요. 피해로 끝난 게 아니라 {{status_name}}이(가) 남아서, {{defender_name}} 입장에서는 다음 턴까지 부담을 같이 끌고 가야 하거든요.
-scene-result-003,2,*,mid,analysis,버프|보호막,setup,보호,*,medium,*,zero,*,analysis,화려하게 터지진 않았어도 내용은 꽤 컸어요. 지금부터는 {{attacker_name}} 쪽이 원하는 템포로 전개될 가능성이 높아졌거든요.
-scene-result-004,1,*,low,setup|transition,*,*,없음,*,short,fresh,small,high|mid,*,생각보다 아팠어요.
-scene-result-005,1,전|결,high,highlight|climax,*,strike|multi-hit|control,left|right,*,long,repeat|spam,medium|big,low|critical,repeat,수치만 보면 {{damage}}인데 체감은 그 이상이에요. 한 번 맞고 끝난 게 아니라 분위기 자체가 넘어가 버린 장면이라, 보는 쪽에서도 ‘아, 여기서 갈린다’는 느낌이 바로 와요.
+scene-result-001,3,*,mid|high,*,단일 공격|연타,strike|multi-hit,없음,*,medium|long,*,small|medium|big,*,*,맞는 순간보다 그다음이 더 선명해요. {{defender_name}} 쪽 호흡이 한번 꺾이면서 방금 공격이 어디까지 먹혔는지가 뒤늦게 확 보이거든요.
+scene-result-002,3,*,high,highlight|climax,*,control|utility,속박|지연|보호,*,medium|long,*,small|medium|big,*,*,이번 장면은 피해량만 보고 넘기면 안 돼요. {{status_name}}이 남는 순간 {{defender_name}}은 다음 수까지 같이 무거워져서 압박이 오래 갑니다.
+scene-result-003,2,*,mid|high,analysis|highlight,버프|보호막,setup,보호|없음,*,medium|long,*,zero,*,*,겉으로는 조용해도 효과는 분명해요. 지금부터는 {{attacker_name}} 쪽이 같은 교환을 해도 훨씬 덜 손해 보게 돼요.
+scene-result-004,1,*,low,setup|transition,*,*,없음,*,short,fresh,small,high|mid,*,생각보다 잘 들어갔어요.
+scene-result-005,2,결,high,highlight|climax,단일 공격|연타|행동 제어,strike|multi-hit|control,없음|속박|지연,left|right,long,repeat|spam,medium|big,low|critical,*,수치만 보면 {{damage}}인데 체감은 그 이상이에요. 이번 한 번으로 끝난 게 아니라 분위기 자체가 한쪽으로 기울어 버려서 보는 쪽도 바로 마무리를 떠올리게 되는 장면이에요.
+scene-result-006,2,*,mid|high,analysis|highlight,회복,recovery,회복,right,medium|long,fresh|repeat,zero,low|critical,*,회복량이 숫자로 크게 보이지 않아도 의미는 커요. {{attacker_name}}이 방금 무너지지 않고 다음 턴을 다시 고를 수 있게 됐다는 사실이 더 중요하거든요.
+scene-result-007,2,전|결,high,highlight|climax,충전 공격,charge,지연|없음,left|right,long,fresh|repeat,medium|big,low|critical,*,이건 한 방이 세다에서 끝나지 않아요. 충전해 둔 리듬이 그대로 폭발하면서 {{defender_name}} 쪽 전체 템포를 한 칸씩 늦춰 버려요.
+scene-result-008,2,*,mid,transition,*,utility,없음|보호|회복,*,medium,fresh|repeat,zero|small,*,*,당장 크게 터지진 않았어도 전장 기준선은 조금 달라졌어요. 다음 선택부터는 같은 행동도 이전만큼 편하게 못 나올 거예요.
+scene-result-009,1,전,mid|high,highlight,연타,multi-hit,없음,left|right,long,repeat|spam,medium|big,mid|low,*,연속해서 맞는 장면은 눈으로 보기보다 몸으로 더 빨리 와요. {{defender_name}}이 첫 박자부터 균형을 잃으면서 뒤쪽 타격을 거의 전부 받아내는 흐름이 됐어요.
+scene-result-010,1,*,mid|high,analysis|highlight,보호막,setup,보호,*,medium|long,repeat|spam,zero,*,*,눈에 띄는 데미지는 없어도 이런 턴이 나중에 차이를 크게 만들어요. 지금 세워 둔 방어선 때문에 상대는 똑같이 들어가도 예전만큼 손익이 안 맞을 가능성이 커졌어요.
+scene-result-011,1,*,high,highlight|climax,행동 제어,control,속박|지연,left|right,medium|long,repeat|spam,small|medium,low|critical,*,{{status_name}}이 붙는 순간 표정이 달라져요. 단순히 맞았다가 아니라 이제부터 하고 싶은 걸 제때 못 할 수도 있다는 압박이 같이 들어가거든요.
+scene-result-012,1,*,mid,transition,단일 공격,strike,없음,left|right,medium,fresh|repeat,medium,mid|low,*,세게 한 번 찍고 지나간 느낌이 아니에요. {{attacker_name}}이 흐름을 먼저 잡은 채로 다음 교환까지 끌고 갈 발판을 만든 장면이에요.

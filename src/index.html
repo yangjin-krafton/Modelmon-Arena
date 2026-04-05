@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="./system/style/skill-tree.css">
   <link rel="stylesheet" href="./system/style/nav.css">
   <link rel="stylesheet" href="./system/style/battle.css">
+  <link rel="stylesheet" href="./system/style/battle-effects.css">
   <link rel="stylesheet" href="./system/style/starter.css">
 </head>
 <body>
@@ -170,6 +171,14 @@
               <span id="player-hp-cur">—</span><span class="hp-sep">/</span><span id="player-hp-max">—</span>
             </div>
           </div>
+        </div>
+
+        <!-- 전투 모션 효과 레이어 -->
+        <div class="bf-fx" aria-hidden="true">
+          <div class="bf-fx__field"></div>
+          <div class="bf-fx__beam"></div>
+          <div class="bf-fx__self"></div>
+          <div class="bf-fx__impact"></div>
         </div>
 
         <!-- 결과 오버레이 -->

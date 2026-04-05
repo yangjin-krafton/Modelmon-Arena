@@ -1,0 +1,409 @@
+/* ════════════════════════════════════════════════════════
+   전투 모션 효과 시스템
+   패턴(11종) × 속성(12종) 조합으로 165개 스킬 커버
+
+   DOM 구조:
+   .bf-fx[data-actor="player|enemy"]
+     .bf-fx__beam     — 발사체 / 빔
+     .bf-fx__impact   — 타격 폭발 (타겟 위치)
+     .bf-fx__self     — 자신 효과 (버프/실드/회복)
+     .bf-fx__field    — 전장 전체 (광역/초고위력)
+════════════════════════════════════════════════════════ */
+
+/* ── 레이어 기반 ─────────────────────────────────────── */
+.bf-fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  overflow: hidden;
+
+  /* 기본 색상 (fallback) */
+  --fx-color:       #ffffff;
+  --fx-glow:        rgba(255,255,255,0.3);
+  --fx-glow-strong: rgba(255,255,255,0.6);
+}
+
+.bf-fx__beam,
+.bf-fx__impact,
+.bf-fx__self,
+.bf-fx__field {
+  position: absolute;
+  opacity: 0;
+  will-change: transform, opacity;
+  border-radius: 50%;
+}
+
+/* ── 속성별 색상 테마 ─────────────────────────────────── */
+.bf-fx.e-talk    { --fx-color:#50ff8c; --fx-glow:rgba(80,255,140,0.35); --fx-glow-strong:rgba(80,255,140,0.7); }
+.bf-fx.e-reason  { --fx-color:#b450ff; --fx-glow:rgba(180,80,255,0.35); --fx-glow-strong:rgba(180,80,255,0.7); }
+.bf-fx.e-create  { --fx-color:#ffa03c; --fx-glow:rgba(255,160,60,0.35); --fx-glow-strong:rgba(255,160,60,0.7); }
+.bf-fx.e-search  { --fx-color:#50c8ff; --fx-glow:rgba(80,200,255,0.35); --fx-glow-strong:rgba(80,200,255,0.7); }
+.bf-fx.e-code    { --fx-color:#00f5c8; --fx-glow:rgba(0,245,200,0.35); --fx-glow-strong:rgba(0,245,200,0.7); }
+.bf-fx.e-agent   { --fx-color:#3cdcb4; --fx-glow:rgba(60,220,180,0.35); --fx-glow-strong:rgba(60,220,180,0.7); }
+.bf-fx.e-multi   { --fx-color:#50b4ff; --fx-glow:rgba(80,180,255,0.35); --fx-glow-strong:rgba(80,180,255,0.7); }
+.bf-fx.e-memory  { --fx-color:#b478ff; --fx-glow:rgba(180,120,255,0.35); --fx-glow-strong:rgba(180,120,255,0.7); }
+.bf-fx.e-align   { --fx-color:#ff783c; --fx-glow:rgba(255,120,60,0.35); --fx-glow-strong:rgba(255,120,60,0.7); }
+.bf-fx.e-system  { --fx-color:#c8c8e0; --fx-glow:rgba(200,200,220,0.35); --fx-glow-strong:rgba(200,200,220,0.7); }
+.bf-fx.e-learn   { --fx-color:#78dc50; --fx-glow:rgba(120,220,80,0.35); --fx-glow-strong:rgba(120,220,80,0.7); }
+.bf-fx.e-corrupt { --fx-color:#b43cff; --fx-glow:rgba(180,60,255,0.35); --fx-glow-strong:rgba(180,60,255,0.7); }
+
+
+/* ════════════════════════════════════════════════════════
+   위치: data-actor 로 타겟/자신 위치 결정
+
+   battle-field 180px 고정, padding: 8px 14px
+   enemy-sprite (68×68): top-right → 중심 top≈42px, right≈48px
+   player-sprite(76×76): bottom-left → 중심 bottom≈46px, left≈52px
+════════════════════════════════════════════════════════ */
+
+/* Impact — 타격 대상 위치 */
+.bf-fx__impact {
+  width: 80px; height: 80px;
+  background: radial-gradient(circle at center, var(--fx-glow-strong) 0%, var(--fx-glow) 45%, transparent 75%);
+}
+
+/* 플레이어 공격 → 타겟: 적(우상단) */
+.bf-fx[data-actor="player"] .bf-fx__impact {
+  right: 8px; top: 6px;
+}
+/* 적 공격 → 타겟: 플레이어(좌하단) */
+.bf-fx[data-actor="enemy"] .bf-fx__impact {
+  left: 8px; bottom: 6px;
+  width: 88px; height: 88px;
+}
+
+/* Self — 시전자 자신 위치 */
+.bf-fx__self {
+  width: 88px; height: 88px;
+  background: radial-gradient(circle at center, var(--fx-glow-strong) 0%, var(--fx-glow) 40%, transparent 70%);
+}
+
+/* 플레이어 → 자신: 플레이어(좌하단) */
+.bf-fx[data-actor="player"] .bf-fx__self {
+  left: 8px; bottom: 6px;
+}
+/* 적 → 자신: 적(우상단) */
+.bf-fx[data-actor="enemy"] .bf-fx__self {
+  right: 8px; top: 6px;
+  width: 80px; height: 80px;
+}
+
+/* Beam — 대각선 슬래시 빔 */
+.bf-fx__beam {
+  width: 5px;
+  height: 130px;
+  border-radius: 3px;
+  left: 50%; top: 50%;
+  transform-origin: center center;
+  background: linear-gradient(180deg, transparent 0%, var(--fx-color) 45%, var(--fx-glow-strong) 50%, var(--fx-color) 55%, transparent 100%);
+  box-shadow: 0 0 8px var(--fx-glow), 0 0 20px var(--fx-glow);
+  border-radius: 3px;
+}
+
+/* 플레이어 공격: 좌하→우상 방향 (시계 반대 45°) */
+.bf-fx[data-actor="player"] .bf-fx__beam {
+  --fx-rot: translate(-50%, -50%) rotate(-38deg);
+}
+/* 적 공격: 우상→좌하 방향 (시계 방향 38°) */
+.bf-fx[data-actor="enemy"] .bf-fx__beam {
+  --fx-rot: translate(-50%, -50%) rotate(38deg);
+}
+
+/* Field — 전체 배틀필드 오버레이 */
+.bf-fx__field {
+  inset: 0;
+  border-radius: 0;
+  background: var(--fx-glow);
+}
+
+
+/* ════════════════════════════════════════════════════════
+   키프레임 (모든 패턴 공용)
+════════════════════════════════════════════════════════ */
+
+/* 임팩트 폭발 */
+@keyframes kf-impact {
+  0%   { transform: scale(0.2); opacity: 0; }
+  25%  { transform: scale(1.2); opacity: 1; }
+  55%  { transform: scale(1.0); opacity: 0.85; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+/* 연타 반복 히트 (iteration-count 4) */
+@keyframes kf-rapid-hit {
+  0%   { transform: scale(0.3); opacity: 0; }
+  30%  { transform: scale(1.1); opacity: 1; }
+  60%  { transform: scale(0.9); opacity: 0.7; }
+  100% { transform: scale(0.2); opacity: 0; }
+}
+
+/* 빔/슬래시 등장 */
+@keyframes kf-beam {
+  0%   { opacity: 0; transform: var(--fx-rot, translate(-50%,-50%) rotate(0deg)) scaleY(0.1); }
+  20%  { opacity: 1; transform: var(--fx-rot, translate(-50%,-50%) rotate(0deg)) scaleY(1.1); }
+  55%  { opacity: 0.9; transform: var(--fx-rot, translate(-50%,-50%) rotate(0deg)) scaleY(1); }
+  100% { opacity: 0; transform: var(--fx-rot, translate(-50%,-50%) rotate(0deg)) scaleY(0.8); }
+}
+
+/* 강공격/초고위력 빔 (더 굵고 짧게) */
+@keyframes kf-beam-heavy {
+  0%   { opacity: 0; transform: var(--fx-rot, translate(-50%,-50%) rotate(0deg)) scaleY(0) scaleX(1); }
+  15%  { opacity: 1; transform: var(--fx-rot, translate(-50%,-50%) rotate(0deg)) scaleY(1) scaleX(2.5); }
+  45%  { opacity: 0.9; transform: var(--fx-rot, translate(-50%,-50%) rotate(0deg)) scaleY(1.1) scaleX(2); }
+  100% { opacity: 0; transform: var(--fx-rot, translate(-50%,-50%) rotate(0deg)) scaleY(0.9) scaleX(1); }
+}
+
+/* 광역 파동 (수평 스윕) */
+@keyframes kf-wave {
+  0%   { transform: scaleX(0.05) scaleY(1); opacity: 0.9; }
+  35%  { transform: scaleX(1) scaleY(0.7); opacity: 0.7; }
+  65%  { transform: scaleX(1.3) scaleY(0.4); opacity: 0.4; }
+  100% { transform: scaleX(1.8) scaleY(0.15); opacity: 0; }
+}
+
+/* 초고위력 필드 플래시 */
+@keyframes kf-flash {
+  0%   { opacity: 0; }
+  10%  { opacity: 0.7; }
+  30%  { opacity: 0.5; }
+  55%  { opacity: 0.2; }
+  100% { opacity: 0; }
+}
+
+/* 충전: 빌드업 */
+@keyframes kf-charge {
+  0%   { transform: scale(0.3); opacity: 0.2; filter: brightness(1); }
+  65%  { transform: scale(2.0); opacity: 0.95; filter: brightness(2.5); }
+  100% { transform: scale(0.3); opacity: 0; filter: brightness(1); }
+}
+
+/* 버프: 상승 파티클 */
+@keyframes kf-buff {
+  0%   { transform: scale(0.7) translateY(0); opacity: 0.9; }
+  50%  { transform: scale(1.3) translateY(-18px); opacity: 0.7; }
+  100% { transform: scale(0.5) translateY(-45px); opacity: 0; }
+}
+
+/* 보호막: 링 팽창 */
+@keyframes kf-shield {
+  0%   { transform: scale(0.7); opacity: 0; box-shadow: 0 0 0 0 var(--fx-color); border: 3px solid var(--fx-color); background: transparent; }
+  25%  { transform: scale(1.0); opacity: 0.9; }
+  60%  { transform: scale(1.1); opacity: 0.7; }
+  100% { transform: scale(1.5); opacity: 0; border-color: transparent; }
+}
+
+/* 상태이상: 잔류 맥동 */
+@keyframes kf-status {
+  0%,100% { opacity: 0.15; transform: scale(1.0); }
+  50%     { opacity: 0.5;  transform: scale(1.05); }
+}
+
+/* 흡수: 수축 → 사라짐 */
+@keyframes kf-drain-from {
+  0%   { transform: scale(1.2); opacity: 0.9; }
+  60%  { transform: scale(0.5); opacity: 0.5; }
+  100% { transform: scale(0.1); opacity: 0; }
+}
+/* 흡수: 자신 수신 */
+@keyframes kf-drain-to {
+  0%   { transform: scale(0.2); opacity: 0; }
+  30%  { transform: scale(1.3); opacity: 0.9; }
+  70%  { transform: scale(1.1); opacity: 0.7; }
+  100% { transform: scale(0.6); opacity: 0; }
+}
+
+/* 유틸: 반짝 */
+@keyframes kf-util {
+  0%   { transform: scale(0.5) rotate(0deg); opacity: 0.8; }
+  45%  { transform: scale(1.1) rotate(120deg); opacity: 0.9; }
+  100% { transform: scale(0.4) rotate(240deg); opacity: 0; }
+}
+
+/* 스프라이트 흔들림 (스프라이트 엘리먼트에 직접 적용) */
+@keyframes kf-sprite-shake {
+  0%,100% { transform: translateX(0); }
+  15%     { transform: translateX(-7px); }
+  35%     { transform: translateX(6px); }
+  55%     { transform: translateX(-5px); }
+  75%     { transform: translateX(4px); }
+}
+
+/* 스프라이트 반동 흔들림 (자신도 피해) */
+@keyframes kf-sprite-recoil {
+  0%,100% { transform: translateX(0) translateY(0); }
+  20%     { transform: translateX(5px) translateY(-3px); }
+  50%     { transform: translateX(-4px) translateY(2px); }
+  75%     { transform: translateX(3px) translateY(-1px); }
+}
+
+/* 스프라이트 번쩍임 (초고위력) */
+@keyframes kf-sprite-flash {
+  0%   { filter: brightness(1) saturate(1) drop-shadow(0 2px 8px var(--sprite-shadow)); }
+  20%  { filter: brightness(5) saturate(0) drop-shadow(0 0 20px white); }
+  55%  { filter: brightness(2.5) saturate(0.3) drop-shadow(0 0 12px white); }
+  100% { filter: brightness(1) saturate(1) drop-shadow(0 2px 8px var(--sprite-shadow)); }
+}
+
+.enemy-sprite  { --sprite-shadow: rgba(91,141,255,0.35); }
+.player-sprite { --sprite-shadow: rgba(255,100,80,0.35); }
+
+/* 스프라이트 클래스 (JS에서 add/remove) */
+.fx-shake  { animation: kf-sprite-shake  0.42s ease-in-out; }
+.fx-recoil { animation: kf-sprite-recoil 0.38s ease-in-out; }
+.fx-flash  { animation: kf-sprite-flash  0.5s ease-out; }
+
+
+/* ════════════════════════════════════════════════════════
+   패턴별 애니메이션 바인딩
+════════════════════════════════════════════════════════ */
+
+/* ── SLASH (단일 공격, 강공격) ─────────────────────── */
+.bf-fx.p-slash .bf-fx__beam {
+  animation: kf-beam 0.42s ease-out forwards;
+}
+.bf-fx.p-slash .bf-fx__impact {
+  animation: kf-impact 0.45s 0.18s ease-out forwards;
+}
+
+/* ── ULTRA (초고위력) ──────────────────────────────── */
+.bf-fx.p-ultra .bf-fx__beam {
+  width: 10px; height: 160px;
+  box-shadow: 0 0 16px var(--fx-glow), 0 0 40px var(--fx-glow);
+  animation: kf-beam-heavy 0.55s ease-out forwards;
+}
+.bf-fx.p-ultra .bf-fx__field {
+  animation: kf-flash 0.6s ease-out forwards;
+}
+.bf-fx.p-ultra .bf-fx__impact {
+  width: 110px; height: 110px;
+  animation: kf-impact 0.55s 0.2s ease-out forwards;
+}
+.bf-fx[data-actor="player"].p-ultra .bf-fx__impact { right: -15px; top: -10px; }
+.bf-fx[data-actor="enemy"].p-ultra  .bf-fx__impact { left: -15px;  bottom: -10px; }
+
+/* ── RAPID (연타) ─────────────────────────────────── */
+.bf-fx.p-rapid .bf-fx__impact {
+  animation: kf-rapid-hit 0.16s ease-in-out 4;
+  animation-fill-mode: forwards;
+}
+
+/* ── WAVE (광역 공격) ─────────────────────────────── */
+.bf-fx.p-wave .bf-fx__field {
+  border-radius: 0;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    var(--fx-glow) 30%,
+    var(--fx-glow-strong) 50%,
+    var(--fx-glow) 70%,
+    transparent 100%);
+  animation: kf-wave 0.55s ease-out forwards;
+}
+.bf-fx.p-wave .bf-fx__impact {
+  animation: kf-impact 0.4s 0.3s ease-out forwards;
+}
+
+/* ── CHARGE (충전 후 발동) ────────────────────────── */
+.bf-fx.p-charge .bf-fx__self {
+  animation: kf-charge 0.5s ease-in forwards;
+}
+.bf-fx.p-charge .bf-fx__impact {
+  animation: kf-impact 0.45s 0.42s ease-out forwards;
+}
+
+/* ── BUFF (버프, 복제) ────────────────────────────── */
+.bf-fx.p-buff .bf-fx__self {
+  animation: kf-buff 0.8s ease-out forwards;
+}
+
+/* ── SHIELD (보호막) ──────────────────────────────── */
+.bf-fx.p-shield .bf-fx__self {
+  background: transparent;
+  border: 3px solid var(--fx-color);
+  animation: kf-shield 0.7s ease-out forwards;
+}
+
+/* ── STATUS (상태이상, 디버프, 행동 봉쇄) ─────────── */
+.bf-fx.p-status .bf-fx__impact {
+  width: 90px; height: 90px;
+  animation: kf-status 0.9s ease-in-out 2 forwards;
+}
+.bf-fx[data-actor="player"].p-status .bf-fx__impact { right: 4px; top: 4px; width: 82px; height: 82px; }
+.bf-fx[data-actor="enemy"].p-status  .bf-fx__impact { left: 4px;  bottom: 4px; }
+
+/* ── DRAIN (흡수, 회복) ───────────────────────────── */
+.bf-fx.p-drain .bf-fx__impact {
+  animation: kf-drain-from 0.5s ease-in forwards;
+}
+.bf-fx.p-drain .bf-fx__self {
+  animation: kf-drain-to 0.55s 0.35s ease-out forwards;
+}
+
+/* ── RECOIL (반동/고비용) ─────────────────────────── */
+.bf-fx.p-recoil .bf-fx__beam {
+  animation: kf-beam 0.42s ease-out forwards;
+}
+.bf-fx.p-recoil .bf-fx__impact {
+  animation: kf-impact 0.45s 0.18s ease-out forwards;
+}
+/* 자신 반동은 JS에서 .fx-recoil 클래스로 처리 */
+
+/* ── UTIL (유틸, 변환, 교체, 랜덤 호출) ──────────── */
+.bf-fx.p-util .bf-fx__self {
+  animation: kf-util 0.55s ease-out forwards;
+}
+
+
+/* ════════════════════════════════════════════════════════
+   속성별 특화 효과 (오버레이)
+════════════════════════════════════════════════════════ */
+
+/* 오염: RGB 분리 글리치 느낌 */
+.bf-fx.e-corrupt .bf-fx__field {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(180,60,255,0.07) 3px,
+    rgba(180,60,255,0.07) 4px
+  );
+  mix-blend-mode: screen;
+}
+.bf-fx.e-corrupt.p-slash .bf-fx__beam,
+.bf-fx.e-corrupt.p-ultra .bf-fx__beam,
+.bf-fx.e-corrupt.p-recoil .bf-fx__beam {
+  filter: drop-shadow(0 0 4px rgba(180,60,255,0.8)) drop-shadow(3px 0 6px rgba(255,60,60,0.4));
+}
+
+/* 코드: 선명한 네온 테두리 */
+.bf-fx.e-code .bf-fx__impact,
+.bf-fx.e-code .bf-fx__self {
+  border: 1px solid var(--fx-color);
+  box-shadow: 0 0 12px var(--fx-glow), inset 0 0 12px var(--fx-glow);
+}
+
+/* 시스템: 흑백 */
+.bf-fx.e-system .bf-fx__field {
+  background: rgba(220,220,240,0.18);
+}
+
+/* 생성: 내부 추가 반짝임 */
+.bf-fx.e-create .bf-fx__impact,
+.bf-fx.e-create .bf-fx__self {
+  box-shadow: 0 0 20px var(--fx-glow), 0 0 40px var(--fx-glow);
+}
+
+
+/* ════════════════════════════════════════════════════════
+   접근성: 모션 감소 설정
+════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .bf-fx__beam,
+  .bf-fx__impact,
+  .bf-fx__self,
+  .bf-fx__field,
+  .fx-shake, .fx-recoil, .fx-flash {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+}

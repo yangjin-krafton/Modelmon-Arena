@@ -15,6 +15,7 @@ import {
 } from '../core/run-items.js';
 import { getMonLevel } from '../core/save.js';
 import { applyCaptureDecision, resolvePostBattle } from '../adventure/post-battle.js';
+import { initEffects, playSkillEffect, clearAllEffects } from './battle-effects.js';
 
 let phase = 'idle';
 let turn = 0;
@@ -40,11 +41,15 @@ const el = id => document.getElementById(id);
 export async function initBattle(callback) {
   onBattleEnd = callback;
 
+  moveBattleResultToLowerPanel();
+
   el('battle-lower').addEventListener('click', onLowerClick);
   el('battle-panel').addEventListener('click', onPanelClick);
   el('battle-retry-btn').addEventListener('click', onRetry);
   el('team-switch-grid').addEventListener('click', onTeamGridClick);
   el('item-grid').addEventListener('click', onItemGridClick);
+
+  initEffects();
 
   if (libraryLoaded) return;
 
@@ -99,7 +104,8 @@ export function startBattle(teamIds, encounterData = null) {
 
   el('battle-result').classList.add('hidden');
   clearResultChoices();
-  hidePanel();
+  resetBattleLog();
+  setBattleLowerMode('log');
   el('bl-arrow').style.display = 'none';
   el('battle-lower').classList.remove('is-talking');
 
@@ -290,16 +296,15 @@ function renderPanel() {
 }
 
 function hidePanel() {
-  el('battle-panel').classList.add('hidden');
+  setBattleLowerMode('log');
 }
 
 function showPanel() {
   renderPanel();
   renderTeamGrid();
   renderItemGrid();
-  el('battle-panel').classList.remove('hidden');
+  setBattleLowerMode('panel');
   el('battle-lower').classList.remove('is-talking');
-  el('bl-text').textContent = '행동을 선택하세요.';
   el('bl-arrow').style.display = 'none';
 }
 
@@ -458,6 +463,9 @@ function showNextMessage() {
   }
 
   const message = msgQueue.shift();
+  if (message.fxData) {
+    playSkillEffect(message.fxData.side, { pattern: message.fxData.pattern, element: message.fxData.element });
+  }
   if (message.hpSnap) {
     playerMon.hp = message.hpSnap.playerHp;
     enemyMon.hp = message.hpSnap.enemyHp;
@@ -465,7 +473,7 @@ function showNextMessage() {
     renderHP('enemy');
   }
 
-  el('bl-text').innerHTML = renderBattleLogHtml(message.text, message.highlight);
+  appendBattleLogEntry(message.text, message.highlight);
   const hasMore = msgQueue.length > 0;
   el('bl-arrow').style.display = hasMore ? 'block' : 'none';
   el('battle-lower').classList.toggle('is-talking', hasMore);
@@ -601,7 +609,10 @@ function buildMessages(events) {
       ? { allySkills: [event.skillName], enemySkills: [] }
       : { allySkills: [], enemySkills: [event.skillName] };
 
-    messages.push({ text: lines[0], hpSnap, highlight });
+    const fxData = event.type === 'attack'
+      ? { side: event.side, pattern: event.skillPattern, element: event.skillElement }
+      : null;
+    messages.push({ text: lines[0], hpSnap, highlight, fxData });
     lines.slice(1).forEach(text => {
       messages.push({ text, highlight });
     });
@@ -629,14 +640,65 @@ function renderBattleLogHtml(text, highlight = null) {
   });
 }
 
+function setBattleLowerMode(mode) {
+  const log = el('battle-log');
+  const panel = el('battle-panel');
+  const result = el('battle-result');
+  const showPanelMode = mode === 'panel';
+  const showResultMode = mode === 'post';
+
+  log.classList.toggle('hidden', showPanelMode || showResultMode);
+  panel.classList.toggle('hidden', !showPanelMode);
+  result.classList.toggle('hidden', !showResultMode);
+}
+
+function moveBattleResultToLowerPanel() {
+  const lower = el('battle-lower');
+  const panel = el('battle-panel');
+  const result = el('battle-result');
+  if (!lower || !panel || !result) return;
+  if (result.parentElement === lower) return;
+  lower.insertBefore(result, panel.nextSibling);
+}
+
+function resetBattleLog() {
+  const log = el('bl-text');
+  if (!log) return;
+  log.innerHTML = '';
+  log.scrollTop = 0;
+}
+
+function appendBattleLogEntry(text, highlight = null) {
+  const log = el('bl-text');
+  if (!log) return;
+
+  const side = getBattleLogSide(highlight);
+  const entry = document.createElement('div');
+  const bubble = document.createElement('div');
+
+  entry.className = `bl-entry bl-entry--${side}`;
+  bubble.className = 'bl-bubble';
+  bubble.innerHTML = renderBattleLogHtml(text, highlight);
+
+  entry.appendChild(bubble);
+  log.appendChild(entry);
+  log.scrollTop = log.scrollHeight;
+}
+
+function getBattleLogSide(highlight) {
+  if (highlight?.allySkills?.length) return 'ally';
+  if (highlight?.enemySkills?.length) return 'enemy';
+  return 'system';
+}
+
 function showBattleResultScreen(win) {
   phase = 'ended';
-  hidePanel();
+  clearAllEffects();
+  setBattleLowerMode('post');
   el('bl-arrow').style.display = 'none';
   clearResultChoices();
 
   const result = el('battle-result');
-  result.classList.remove('hidden');
 
   lastBattleOutcome = win ? 'win' : 'lose';
   resolvedTeamIds = teamMons.map(mon => mon.id);
@@ -646,7 +708,7 @@ function showBattleResultScreen(win) {
     result.querySelector('.br-icon').textContent = '패';
     result.querySelector('.br-title').textContent = '전투 패배';
     result.querySelector('.br-sub').textContent = '파티가 전투 불능이 됐다.';
-    el('bl-text').textContent = '파티가 쓰러졌다. 다시 준비해야 한다.';
+    appendBattleLogEntry('파티가 쓰러졌다. 다시 준비해야 한다.');
     el('battle-retry-btn').textContent = '재도전';
     return;
   }
@@ -663,7 +725,7 @@ function showBattleResultScreen(win) {
   result.querySelector('.br-icon').textContent = '승';
   result.querySelector('.br-title').textContent = buildResultTitle(currentEncounterData);
   result.querySelector('.br-sub').textContent = buildResultSubtitle(postBattle);
-  el('bl-text').textContent = buildBattleLogSummary(postBattle);
+  appendBattleLogEntry(buildBattleLogSummary(postBattle));
   el('battle-retry-btn').textContent = '다음 진행';
 
   renderPostBattleChoices(postBattle);
@@ -749,12 +811,12 @@ function createChoiceButton(label, onClick) {
 
 function finalizeChoice(message) {
   clearResultChoices();
-  el('bl-text').textContent = message;
+  appendBattleLogEntry(message);
 }
 
 function onRetry() {
   phase = 'idle';
-  el('battle-result').classList.add('hidden');
+  setBattleLowerMode('log');
   clearResultChoices();
 
   if (onBattleEnd) {

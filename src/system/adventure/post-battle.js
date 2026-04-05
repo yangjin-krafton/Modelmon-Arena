@@ -51,6 +51,7 @@ function resolveMonGrowth(mon, gainedExp) {
   const beforeName = mon.name;
   const beforeLevel = mon.level;
   const beforeSkills = getSkillsAtLevel(beforeId, beforeLevel).map(entry => entry.no);
+  const beforeSkillPp = new Map((mon.skills || []).map(skill => [skill.no, skill.pp]));
   const expResult = grantExp(beforeId, gainedExp);
 
   let finalId = beforeId;
@@ -81,7 +82,12 @@ function resolveMonGrowth(mon, gainedExp) {
   mon.maxHp = finalMon.maxHp;
   mon.hp = Math.min(mon.maxHp, Math.max(1, mon.hp));
   mon.stats = finalMon.stats;
-  mon.skills = finalMon.skills;
+  mon.skills = finalMon.skills.map(skill => ({
+    ...skill,
+    pp: beforeSkillPp.has(skill.no)
+      ? Math.max(0, Math.min(skill.maxPp, beforeSkillPp.get(skill.no)))
+      : skill.maxPp,
+  }));
   mon.sprite = finalMon.sprite;
 
   return {

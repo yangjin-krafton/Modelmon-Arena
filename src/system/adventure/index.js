@@ -48,6 +48,7 @@ export function createAdventureRun(database, {
     maxBiomes,
     gymClears: 0,
     pendingBiomeChoices: null,
+    pendingServiceState: null,
     lastEncounterSummary: null,
     party: [{ monId: starterId, level: starterLevel, slot: 'active' }],
     reserve: [],

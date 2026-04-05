@@ -8,6 +8,7 @@ import { STARTER_LEVEL } from './starter.js';
 import {
   ITEMS,
   initRunItems,
+  getInventory,
   hasItem,
   consumeItem,
 } from '../core/run-items.js';
@@ -69,13 +70,18 @@ export async function initBattle(callback) {
   S.libraryLoaded = true;
 }
 
-export function startBattle(teamIds, encounterData = null) {
+export function startBattle(teamIds, encounterData = null, teamState = null) {
   const ids = Array.isArray(teamIds) ? [...teamIds] : [teamIds];
+  const stateById = new Map(
+    (Array.isArray(teamState) ? teamState : [])
+      .filter(Boolean)
+      .map(member => [member.monId || member.id, member]),
+  );
 
   S.teamMons = ids
     .map(monId => {
       try {
-        return buildBattleMon(monId, getMonLevel(monId, STARTER_LEVEL));
+        return buildBattleMonFromState(monId, stateById.get(monId));
       } catch {
         return null;
       }
@@ -108,7 +114,7 @@ export function startBattle(teamIds, encounterData = null) {
   applyFieldTheme(encounterData);
 
   if (S.dialogueEngine) S.dialogueEngine.reset();
-  initRunItems();
+  if (!Object.keys(getInventory()).length) initRunItems();
 
   resetBattleLog();
   setBattleLowerMode('log');
@@ -138,6 +144,47 @@ export function startBattle(teamIds, encounterData = null) {
 
 export function getBattlePhase() {
   return S.phase;
+}
+
+function buildBattleMonFromState(monId, memberState = null) {
+  const level = memberState?.level ?? getMonLevel(monId, STARTER_LEVEL);
+  const mon = buildBattleMon(monId, level);
+
+  if (!memberState) return mon;
+
+  if (Number.isFinite(memberState.hp)) {
+    mon.hp = Math.max(0, Math.min(memberState.hp, mon.maxHp));
+  }
+
+  const ppBySkillNo = new Map(
+    (memberState.skills || [])
+      .filter(skill => Number.isFinite(skill?.no))
+      .map(skill => [skill.no, Math.floor(Number(skill.pp) || 0)]),
+  );
+
+  mon.skills = mon.skills.map(skill => ({
+    ...skill,
+    pp: ppBySkillNo.has(skill.no)
+      ? Math.max(0, Math.min(skill.maxPp, ppBySkillNo.get(skill.no)))
+      : skill.pp,
+  }));
+
+  return mon;
+}
+
+export function serializeBattlePartyState(teamMons) {
+  return (teamMons || []).map(mon => ({
+    monId: mon.id,
+    level: mon.level,
+    slot: 'active',
+    hp: mon.hp,
+    maxHp: mon.maxHp,
+    skills: (mon.skills || []).map(skill => ({
+      no: skill.no,
+      pp: skill.pp,
+      maxPp: skill.maxPp,
+    })),
+  }));
 }
 
 function setupEncounterEnemies(teamIds, encounterData) {

@@ -516,9 +516,10 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 10px 12px 12px;
+  padding: 10px 12px 10px;
   background: var(--bg);
   border-top: 1px solid var(--line);
+  overflow: hidden;          /* 가로 스크롤 영역 클리핑 */
 }
 .post-action-panel.hidden { display: none; }
 
@@ -558,93 +559,75 @@
   flex-wrap: wrap;
 }
 
-/* ── 팀 교체 목록 (팀 풀 시) ── */
+/* ── 포획 결정: 팀 교체 목록 ── */
+
+/* 포획된 몬 미리보기 — pap-card 헤더와 같은 행에 배치 */
+.pap-card--capture {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+.pap-capture-preview {
+  flex-shrink: 0;
+  width: 190px;
+  cursor: default;
+  border-color: rgba(255,200,60,0.45) !important;
+  background: rgba(255,200,60,0.07) !important;
+}
+/* 헤더 텍스트 영역 좌측 */
+.pap-card-icon { flex-shrink: 0; }
+.pap-card--capture .pap-card-body { flex: 1; min-width: 0; }
+
+/* 교체 목록 — 가로 스크롤 */
 .ptc-list {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  max-height: 160px;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,0.15) transparent;
-  padding: 2px 0;
-}
-.ptc-list::-webkit-scrollbar { width: 4px; }
-.ptc-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
-
-.ptc-row {
-  display: flex;
-  align-items: center;
+  flex-direction: row;
   gap: 8px;
-  padding: 6px 10px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 10px;
-  flex-shrink: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 4px 2px 6px;
 }
-.ptc-sprite {
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
-  image-rendering: pixelated;
+.ptc-list::-webkit-scrollbar { display: none; }
+
+/* 각 카드 래퍼 — 가로로 쌓임 */
+.ptc-row {
   flex-shrink: 0;
+  position: relative;
 }
-.ptc-info {
-  flex: 1;
-  min-width: 0;
+
+/* tsw-card 를 교체 선택용으로 (고정 너비) */
+.ptc-mon-card {
+  width: 200px;
+  cursor: pointer;
+}
+.ptc-mon-card:active:not(:disabled) {
+  background: rgba(255,80,80,0.12) !important;
+  border-color: rgba(255,80,80,0.45) !important;
+}
+
+/* 내보내기 오버레이 — 스프라이트 위 덮개 */
+.ptc-dismiss-badge {
+  position: absolute;
+  left: 10px;          /* card padding-left 과 일치 */
+  top: 8px;            /* card padding-top 과 일치 */
+  width: 44px;         /* tsw-sprite 크기와 동일 */
+  height: 44px;
+  border-radius: 8px;
+  background: rgba(180, 30, 30, 0.72);
+  backdrop-filter: blur(3px);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1.2;
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+  letter-spacing: -0.2px;
 }
-.ptc-name {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex: 1;
-}
-.ptc-lv {
-  font-size: 9px;
-  color: var(--text3);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.ptc-hpbar {
-  width: 40px;
-  height: 3px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 2px;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-.ptc-hpfill {
-  height: 100%;
-  border-radius: 2px;
-}
-.ptc-hpfill.hp-high { background: #38c870; }
-.ptc-hpfill.hp-mid  { background: #d8a820; }
-.ptc-hpfill.hp-low  { background: #d83030; }
-
-.ptc-swap-btn {
-  flex-shrink: 0;
-  height: 28px;
-  padding: 0 10px;
-  background: rgba(91,141,255,0.14);
-  border: 1px solid rgba(91,141,255,0.3);
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 800;
-  color: var(--accent);
-  font-family: inherit;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: background 0.1s;
-}
-.ptc-swap-btn:active:not(:disabled) { background: rgba(91,141,255,0.25); }
-.ptc-swap-btn:disabled { opacity: 0.3; cursor: default; }
 
 
 /* 교체 / 아이템 스크롤 행 (28px) */

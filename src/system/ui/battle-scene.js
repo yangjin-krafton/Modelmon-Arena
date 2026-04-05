@@ -3,11 +3,64 @@ import { ITEMS, RARITY_COLOR, getInventory } from '../core/run-items.js';
 import { getMonProgress, expToNextLevel } from '../core/save.js';
 
 /* 타입 → CSS class 매핑 */
-const TYPE_CLS = {
+export const TYPE_CLS = {
   '대화':'chat', '추론':'inf', '멀티모달':'mm', '코드':'code',
   '정렬':'align', '실시간':'rt', '생성':'mm', '에이전트':'code',
   '메모리':'align', '시스템':'rt', '학습':'code', '오염':'rt',
 };
+
+/**
+ * 팀 카드 내부 HTML 생성 (tsw-card 공통 레이아웃)
+ * renderTeamGrid 와 buildTeamChoiceUI 양쪽에서 재사용
+ */
+export function buildMonCardHtml(mon) {
+  const hpPct     = Math.max(0, (mon.hp / mon.maxHp) * 100);
+  const hpClass   = hpPct > 50 ? 'hp-high' : hpPct > 25 ? 'hp-mid' : 'hp-low';
+  const typeClass = TYPE_CLS[mon.type] || '';
+
+  const prog    = getMonProgress(mon.id);
+  const curExp  = prog?.exp ?? 0;
+  const nextExp = expToNextLevel(mon.level);
+  const expPct  = Math.min(100, Math.round((curExp / nextExp) * 100));
+
+  const ppBars = (mon.skills || []).map(skill => {
+    const ppPct = skill.maxPp > 0 ? Math.max(0, skill.pp / skill.maxPp) * 100 : 0;
+    const ppCls = ppPct <= 0 ? 'tsw-pp-empty' : ppPct <= 30 ? 'tsw-pp-low' : 'tsw-pp-ok';
+    return `<span class="tsw-pp-slot" title="${skill.name} PP ${skill.pp}/${skill.maxPp}">
+      <span class="tsw-pp-fill ${ppCls}" style="width:${ppPct}%"></span>
+    </span>`;
+  }).join('');
+
+  const st = mon.stats || {};
+
+  return `
+    <img class="tsw-sprite" src="${mon.sprite}" alt="${mon.name}" onerror="this.style.opacity=0">
+    <div class="tsw-info">
+      <div class="tsw-header">
+        <span class="tsw-name">${mon.name}</span>
+        <span class="tsw-lv">Lv.${mon.level}</span>
+        <span class="tsw-type-chip type-${typeClass}">${mon.type}</span>
+      </div>
+      <div class="tsw-hprow">
+        <div class="tsw-hpbar"><div class="tsw-hpfill ${hpClass}" style="width:${hpPct}%"></div></div>
+        <span class="tsw-hptext">${mon.hp}/${mon.maxHp}</span>
+      </div>
+      <div class="tsw-stats-row">
+        <span class="tsw-stat"><em>내</em>${mon.maxHp}</span>
+        <span class="tsw-stat"><em>출</em>${st.atk ?? '—'}</span>
+        <span class="tsw-stat"><em>정</em>${st.def ?? '—'}</span>
+        <span class="tsw-stat"><em>속</em>${st.spd ?? '—'}</span>
+        <span class="tsw-stat"><em>추</em>${st.spc ?? '—'}</span>
+      </div>
+      <div class="tsw-bottom-row">
+        <div class="tsw-pp-bars">${ppBars}</div>
+        <div class="tsw-exp-wrap">
+          <div class="tsw-exp-bar"><div class="tsw-exp-fill" style="width:${expPct}%"></div></div>
+          <span class="tsw-exp-text">${curExp}/${nextExp}</span>
+        </div>
+      </div>
+    </div>`;
+}
 
 export function renderTeamGrid() {
   const grid = el('team-switch-grid');
@@ -27,33 +80,6 @@ export function renderTeamGrid() {
 
     const isActive  = i === S.activeIdx;
     const isFainted = mon.hp <= 0;
-    const hpPct     = Math.max(0, (mon.hp / mon.maxHp) * 100);
-    const hpClass   = hpPct > 50 ? 'hp-high' : hpPct > 25 ? 'hp-mid' : 'hp-low';
-    const typeClass = TYPE_CLS[mon.type] || '';
-
-    // EXP 진행도
-    const prog       = getMonProgress(mon.id);
-    const curExp     = prog?.exp ?? 0;
-    const nextExp    = expToNextLevel(mon.level);
-    const expPct     = Math.min(100, Math.round((curExp / nextExp) * 100));
-
-    // PP 미니 바 (스킬 이름 없이 막대만)
-    const ppBars = (mon.skills || []).map(skill => {
-      const ppPct  = skill.maxPp > 0 ? Math.max(0, skill.pp / skill.maxPp) * 100 : 0;
-      const ppCls  = ppPct <= 0 ? 'tsw-pp-empty' : ppPct <= 30 ? 'tsw-pp-low' : 'tsw-pp-ok';
-      return `<span class="tsw-pp-slot" title="${skill.name} PP ${skill.pp}/${skill.maxPp}">
-        <span class="tsw-pp-fill ${ppCls}" style="width:${ppPct}%"></span>
-      </span>`;
-    }).join('');
-
-    // 스탯 (내구=maxHp, 출력=atk, 정렬=def, 속도=spd, 추론=spc)
-    const st = mon.stats || {};
-    const statsHtml = `
-      <span class="tsw-stat"><em>내</em>${mon.maxHp}</span>
-      <span class="tsw-stat"><em>출</em>${st.atk ?? '—'}</span>
-      <span class="tsw-stat"><em>정</em>${st.def ?? '—'}</span>
-      <span class="tsw-stat"><em>속</em>${st.spd ?? '—'}</span>
-      <span class="tsw-stat"><em>추</em>${st.spc ?? '—'}</span>`;
 
     button.className  = 'tsw-card'
       + (isActive  ? ' tsw-active'  : '')
@@ -61,27 +87,7 @@ export function renderTeamGrid() {
     button.disabled        = isActive || isFainted;
     button.dataset.teamIdx = String(i);
 
-    button.innerHTML = `
-      <img class="tsw-sprite" src="${mon.sprite}" alt="${mon.name}" onerror="this.style.opacity=0">
-      <div class="tsw-info">
-        <div class="tsw-header">
-          <span class="tsw-name">${mon.name}</span>
-          <span class="tsw-lv">Lv.${mon.level}</span>
-          <span class="tsw-type-chip type-${typeClass}">${mon.type}</span>
-        </div>
-        <div class="tsw-hprow">
-          <div class="tsw-hpbar"><div class="tsw-hpfill ${hpClass}" style="width:${hpPct}%"></div></div>
-          <span class="tsw-hptext">${mon.hp}/${mon.maxHp}</span>
-        </div>
-        <div class="tsw-stats-row">${statsHtml}</div>
-        <div class="tsw-bottom-row">
-          <div class="tsw-pp-bars">${ppBars}</div>
-          <div class="tsw-exp-wrap">
-            <div class="tsw-exp-bar"><div class="tsw-exp-fill" style="width:${expPct}%"></div></div>
-            <span class="tsw-exp-text">${curExp}/${nextExp}</span>
-          </div>
-        </div>
-      </div>`;
+    button.innerHTML = buildMonCardHtml(mon);
 
     grid.appendChild(button);
   }

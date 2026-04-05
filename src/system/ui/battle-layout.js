@@ -69,10 +69,10 @@ export function createBattleLayoutController(el) {
     panel.innerHTML = '';
     panel.classList.remove('hidden');
 
-    // 카드 헤더
+    // 카드 헤더 (포획몬 스탯 미리보기 포함 가능)
     if (card) {
       const cardEl = document.createElement('div');
-      cardEl.className = 'pap-card';
+      cardEl.className = 'pap-card pap-card--capture';
 
       if (card.icon) {
         const iconEl = document.createElement('div');
@@ -98,6 +98,19 @@ export function createBattleLayoutController(el) {
       }
 
       cardEl.appendChild(bodyEl);
+
+      // 포획된 몬스터 스탯 미리보기 (비교용 인라인 카드)
+      if (card.capturedMon) {
+        const previewEl = document.createElement('div');
+        previewEl.className = 'pap-capture-preview tsw-card tsw-active';
+        // buildMonCardHtml을 동적 import 없이 쓰기 위해 인라인으로 사용
+        // (battle-layout.js는 battle-scene.js를 import 안 해도 됨 — card에서 html 직접 받음)
+        if (card.capturedMonHtml) {
+          previewEl.innerHTML = card.capturedMonHtml;
+        }
+        cardEl.appendChild(previewEl);
+      }
+
       panel.appendChild(cardEl);
     }
 

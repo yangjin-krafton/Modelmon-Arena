@@ -1,5 +1,7 @@
 import { S, el } from './battle-state.js';
 import { applyCaptureDecision, resolvePostBattle } from '../adventure/post-battle.js';
+import { buildMonCardHtml, TYPE_CLS } from './battle-scene.js';
+import { buildBattleMon } from '../core/battle-engine.js';
 import {
   buildBattleLogSummary as buildBattleLogSummaryModel,
   createDefeatFlow as createDefeatFlowModel,
@@ -76,12 +78,19 @@ export function renderCurrentPostBattleStep() {
 
   if (step.type === 'capture' && step.requiresDecision && !step.resolved) {
     const { capture } = step;
+    // 포획한 몬스터 스탯 미리보기 (비교용)
+    let capturedMonHtml = '';
+    try {
+      const capturedMon = buildBattleMon(capture.candidate.monId, capture.candidate.level);
+      capturedMonHtml = buildMonCardHtml(capturedMon);
+    } catch {}
     const card = {
-      icon:  '🎉',
-      title: step.title,
-      sub:   step.sub,
+      icon:           '🎉',
+      title:          step.title,
+      sub:            step.sub,
+      capturedMon:    true,       // layout에서 preview 블록 생성 신호
+      capturedMonHtml,            // 실제 HTML
     };
-    // 팀 풀: 교체할 멤버 선택 (보관 없음)
     const { rows } = buildTeamChoiceUI(step);
     _showPostActionPanel({ card, rows, buttons: [] });
     return;
@@ -120,26 +129,25 @@ function buildTeamChoiceUI(step) {
   listWrap.className = 'ptc-list';
 
   S.teamMons.forEach((mon, index) => {
+    const fainted = mon.hp <= 0;
+
+    // tsw-card 와 동일한 레이아웃 — buildMonCardHtml 재사용
     const row = document.createElement('div');
     row.className = 'ptc-row';
 
-    const pct     = Math.max(0, (mon.hp / mon.maxHp) * 100);
-    const hpClass = pct > 50 ? 'hp-high' : pct > 25 ? 'hp-mid' : 'hp-low';
-    const fainted = mon.hp <= 0;
+    const card = document.createElement('button');
+    card.className = 'tsw-card ptc-mon-card' + (fainted ? ' tsw-fainted' : '');
+    card.disabled  = fainted;
+    card.innerHTML = buildMonCardHtml(mon);
 
-    row.innerHTML = `
-      <img class="ptc-sprite" src="${mon.sprite}" alt="${mon.name}"
-           onerror="this.style.opacity=0" ${fainted ? 'style="opacity:0.2"' : ''}>
-      <div class="ptc-info">
-        <span class="ptc-name">${mon.name}</span>
-        <span class="ptc-lv">Lv.${mon.level}</span>
-        <div class="ptc-hpbar">
-          <div class="ptc-hpfill ${hpClass}" style="width:${pct}%"></div>
-        </div>
-      </div>
-      <button class="ptc-swap-btn" ${fainted ? 'disabled' : ''}>내보내기</button>`;
+    // "내보내기" 오버레이 배지
+    const badge = document.createElement('span');
+    badge.className = 'ptc-dismiss-badge';
+    badge.textContent = fainted ? '기절' : '내보내기';
+    card.appendChild(badge);
 
-    row.querySelector('.ptc-swap-btn').addEventListener('click', () => {
+    card.addEventListener('click', () => {
+      if (fainted) return;
       S.resolvedTeamIds = applyCaptureDecision({
         teamIds: S.resolvedTeamIds,
         capture,
@@ -152,6 +160,7 @@ function buildTeamChoiceUI(step) {
       );
     });
 
+    row.appendChild(card);
     listWrap.appendChild(row);
   });
 
@@ -214,7 +223,23 @@ export function onRetry(deps) {
       outcome: S.lastBattleOutcome,
       rewards: S.lastBattleRewards,
       teamIds: [...S.resolvedTeamIds],
+      partyState: serializeBattlePartyState(S.teamMons),
       encounter: S.currentEncounterData,
     });
   }
+}
+
+function serializeBattlePartyState(teamMons) {
+  return (teamMons || []).map(mon => ({
+    monId: mon.id,
+    level: mon.level,
+    slot: 'active',
+    hp: mon.hp,
+    maxHp: mon.maxHp,
+    skills: (mon.skills || []).map(skill => ({
+      no: skill.no,
+      pp: skill.pp,
+      maxPp: skill.maxPp,
+    })),
+  }));
 }

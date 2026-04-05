@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <!-- 풀회복약 — 골드 -->
+  <rect x="9.5" y="1" width="5" height="2.8" rx="1.4" fill="#f0b820"/>
+  <rect x="9.5" y="3.5" width="5" height="2.8" rx="1" fill="#0e1020" stroke="#f0b820" stroke-width="1"/>
+  <path d="M9 6.2 L6.5 12 Q6 21 12 21 Q18 21 17.5 12 L15 6.2 Z"
+        fill="#0e1020" stroke="#f0b820" stroke-width="1.3" stroke-linejoin="round"/>
+  <!-- 가득 찬 액체 -->
+  <path d="M7.5 11 Q7 20 12 20 Q17 20 16.5 11 Z"
+        fill="#f0b820" opacity="0.32"/>
+  <!-- 빛나는 별 4개 -->
+  <text x="11.8" y="15.5" font-size="5" fill="#f8d040" opacity="0.9" text-anchor="middle">✦</text>
+  <text x="9"   y="12"   font-size="3.5" fill="#f8d040" opacity="0.6" text-anchor="middle">✦</text>
+  <text x="15"  y="13"   font-size="3"   fill="#f8d040" opacity="0.5" text-anchor="middle">✦</text>
+  <!-- 골드 링 -->
+  <circle cx="12" cy="21" r="2.5" fill="none" stroke="#f0b820" stroke-width="0.8" opacity="0.4"/>
+</svg>

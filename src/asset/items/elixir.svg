@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <!-- 엘릭서 — 무지개 별 스파크 -->
+  <!-- 별 5개 꼭짓점 -->
+  <path d="M12 2 L13.5 8.5 L20 8.5 L14.8 12.5 L16.5 19 L12 15.2 L7.5 19 L9.2 12.5 L4 8.5 L10.5 8.5 Z"
+        fill="#0e1020" stroke="#c060ff" stroke-width="1.2"/>
+  <!-- 별 안 채움 -->
+  <path d="M12 4.5 L13 8.5 L17.5 8.5 L14 11 L15 15 L12 13 L9 15 L10 11 L6.5 8.5 L11 8.5 Z"
+        fill="#c060ff" opacity="0.25"/>
+  <!-- 무지개 빛 도트 -->
+  <circle cx="12"   cy="7"    r="1"    fill="#ff6090" opacity="0.8"/>
+  <circle cx="16.5" cy="10"   r="0.8"  fill="#f0c020" opacity="0.7"/>
+  <circle cx="14.5" cy="14.5" r="0.8"  fill="#3dd878" opacity="0.7"/>
+  <circle cx="9.5"  cy="14.5" r="0.8"  fill="#30d0d8" opacity="0.7"/>
+  <circle cx="7.5"  cy="10"   r="0.8"  fill="#7060ff" opacity="0.7"/>
+  <!-- 중심 빛 -->
+  <circle cx="12" cy="11"  r="1.5" fill="#e090ff" opacity="0.6"/>
+  <circle cx="12" cy="11"  r="0.7" fill="white"   opacity="0.8"/>
+</svg>

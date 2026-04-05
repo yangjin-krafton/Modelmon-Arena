@@ -1,7 +1,7 @@
 biome_id,name_ko,theme_tags,start_weight,base_danger,wild_common_weight,wild_uncommon_weight,wild_rare_weight,trainer_chance,elite_chance,shop_bias,rest_bias,is_start,is_final
-starter_zone,Starter Zone,general|starter,100,1.0,70,22,8,0.22,0.08,1.00,1.00,1,0
-inference_wilds,Inference Wilds,reasoning|generation,0,2.4,58,28,14,0.28,0.12,0.85,0.75,0,0
-protocol_city,Protocol City,alignment|code,0,2.1,64,24,12,0.34,0.10,1.15,0.95,0,0
-multimodal_ruins,Multimodal Ruins,multimodal|greedy,0,3.3,48,32,20,0.30,0.18,0.80,0.70,0,0
-safety_district,Safety District,alignment|recovery,0,2.8,60,26,14,0.26,0.10,1.20,1.25,0,0
-frontier_core,Frontier Core,frontier|boss,0,4.6,40,34,26,0.42,0.22,0.70,0.55,0,1
+starter_zone,시작 초원,general|starter,100,1.0,70,22,8,0.22,0.08,1.00,1.00,1,0
+inference_wilds,추론 밀림,reasoning|generation,0,2.4,58,28,14,0.28,0.12,0.85,0.75,0,0
+protocol_city,프로토콜 시티,alignment|code,0,2.1,64,24,12,0.34,0.10,1.15,0.95,0,0
+multimodal_ruins,멀티모달 유적,multimodal|greedy,0,3.3,48,32,20,0.30,0.18,0.80,0.70,0,0
+safety_district,세이프티 지구,alignment|recovery,0,2.8,60,26,14,0.26,0.10,1.20,1.25,0,0
+frontier_core,프런티어 코어,frontier|boss,0,4.6,40,34,26,0.42,0.22,0.70,0.55,0,1

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <defs>
+    <linearGradient id="gymCape" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#7e88ff"/>
+      <stop offset="100%" stop-color="#4c56c7"/>
+    </linearGradient>
+    <linearGradient id="gymCoat" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f7fbff"/>
+      <stop offset="100%" stop-color="#d7e1f3"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="320" rx="36" fill="#12182b"/>
+  <ellipse cx="160" cy="280" rx="88" ry="20" fill="#0a0f1d" opacity=".35"/>
+  <path d="M104 254 L84 134 L130 100 L160 154 L190 100 L236 134 L216 254 Z" fill="url(#gymCape)"/>
+  <path d="M126 254 L120 146 Q160 114 200 146 L194 254 Z" fill="url(#gymCoat)"/>
+  <rect x="145" y="154" width="30" height="72" rx="14" fill="#2e3b72"/>
+  <circle cx="160" cy="90" r="42" fill="#f0c2a2"/>
+  <path d="M120 92 Q126 38 160 38 Q194 38 200 92 Q182 70 160 70 Q138 70 120 92 Z" fill="#1a2446"/>
+  <path d="M127 90 Q141 80 160 80 Q179 80 193 90" fill="none" stroke="#e1927d" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="146" cy="94" r="4" fill="#1a213e"/>
+  <circle cx="174" cy="94" r="4" fill="#1a213e"/>
+  <path d="M150 110 Q160 118 170 110" fill="none" stroke="#a15a4e" stroke-width="4" stroke-linecap="round"/>
+  <path d="M116 152 L94 198 L120 208 L138 172 Z" fill="#f0c2a2"/>
+  <path d="M204 152 L226 198 L200 208 L182 172 Z" fill="#f0c2a2"/>
+  <circle cx="230" cy="196" r="18" fill="#f4d35d"/>
+  <circle cx="230" cy="196" r="10" fill="#fff5c9"/>
+  <path d="M122 60 Q100 96 108 132" fill="none" stroke="#90f6ff" stroke-width="6" stroke-linecap="round" opacity=".75"/>
+  <path d="M198 60 Q220 96 212 132" fill="none" stroke="#90f6ff" stroke-width="6" stroke-linecap="round" opacity=".75"/>
+</svg>

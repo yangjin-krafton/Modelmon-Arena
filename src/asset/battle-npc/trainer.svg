@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <defs>
+    <linearGradient id="trainerJacket" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#ff8756"/>
+      <stop offset="100%" stop-color="#be4e2a"/>
+    </linearGradient>
+    <linearGradient id="trainerPants" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#445577"/>
+      <stop offset="100%" stop-color="#222b42"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="320" rx="36" fill="#171722"/>
+  <ellipse cx="160" cy="282" rx="86" ry="18" fill="#080913" opacity=".34"/>
+  <path d="M110 258 L124 148 Q160 126 196 148 L210 258 Z" fill="url(#trainerJacket)"/>
+  <path d="M130 258 L136 208 H184 L190 258 Z" fill="url(#trainerPants)"/>
+  <rect x="144" y="156" width="32" height="60" rx="14" fill="#fff0dc"/>
+  <circle cx="160" cy="92" r="42" fill="#efc1a1"/>
+  <path d="M120 84 Q128 44 170 44 Q204 44 204 84 Q186 70 160 70 Q134 70 120 84 Z" fill="#1f2434"/>
+  <path d="M126 76 L194 76 L188 56 L134 56 Z" fill="#f0d35a"/>
+  <circle cx="146" cy="96" r="4" fill="#1d2233"/>
+  <circle cx="174" cy="96" r="4" fill="#1d2233"/>
+  <path d="M150 112 Q160 118 170 112" fill="none" stroke="#9f5d51" stroke-width="4" stroke-linecap="round"/>
+  <path d="M122 160 L92 210 L122 220 L140 176 Z" fill="#efc1a1"/>
+  <path d="M198 160 L228 196 L206 214 L180 180 Z" fill="#efc1a1"/>
+  <circle cx="232" cy="198" r="15" fill="#e6eef9"/>
+  <path d="M232 183 A15 15 0 0 1 247 198" fill="#ff6d57"/>
+  <circle cx="232" cy="198" r="4" fill="#2b324a"/>
+  <path d="M104 118 Q120 132 132 146" fill="none" stroke="#9fd1ff" stroke-width="6" stroke-linecap="round" opacity=".72"/>
+</svg>

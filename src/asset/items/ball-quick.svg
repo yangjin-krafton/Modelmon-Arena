@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <circle cx="12" cy="12" r="11" fill="#181400"/>
+  <path d="M1 12 A11 11 0 0 1 23 12 Z" fill="#ffd020" opacity="0.40"/>
+  <circle cx="12" cy="12" r="11" fill="none" stroke="#ffd020" stroke-width="1.4"/>
+  <line x1="1" y1="12" x2="23" y2="12" stroke="#ffd020" stroke-width="1.4"/>
+  <!-- 번개 심볼 -->
+  <path d="M13.5 4.5 L10.5 9.5 L13 9.5 L10 14.5 L14 9.5 L11.5 9.5 Z"
+        fill="#ffd020" opacity="0.85"/>
+  <circle cx="12" cy="12" r="3.2" fill="#181400" stroke="#ffd020" stroke-width="1.4"/>
+  <circle cx="12" cy="12" r="1.4" fill="#ffe860"/>
+</svg>

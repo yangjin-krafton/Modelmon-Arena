@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <circle cx="12" cy="12" r="11" fill="#100808"/>
+  <path d="M1 12 A11 11 0 0 1 23 12 Z" fill="#e05820" opacity="0.30"/>
+  <circle cx="12" cy="12" r="11" fill="none" stroke="#e05820" stroke-width="1.4"/>
+  <line x1="1" y1="12" x2="23" y2="12" stroke="#e05820" stroke-width="1.4"/>
+  <!-- 시계 눈금 -->
+  <line x1="12" y1="2.5" x2="12" y2="4.5" stroke="#e05820" stroke-width="1.1" opacity="0.7"/>
+  <line x1="17.5" y1="4.5" x2="16.5" y2="6" stroke="#e05820" stroke-width="0.9" opacity="0.5"/>
+  <line x1="6.5" y1="4.5" x2="7.5" y2="6" stroke="#e05820" stroke-width="0.9" opacity="0.5"/>
+  <!-- 시계 바늘 -->
+  <line x1="12" y1="8" x2="12" y2="5" stroke="#e05820" stroke-width="1" opacity="0.8"/>
+  <line x1="12" y1="8" x2="15" y2="9.5" stroke="#ff9060" stroke-width="1" opacity="0.8"/>
+  <circle cx="12" cy="12" r="3.2" fill="#100808" stroke="#e05820" stroke-width="1.4"/>
+  <circle cx="12" cy="12" r="1.4" fill="#f07040"/>
+</svg>

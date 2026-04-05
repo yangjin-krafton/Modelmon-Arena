@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <circle cx="12" cy="12" r="11" fill="#1a1608"/>
+  <!-- 노란 상단 -->
+  <path d="M1 12 A11 11 0 0 1 23 12 Z" fill="#f0c020" opacity="0.50"/>
+  <circle cx="12" cy="12" r="11" fill="none" stroke="#f0c020" stroke-width="1.4"/>
+  <line x1="1" y1="12" x2="23" y2="12" stroke="#f0c020" stroke-width="1.4"/>
+  <!-- 검은 U 패턴 -->
+  <path d="M8 4 Q12 2 16 4 L16 9 Q12 7 8 9 Z" fill="#0a0a0a" opacity="0.55"/>
+  <circle cx="12" cy="12" r="3.2" fill="#1a1608" stroke="#f0c020" stroke-width="1.4"/>
+  <circle cx="12" cy="12" r="1.4" fill="#f8e060"/>
+</svg>

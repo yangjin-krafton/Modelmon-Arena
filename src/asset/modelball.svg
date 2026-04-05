@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <!-- 외부 원 -->
+  <circle cx="12" cy="12" r="11" fill="#0e1020"/>
+  <!-- 상단 반원 (청색) -->
+  <path d="M1 12 A11 11 0 0 1 23 12 Z" fill="#4a7aff" opacity="0.30"/>
+  <!-- 외곽 테두리 -->
+  <circle cx="12" cy="12" r="11" fill="none" stroke="#5b8dff" stroke-width="1.4"/>
+  <!-- 수평 구분선 -->
+  <line x1="1" y1="12" x2="23" y2="12" stroke="#5b8dff" stroke-width="1.4"/>
+  <!-- 중앙 링 -->
+  <circle cx="12" cy="12" r="3.2" fill="#0e1020" stroke="#5b8dff" stroke-width="1.4"/>
+  <!-- 중앙 도트 -->
+  <circle cx="12" cy="12" r="1.4" fill="#7aa8ff"/>
+  <!-- 상단 회로 도트 -->
+  <circle cx="8"  cy="8.5" r="0.75" fill="#5b8dff" opacity="0.65"/>
+  <circle cx="12" cy="7"   r="0.75" fill="#5b8dff" opacity="0.65"/>
+  <circle cx="16" cy="8.5" r="0.75" fill="#5b8dff" opacity="0.65"/>
+  <!-- 연결선 -->
+  <path d="M8 8.5 L12 7 L16 8.5" fill="none" stroke="#5b8dff" stroke-width="0.6" opacity="0.4"/>
+</svg>

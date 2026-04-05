@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <!-- 부활약 — 붉은 깃털 -->
+  <!-- 깃털 몸통 -->
+  <path d="M12 20 Q8 16 7 11 Q6.5 7 9 5 Q10.5 4 12 5 Q13.5 4 15 5 Q17.5 7 17 11 Q16 16 12 20 Z"
+        fill="#0e1020" stroke="#e03040" stroke-width="1.2"/>
+  <!-- 깃털 중심선 -->
+  <line x1="12" y1="5" x2="12" y2="19" stroke="#e03040" stroke-width="1" opacity="0.7"/>
+  <!-- 불꽃 액체 -->
+  <path d="M10 10 Q10 16 12 18 Q14 16 14 10 Q13 8 12 7.5 Q11 8 10 10 Z"
+        fill="#e03040" opacity="0.35"/>
+  <!-- 상단 불꽃 -->
+  <path d="M12 2 Q11 4 12 5 Q13 4 12 2 Z" fill="#ff6050" opacity="0.8"/>
+  <path d="M11 3 Q10 5 11.5 5.5 Q12 4 11 3 Z" fill="#ff8060" opacity="0.6"/>
+  <path d="M13 3 Q14 5 12.5 5.5 Q12 4 13 3 Z" fill="#ff8060" opacity="0.6"/>
+  <!-- 하이라이트 -->
+  <circle cx="10.5" cy="12" r="1" fill="white" opacity="0.3"/>
+</svg>

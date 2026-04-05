@@ -19,6 +19,7 @@ import {
   renderBattleDialogueMarkup,
 } from '../battle-dialogue/index.js';
 import { STARTER_LEVEL } from './starter.js';
+import { ITEMS, RARITY_COLOR, initRunItems, getInventory, hasItem, consumeItem } from '../core/run-items.js';
 
 /* ════════════════════════════════════════
    상태
@@ -49,8 +50,10 @@ export async function initBattle(onBattleEnd) {
   el('battle-panel').addEventListener('click', onPanelClick);
   el('battle-retry-btn').addEventListener('click', onRetry);
 
-    // 교체 그리드 — 이벤트 위임
+    // 교체 그리드
   el('team-switch-grid').addEventListener('click', onTeamGridClick);
+  // 아이템 그리드
+  el('item-grid').addEventListener('click', onItemGridClick);
 
   if (libraryLoaded) return;
   try {
@@ -91,6 +94,7 @@ export function startBattle(teamIds) {
   turn = 0;
   msgQueue = [];
   if (dialogueEngine) dialogueEngine.reset();
+  initRunItems(); // 여정마다 아이템 초기화 (모델볼 10, 회복약 5)
 
   el('battle-result').classList.add('hidden');
   hidePanel();
@@ -269,10 +273,121 @@ function hidePanel() {
 function showPanel() {
   renderPanel();
   renderTeamGrid();
+  renderItemGrid();
   el('battle-panel').classList.remove('hidden');
   el('battle-lower').classList.remove('is-talking');
   el('bl-text').textContent = '행동을 선택하세요.';
   el('bl-arrow').style.display = 'none';
+}
+
+/* ════════════════════════════════════════
+   아이템 그리드
+════════════════════════════════════════ */
+function renderItemGrid() {
+  const grid = el('item-grid');
+  grid.innerHTML = '';
+
+  const inv = getInventory();
+  if (!Object.keys(inv).length) {
+    grid.innerHTML = '<span style="font-size:11px;color:var(--text3);padding:0 4px">아이템 없음</span>';
+    return;
+  }
+
+  for (const [itemId, count] of Object.entries(inv)) {
+    const def = ITEMS[itemId];
+    if (!def) continue;
+
+    const btn = document.createElement('button');
+    btn.className      = 'item-card';
+    btn.disabled       = count <= 0;
+    btn.dataset.itemId = itemId;
+    btn.title          = `${def.name} — ${def.desc}`;
+    // 희귀도 테두리 색상
+    btn.style.borderColor = RARITY_COLOR[def.rarity] ?? 'rgba(255,255,255,0.1)';
+
+    btn.innerHTML = `
+      <div class="item-icon"><img src="${def.icon}" alt="${def.name}"></div>
+      <span class="item-name">${def.name}</span>
+      <span class="item-count-badge">${count}</span>`;
+    grid.appendChild(btn);
+  }
+}
+
+function onItemGridClick(e) {
+  const btn = e.target.closest('.item-card');
+  if (!btn || btn.disabled || phase !== 'choosing') return;
+  useItem(btn.dataset.itemId);
+}
+
+function useItem(itemId) {
+  const def = ITEMS[itemId];
+  if (!def || !hasItem(itemId)) return;
+
+  // ── 볼 계열 ──────────────────────────────
+  if (def.category === 'ball') {
+    enqueue(`${def.name}을(를) 던졌다!`, '포획 기능은 아직 구현 중이다...');
+    hidePanel(); phase = 'animating'; showNextMessage(); return;
+  }
+
+  // ── 부활 ─────────────────────────────────
+  if (def.revivePct > 0) {
+    if (playerMon.hp > 0) {
+      enqueue(`${playerMon.name}은 쓰러지지 않았다!`);
+      hidePanel(); phase = 'animating'; showNextMessage(); return;
+    }
+    const hp = def.hpFull
+      ? playerMon.maxHp
+      : Math.floor(playerMon.maxHp * def.revivePct / 100);
+    consumeItem(itemId);
+    playerMon.hp = hp;
+    renderHP('player'); renderItemGrid();
+    enqueue(`${def.name}을(를) 사용했다!`, `${playerMon.name}이(가) HP ${hp}로 부활!`);
+    hidePanel(); phase = 'animating'; showNextMessage(); return;
+  }
+
+  // ── HP 회복 ──────────────────────────────
+  if (def.hpFull || def.hpFlat > 0) {
+    if (playerMon.hp >= playerMon.maxHp) {
+      enqueue(`${playerMon.name}의 HP는 이미 가득 찼다!`);
+      hidePanel(); phase = 'animating'; showNextMessage(); return;
+    }
+    const prev = playerMon.hp;
+    playerMon.hp = def.hpFull
+      ? playerMon.maxHp
+      : Math.min(playerMon.hp + def.hpFlat, playerMon.maxHp);
+    const actual = playerMon.hp - prev;
+    consumeItem(itemId);
+    renderHP('player'); renderItemGrid();
+    enqueue(`${def.name}을(를) 사용했다!`, `${playerMon.name}의 HP가 ${actual} 회복됐다!`);
+    hidePanel(); phase = 'animating'; showNextMessage(); return;
+  }
+
+  // ── PP 회복 ──────────────────────────────
+  if (def.ppFull || def.ppFlat > 0) {
+    consumeItem(itemId);
+    let restored = 0;
+    for (const skill of playerMon.skills) {
+      if (!skill) continue;
+      const before = skill.pp;
+      if (def.ppFull)       skill.pp = skill.maxPp;
+      else if (def.ppFlat)  skill.pp = Math.min(skill.pp + def.ppFlat, skill.maxPp);
+      restored += skill.pp - before;
+      if (!def.ppAll) break; // 단일 스킬이면 첫 번째만
+    }
+    renderPanel(); renderItemGrid();
+    enqueue(`${def.name}을(를) 사용했다!`, `스킬 PP가 ${restored} 회복됐다!`);
+    hidePanel(); phase = 'animating'; showNextMessage(); return;
+  }
+
+  // ── 콤보 (HP + PP) ───────────────────────
+  if (def.category === 'combo') {
+    consumeItem(itemId);
+    playerMon.hp = playerMon.maxHp;
+    for (const skill of playerMon.skills) if (skill) skill.pp = skill.maxPp;
+    renderHP('player'); renderPanel(); renderItemGrid();
+    enqueue(`${def.name}을(를) 사용했다!`, `HP와 모든 PP가 완전 회복됐다!`);
+    hidePanel(); phase = 'animating'; showNextMessage();
+  }
 }
 
 /* ════════════════════════════════════════

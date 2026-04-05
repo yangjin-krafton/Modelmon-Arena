@@ -15,6 +15,7 @@
    스프라이트 68+76px + 여백 36px
 ════════════════════════════════ */
 .battle-field {
+  --battle-bg-image: url('../../asset/battle-bg/starter-zone-day.svg');
   flex: 0 0 180px;
   position: relative;
   display: flex;
@@ -24,9 +25,26 @@
   border-bottom: 1px solid var(--line);
   overflow: hidden;
   background:
+    linear-gradient(180deg, rgba(8,12,24,0.12) 0%, rgba(8,12,24,0.24) 100%),
+    var(--battle-bg-image),
     radial-gradient(ellipse 55% 50% at 72% 18%, rgba(91,141,255,0.09) 0%, transparent 70%),
     radial-gradient(ellipse 55% 50% at 28% 82%, rgba(255,100,80,0.08) 0%, transparent 70%);
+  background-size: cover, cover, cover, cover;
+  background-position: center, center, center, center;
 }
+
+.battle-field[data-biome="starter-zone"][data-time="day"] { --battle-bg-image: url('../../asset/battle-bg/starter-zone-day.svg'); }
+.battle-field[data-biome="starter-zone"][data-time="night"] { --battle-bg-image: url('../../asset/battle-bg/starter-zone-night.svg'); }
+.battle-field[data-biome="inference-wilds"][data-time="day"] { --battle-bg-image: url('../../asset/battle-bg/inference-wilds-day.svg'); }
+.battle-field[data-biome="inference-wilds"][data-time="night"] { --battle-bg-image: url('../../asset/battle-bg/inference-wilds-night.svg'); }
+.battle-field[data-biome="protocol-city"][data-time="day"] { --battle-bg-image: url('../../asset/battle-bg/protocol-city-day.svg'); }
+.battle-field[data-biome="protocol-city"][data-time="night"] { --battle-bg-image: url('../../asset/battle-bg/protocol-city-night.svg'); }
+.battle-field[data-biome="multimodal-ruins"][data-time="day"] { --battle-bg-image: url('../../asset/battle-bg/multimodal-ruins-day.svg'); }
+.battle-field[data-biome="multimodal-ruins"][data-time="night"] { --battle-bg-image: url('../../asset/battle-bg/multimodal-ruins-night.svg'); }
+.battle-field[data-biome="safety-district"][data-time="day"] { --battle-bg-image: url('../../asset/battle-bg/safety-district-day.svg'); }
+.battle-field[data-biome="safety-district"][data-time="night"] { --battle-bg-image: url('../../asset/battle-bg/safety-district-night.svg'); }
+.battle-field[data-biome="frontier-core"][data-time="day"] { --battle-bg-image: url('../../asset/battle-bg/frontier-core-day.svg'); }
+.battle-field[data-biome="frontier-core"][data-time="night"] { --battle-bg-image: url('../../asset/battle-bg/frontier-core-night.svg'); }
 
 /* 적 존 (상단) */
 .bf-enemy-zone {
@@ -332,6 +350,97 @@
 .tsw-hpfill.hp-high { background: #38c870; }
 .tsw-hpfill.hp-mid  { background: #d8a820; }
 .tsw-hpfill.hp-low  { background: #d83030; }
+
+/* ── 아이템 그리드 ── */
+.item-switch-row {
+  flex-shrink: 0;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255,255,255,0.015);
+}
+
+.item-grid {
+  flex: 1;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  align-items: center;
+}
+.item-grid::-webkit-scrollbar { display: none; }
+
+/* 아이템 카드 */
+.item-card {
+  flex-shrink: 0;
+  width: 46px;
+  height: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px 3px 3px;
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  border-radius: 9px;
+  cursor: pointer;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.12s, background 0.12s;
+  position: relative;
+}
+.item-card:active:not(:disabled) {
+  background: rgba(61,216,120,0.12);
+  border-color: rgba(61,216,120,0.45);
+}
+.item-card:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* 아이콘 */
+.item-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.item-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* 아이템 이름 */
+.item-name {
+  font-size: 8.5px;
+  font-weight: 700;
+  color: var(--text3);
+  white-space: nowrap;
+}
+
+/* 수량 배지 (우상단) */
+.item-count-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  background: rgba(30,32,50,0.95);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 8px;
+  font-weight: 900;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 /* ── 스킬 리스트 ── */
 .bp-skill-list {

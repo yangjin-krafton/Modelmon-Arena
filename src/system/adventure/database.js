@@ -19,14 +19,12 @@ export async function loadAdventureDatabase({ baseUrl = './data' } = {}) {
   const [
     biomeRows,
     transitionRows,
-    waveRows,
     wildRows,
     trainerRows,
     bossRows,
   ] = await Promise.all([
     loadCSV(`${baseUrl}/adventure-biomes.csv`),
     loadCSV(`${baseUrl}/adventure-biome-transitions.csv`),
-    loadCSV(`${baseUrl}/adventure-wave-slots.csv`),
     loadCSV(`${baseUrl}/adventure-wild-pools.csv`),
     loadCSV(`${baseUrl}/adventure-trainer-pools.csv`),
     loadCSV(`${baseUrl}/adventure-boss-pools.csv`),
@@ -61,18 +59,6 @@ export async function loadAdventureDatabase({ baseUrl = './data' } = {}) {
   }));
 
   const transitionsByFrom = groupBy(transitions, row => row.fromBiomeId);
-
-  const waveSlots = waveRows
-    .map(row => ({
-      localWave: asNumber(row.local_wave),
-      slotType: row.slot_type,
-      slotLabelKo: row.slot_label_ko,
-      difficultyBias: asNumber(row.difficulty_bias),
-      rewardBias: asNumber(row.reward_bias),
-    }))
-    .sort((a, b) => a.localWave - b.localWave);
-
-  const waveSlotByLocalWave = new Map(waveSlots.map(slot => [slot.localWave, slot]));
 
   const wildPools = wildRows.map(row => {
     const mon = MON_BY_ID.get(row.mon_id);
@@ -123,8 +109,6 @@ export async function loadAdventureDatabase({ baseUrl = './data' } = {}) {
     biomesById,
     transitions,
     transitionsByFrom,
-    waveSlots,
-    waveSlotByLocalWave,
     wildPools,
     wildPoolsByBiome: groupBy(wildPools, row => row.biomeId),
     trainerPools,

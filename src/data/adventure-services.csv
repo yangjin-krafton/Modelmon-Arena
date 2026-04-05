@@ -1,0 +1,17 @@
+service_id,cost,title,detail,icon_item_id,effect,target_mode,level_gain,exp_gain,exp_next_ratio,heal_hp,hp_ratio,hp_flat,heal_pp,pp_flat,revive_to,revive_only
+service_team_full,3,팀 완전 회복,팀 전체 HP와 PP를 완전히 회복한다,fullrestore,team-full,team,0,0,0,full,0,0,full,0,1,false
+service_level_2,3,심화 튜닝 +2,선택한 팀원 하나의 레벨을 2 올리고 완전히 정비한다,maxelixir,level-up,single,2,0,0,full,0,0,full,0,0,false
+service_exp_big,3,집중 훈련,선택한 팀원 하나의 경험치를 크게 올린다,maxelixir,exp-boost,single,0,80,1,full,0,0,,0,0,false
+service_team_exp,3,팀 전술 세미나,팀 전체에게 다음 레벨의 절반 정도 경험치를 제공한다,agentball,team-exp,team,0,0,0.5,,,0,,0,0,false
+service_single_full,2,단일 완전 회복,선택한 팀원 하나의 HP와 PP를 완전히 회복한다,maxpotion,single-full,single,0,0,0,full,0,0,full,0,1,false
+service_team_hp,2,팀 HP 회복,팀 전체 HP를 넉넉하게 회복한다,hyperpotion,team-hp,team,0,0,0,ratio,0.6,0,,0,0,false
+service_team_pp,2,팀 PP 회복,팀 전체 PP를 회복한다,elixir,team-pp,team,0,0,0,,0,0,flat,8,0,false
+service_level_1,2,튜닝 +1,선택한 팀원 하나의 레벨을 1 올리고 정비한다,superpotion,level-up,single,1,0,0,full,0,0,full,0,0,false
+service_exp_mid,2,실전 특훈,선택한 팀원 하나의 경험치를 올린다,learnball,exp-boost,single,0,45,0.6,,,0,,0,0,false
+service_team_exp_small,2,팀 브리핑,팀 전체에게 소량의 경험치를 제공한다,learnball,team-exp,team,0,18,0.2,,,0,,0,0,false
+service_single_hp,1,단일 HP 회복,선택한 팀원 하나의 HP를 회복한다,potion,single-hp,single,0,0,0,ratio,0.5,0,,0,0,false
+service_single_pp,1,단일 PP 회복,선택한 팀원 하나의 PP를 회복한다,ether,single-pp,single,0,0,0,,0,0,flat,10,0,false
+service_revive,1,단일 부활,기절한 팀원 하나를 복귀시키고 PP도 조금 회복한다,revive,single-revive,single,0,0,0,,0,0,flat,5,0.4,true
+service_emergency_hp,1,응급 수복,선택한 팀원 하나의 HP를 즉시 회복한다,superpotion,single-hp,single,0,0,0,flat,0,35,,0,0,false
+service_exp_small,1,짧은 코칭,선택한 팀원 하나에게 소량의 경험치를 제공한다,learnball,exp-boost,single,0,20,0.25,,,0,,0,0,false
+service_exp_finish,1,마무리 피드백,선택한 팀원 하나의 다음 레벨 남은 경험치를 일부 채운다,agentball,exp-boost,single,0,0,0.4,,,0,,0,0,false

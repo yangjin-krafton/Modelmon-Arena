@@ -1,9 +1,15 @@
 import { loadAdventureDatabase } from './database.js';
 import { createWaveEncounter } from './encounter.js';
 import { computeDifficultyProfile } from './difficulty.js';
-import { createSeed, pickWeightedDistinct } from './rng.js';
+import { createSeed, pickWeightedDistinct, randomInt } from './rng.js';
 
 export { loadAdventureDatabase, createWaveEncounter, computeDifficultyProfile };
+
+const BIOME_WAVE_COUNT = 20;
+const EARLY_SERVICE_RANGE = [5, 9];
+const LATE_SERVICE_RANGE = [15, 19];
+const TRAINER_WAVE_COUNT = 7;
+const WILD_WAVE_COUNT = 10;
 
 export async function loadAdventureSystem(options = {}) {
   const database = await loadAdventureDatabase(options);
@@ -15,7 +21,10 @@ export function createAdventureSystem(database) {
     database,
     createRun: options => createAdventureRun(database, options),
     getCurrentWaveSlot: run => getCurrentWaveSlot(database, run),
-    createEncounter: ({ run, metaProgress }) => createWaveEncounter({ run, database, metaProgress }),
+    createEncounter: ({ run, metaProgress }) => {
+      ensureBiomeWavePlan(run);
+      return createWaveEncounter({ run, database, metaProgress });
+    },
     completeWave: ({ run, result, metaProgress }) => completeAdventureWave({ run, database, result, metaProgress }),
     chooseNextBiome: ({ run, biomeId }) => chooseNextBiome({ run, database, biomeId }),
     getNextBiomeChoices: run => getNextBiomeChoices({ run, database }),
@@ -36,7 +45,7 @@ export function createAdventureRun(database, {
   if (!startBiome) throw new Error('No start biome found');
   if (!starterId) throw new Error('starterId is required');
 
-  return {
+  const run = {
     seed,
     rngState: createSeed(seed),
     starterId,
@@ -50,6 +59,7 @@ export function createAdventureRun(database, {
     pendingBiomeChoices: null,
     pendingServiceState: null,
     lastEncounterSummary: null,
+    currentBiomeWavePlan: null,
     party: [{ monId: starterId, level: starterLevel, slot: 'active' }],
     reserve: [],
     resources: {
@@ -63,10 +73,14 @@ export function createAdventureRun(database, {
       losses: 0,
     },
   };
+
+  ensureBiomeWavePlan(run);
+  return run;
 }
 
 export function getCurrentWaveSlot(database, run) {
-  return database.waveSlotByLocalWave.get(run.localWave) || null;
+  ensureBiomeWavePlan(run);
+  return run.currentBiomeWavePlan?.[run.localWave - 1] || null;
 }
 
 export function completeAdventureWave({
@@ -147,6 +161,8 @@ export function chooseNextBiome({ run, database, biomeId }) {
   run.biomeOrder.push(biomeId);
   run.wave += 1;
   run.localWave = 1;
+  run.currentBiomeWavePlan = null;
+  ensureBiomeWavePlan(run);
 
   return {
     kind: 'moved_biome',
@@ -180,4 +196,106 @@ export function getNextBiomeChoices({ run, database }) {
 function advanceToNextWave(run) {
   run.wave += 1;
   run.localWave += 1;
+}
+
+function ensureBiomeWavePlan(run) {
+  if (Array.isArray(run.currentBiomeWavePlan) && run.currentBiomeWavePlan.length === BIOME_WAVE_COUNT) {
+    return run.currentBiomeWavePlan;
+  }
+
+  run.currentBiomeWavePlan = createBiomeWavePlan(run);
+  return run.currentBiomeWavePlan;
+}
+
+function createBiomeWavePlan(run) {
+  const servicePattern = randomInt(run, 0, 1) === 0
+    ? ['shop', 'rest']
+    : ['rest', 'shop'];
+  const earlyServiceWave = randomInt(run, EARLY_SERVICE_RANGE[0], EARLY_SERVICE_RANGE[1]);
+  const lateServiceWave = randomInt(run, LATE_SERVICE_RANGE[0], LATE_SERVICE_RANGE[1]);
+  const serviceByWave = new Map([
+    [earlyServiceWave, servicePattern[0]],
+    [lateServiceWave, servicePattern[1]],
+  ]);
+
+  const combatPool = [
+    ...Array.from({ length: WILD_WAVE_COUNT }, () => 'wild'),
+    ...Array.from({ length: TRAINER_WAVE_COUNT }, () => 'trainer'),
+  ];
+  shuffleInPlace(run, combatPool);
+
+  const plan = [];
+  for (let localWave = 1; localWave <= BIOME_WAVE_COUNT; localWave += 1) {
+    let slotType = 'wild';
+    if (localWave === BIOME_WAVE_COUNT) {
+      slotType = 'boss';
+    } else if (serviceByWave.has(localWave)) {
+      slotType = serviceByWave.get(localWave);
+    } else {
+      slotType = combatPool.shift() || 'wild';
+    }
+
+    plan.push(buildWaveSlot(localWave, slotType));
+  }
+
+  return plan;
+}
+
+function buildWaveSlot(localWave, slotType) {
+  const progress = (localWave - 1) / (BIOME_WAVE_COUNT - 1);
+
+  if (slotType === 'boss') {
+    return {
+      localWave,
+      slotType,
+      slotLabelKo: '관장 배틀',
+      difficultyBias: 2.2,
+      rewardBias: 1.2,
+    };
+  }
+
+  if (slotType === 'shop') {
+    return {
+      localWave,
+      slotType,
+      slotLabelKo: '상점',
+      difficultyBias: 0,
+      rewardBias: 0,
+    };
+  }
+
+  if (slotType === 'rest') {
+    return {
+      localWave,
+      slotType,
+      slotLabelKo: '포켓센터',
+      difficultyBias: 0,
+      rewardBias: 0,
+    };
+  }
+
+  if (slotType === 'trainer') {
+    return {
+      localWave,
+      slotType,
+      slotLabelKo: progress >= 0.65 ? '강화 트레이너' : '트레이너 배틀',
+      difficultyBias: Number((0.35 + progress * 0.95).toFixed(2)),
+      rewardBias: Number((0.2 + progress * 0.35).toFixed(2)),
+    };
+  }
+
+  return {
+    localWave,
+    slotType: 'wild',
+    slotLabelKo: progress >= 0.65 ? '심화 야생 조우' : '야생 조우',
+    difficultyBias: Number((0.05 + progress * 0.7).toFixed(2)),
+    rewardBias: Number((progress * 0.15).toFixed(2)),
+  };
+}
+
+function shuffleInPlace(run, items) {
+  for (let index = items.length - 1; index > 0; index -= 1) {
+    const swapIndex = randomInt(run, 0, index);
+    [items[index], items[swapIndex]] = [items[swapIndex], items[index]];
+  }
 }

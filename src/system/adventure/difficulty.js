@@ -32,7 +32,7 @@ export function computeDifficultyProfile({ run, biome, waveSlot, metaProgress })
   const dangerScore = Number((
     baseDanger +
     runDepth * 1.6 +
-    localWave * 0.7 +
+    localWave * 0.45 +
     slotBias +
     playerPower * 0.08 -
     familiarityBonus
@@ -41,7 +41,7 @@ export function computeDifficultyProfile({ run, biome, waveSlot, metaProgress })
   const waveLevel =
     4 +
     (runDepth - 1) * 3 +
-    (localWave - 1) * 0.6 +
+    (localWave - 1) * 0.35 +
     slotBias * 0.9 +
     Math.max(0, baseDanger - 1) * 0.45;
 

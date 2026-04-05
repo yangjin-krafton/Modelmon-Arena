@@ -2,7 +2,8 @@ import { closeDetail } from './detail.js';
 import { initStarterScreen, showStarterScreen } from './starter.js';
 import { initBattle, startBattle, getBattlePhase } from './battle.js';
 import { buildBattleMon } from '../core/battle-engine.js';
-import { createDefaultInventory, getInventory, setInventory } from '../core/run-items.js';
+import { loadCSV } from '../core/csv.js';
+import { ITEMS, createDefaultInventory, getInventory, setInventory } from '../core/run-items.js';
 import { loadAdventureSystem } from '../adventure/index.js';
 import {
   clearAdventureSession,
@@ -18,48 +19,48 @@ import {
 } from '../core/save.js';
 
 const adventure = await loadAdventureSystem();
+const serviceRows = await loadCSV('./data/adventure-services.csv');
 const COMBAT_TYPES = new Set(['wild', 'npc']);
 const SERVICE_TYPES = new Set(['shop', 'rest']);
 
 const SHOP_POOLS = {
   3: [
-    { effect: 'bundle', title: '프리미엄 캐시', detail: '울트라볼 x2, 풀리스토어 x1', items: { ultraball: 2, fullrestore: 1 } },
-    { effect: 'bundle', title: '마스터 캐시', detail: '마스터볼 x1', items: { masterball: 1 } },
-    { effect: 'bundle', title: '전술 패키지', detail: '울트라볼 x1, 맥스엘릭서 x1, 하이퍼포션 x2', items: { ultraball: 1, maxelixir: 1, hyperpotion: 2 } },
+    { itemId: 'masterball', qty: 1 },
+    { itemId: 'fullrestore', qty: 2 },
+    { itemId: 'maxelixir', qty: 2 },
+    { itemId: 'ultraball', qty: 4 },
+    { itemId: 'chatball', qty: 2 },
+    { itemId: 'reasonball', qty: 2 },
+    { itemId: 'codeball', qty: 2 },
+    { itemId: 'alignball', qty: 2 },
   ],
   2: [
-    { effect: 'bundle', title: '헌터 번들', detail: '슈퍼볼 x2, 슈퍼포션 x1', items: { superball: 2, superpotion: 1 } },
-    { effect: 'bundle', title: '안정화 번들', detail: '맥스포션 x1, 엘릭서 x1', items: { maxpotion: 1, elixir: 1 } },
-    { effect: 'bundle', title: '포획 모듈', detail: '울트라볼 x1, 모델볼 x2', items: { ultraball: 1, modelball: 2 } },
-    { effect: 'bundle', title: '지원 프로토콜', detail: '슈퍼볼 x1, 리롤 +1, 포획 +1', items: { superball: 1 }, resources: { rerolls: 1, captures: 1 } },
+    { itemId: 'ultraball', qty: 2 },
+    { itemId: 'maxpotion', qty: 2 },
+    { itemId: 'hyperpotion', qty: 2 },
+    { itemId: 'maxether', qty: 1 },
+    { itemId: 'elixir', qty: 1 },
+    { itemId: 'revive', qty: 2 },
+    { itemId: 'quickball', qty: 2 },
+    { itemId: 'timerball', qty: 2 },
+    { itemId: 'dualball', qty: 2 },
+    { itemId: 'visionball', qty: 2 },
+    { itemId: 'memoryball', qty: 2 },
+    { itemId: 'systemball', qty: 2 },
   ],
   1: [
-    { effect: 'bundle', title: '볼 샘플팩', detail: '모델볼 x3', items: { modelball: 3 } },
-    { effect: 'bundle', title: '응급 패치', detail: '포션 x2', items: { potion: 2 } },
-    { effect: 'bundle', title: 'PP 셀', detail: '에테르 x1', items: { ether: 1 } },
-    { effect: 'bundle', title: '캐치 킷', detail: '슈퍼볼 x1, 모델볼 x1', items: { superball: 1, modelball: 1 } },
-    { effect: 'bundle', title: '리롤 토큰', detail: '리롤 +1', resources: { rerolls: 1 } },
+    { itemId: 'modelball', qty: 3 },
+    { itemId: 'premierball', qty: 3 },
+    { itemId: 'superball', qty: 2 },
+    { itemId: 'potion', qty: 2 },
+    { itemId: 'superpotion', qty: 1 },
+    { itemId: 'ether', qty: 1 },
+    { itemId: 'agentball', qty: 1 },
+    { itemId: 'learnball', qty: 1 },
   ],
 };
 
-const REST_POOLS = {
-  3: [
-    { effect: 'team-full', title: '센터 오버홀', detail: '팀 전체 HP/PP 완전 회복' },
-    { effect: 'level-up', title: '심화 튜닝 +2', detail: '선택한 팀원 레벨 +2, 완전 회복', targetMode: 'single', levelGain: 2, healHp: 'full', healPp: 'full' },
-  ],
-  2: [
-    { effect: 'single-full', title: '정밀 정비', detail: '선택한 팀원 HP/PP 완전 회복', targetMode: 'single', healHp: 'full', healPp: 'full', reviveTo: 1 },
-    { effect: 'team-hp', title: '팀 메디킷', detail: '팀 전체 HP 60% 회복', healHp: 'ratio', hpRatio: 0.6 },
-    { effect: 'team-pp', title: '리소스 충전', detail: '팀 전체 PP +8', healPp: 'flat', ppFlat: 8 },
-    { effect: 'level-up', title: '튜닝 +1', detail: '선택한 팀원 레벨 +1, 완전 회복', targetMode: 'single', levelGain: 1, healHp: 'full', healPp: 'full' },
-  ],
-  1: [
-    { effect: 'single-hp', title: '국소 치료', detail: '선택한 팀원 HP 50% 회복', targetMode: 'single', healHp: 'ratio', hpRatio: 0.5 },
-    { effect: 'single-pp', title: 'PP 패치', detail: '선택한 팀원 PP +10', targetMode: 'single', healPp: 'flat', ppFlat: 10 },
-    { effect: 'single-revive', title: '재기동', detail: '기절한 팀원 HP 40%로 복귀, PP +5', targetMode: 'single', reviveOnly: true, reviveTo: 0.4, healPp: 'flat', ppFlat: 5 },
-    { effect: 'single-hp', title: '응급 수복', detail: '선택한 팀원 HP +35', targetMode: 'single', healHp: 'flat', hpFlat: 35 },
-  ],
-};
+const REST_POOLS = groupServiceRowsByCost(serviceRows);
 
 let toastTimer;
 let ingameReady = false;
@@ -81,6 +82,7 @@ function showDex() {
   const c = container();
   c.classList.remove('ingame-starter', 'ingame-battle');
   hideAdventureModal();
+  hideServicePanel();
   closeDetail();
 }
 
@@ -176,9 +178,31 @@ function prepareServiceEncounter(encounter) {
 
   currentRun.pendingServiceState = ensureServiceState(encounter, currentRun.pendingServiceState);
   currentEncounter = encounter;
-  showStarterUI();
+  showServiceBattleUI();
   persistAdventureSession('service');
-  showServiceModal(currentRun.pendingServiceState);
+  renderServicePanel(currentRun.pendingServiceState);
+}
+
+function showServiceBattleUI() {
+  const c = container();
+  c.classList.remove('ingame-starter');
+  c.classList.add('ingame-battle');
+
+  const field = document.querySelector('.battle-field');
+  if (field && currentRun?.biomeId) {
+    field.setAttribute('data-biome', currentRun.biomeId);
+    field.setAttribute('data-time', 'day');
+  }
+  document.getElementById('battle-log')?.classList.add('hidden');
+  document.getElementById('battle-panel')?.classList.add('hidden');
+  document.getElementById('post-action-panel')?.classList.add('hidden');
+  document.getElementById('battle-result')?.classList.add('hidden');
+}
+
+function hideServicePanel() {
+  document.getElementById('service-lower-panel')?.classList.add('hidden');
+  document.getElementById('service-field-overlay')?.classList.add('hidden');
+  document.getElementById('battle-log')?.classList.remove('hidden');
 }
 
 function ensureServiceState(encounter, existingState = null) {
@@ -200,14 +224,66 @@ function ensureServiceState(encounter, existingState = null) {
 
 function createServiceOffers(type) {
   const pools = type === 'shop' ? SHOP_POOLS : REST_POOLS;
-  const cost3 = pickDistinct(pools[3], 1).map(offer => ({ ...offer, cost: 3 }));
-  const cost2 = pickDistinct(pools[2], 2).map(offer => ({ ...offer, cost: 2 }));
-  const cost1 = pickDistinct(pools[1], 3).map(offer => ({ ...offer, cost: 1 }));
+  const cost3 = pickDistinct(pools[3], 1).map(offer => materializeServiceOffer(type, offer, 3));
+  const cost2 = pickDistinct(pools[2], 2).map(offer => materializeServiceOffer(type, offer, 2));
+  const cost1 = pickDistinct(pools[1], 3).map(offer => materializeServiceOffer(type, offer, 1));
   return [...cost3, ...cost2, ...cost1].map((offer, index) => ({
     ...offer,
     id: `${type}-offer-${index + 1}`,
     purchased: false,
   }));
+}
+
+function materializeServiceOffer(type, offer, cost) {
+  if (type !== 'shop') {
+    const icon = ITEMS[offer.iconItemId]?.icon || '';
+    return { ...offer, cost, icon };
+  }
+
+  const item = ITEMS[offer.itemId];
+  if (!item) {
+    return {
+      ...offer,
+      cost,
+      title: offer.itemId,
+      detail: `${offer.itemId} x${offer.qty}`,
+      icon: '',
+    };
+  }
+
+  return {
+    ...offer,
+    cost,
+    title: item.name,
+    detail: `${item.desc} · x${offer.qty}`,
+    icon: item.icon,
+  };
+}
+
+function groupServiceRowsByCost(rows) {
+  return rows.reduce((acc, row) => {
+    const cost = Math.max(1, Math.floor(Number(row.cost) || 1));
+    if (!acc[cost]) acc[cost] = [];
+    acc[cost].push({
+      serviceId: row.service_id,
+      title: row.title,
+      detail: row.detail,
+      iconItemId: row.icon_item_id,
+      effect: row.effect,
+      targetMode: row.target_mode || null,
+      levelGain: Number(row.level_gain || 0),
+      expGain: Number(row.exp_gain || 0),
+      expNextRatio: Number(row.exp_next_ratio || 0),
+      healHp: row.heal_hp || null,
+      hpRatio: Number(row.hp_ratio || 0),
+      hpFlat: Number(row.hp_flat || 0),
+      healPp: row.heal_pp || null,
+      ppFlat: Number(row.pp_flat || 0),
+      reviveTo: Number(row.revive_to || 0),
+      reviveOnly: row.revive_only === 'true',
+    });
+    return acc;
+  }, {});
 }
 
 function pickDistinct(entries, count) {
@@ -273,102 +349,119 @@ function showBiomeChoiceModal(choices) {
   });
 }
 
-function showServiceModal(state) {
+function renderServicePanel(state) {
+  const panel = document.getElementById('service-lower-panel');
+  if (!panel) return;
+
+  const icon = state.type === 'shop' ? '🏪' : '🏥';
+  const overlay = document.getElementById('service-field-overlay');
+  if (overlay) {
+    document.getElementById('sfo-icon').textContent = icon;
+    document.getElementById('sfo-title').textContent = state.title;
+    document.getElementById('sfo-sub').textContent = state.sub;
+    overlay.classList.remove('hidden');
+  }
+
   const offerTarget = state.offers.find(offer => offer.id === state.pendingTargetOfferId) || null;
-  const bodyHtml = `
-    <div class="service-wallet">
-      <span class="service-wallet__label">웨이브 코인</span>
-      <strong class="service-wallet__value">${state.coins}</strong>
-      <span class="service-wallet__hint">남은 코인은 이 웨이브에서만 사용됩니다.</span>
+
+  const byCost = { 3: [], 2: [], 1: [] };
+  for (const offer of state.offers) {
+    if (byCost[offer.cost]) byCost[offer.cost].push(offer);
+  }
+
+  const tierRows = [3, 2, 1].map(cost => {
+    const offers = byCost[cost];
+    if (!offers.length) return '';
+    const label = '★'.repeat(cost);
+    const chips = offers.map(offer => buildServiceOfferChip(offer, state.coins)).join('');
+    return `
+      <div class="slp-tier-row is-cost-${cost}">
+        <span class="slp-row-label">${label}</span>
+        <div class="slp-chip-scroll">${chips}</div>
+      </div>
+    `;
+  }).join('');
+
+  const targetRow = offerTarget ? `
+    <div class="slp-target-row">
+      <span class="slp-row-label">대상</span>
+      <div class="slp-chip-scroll">
+        ${currentRun.party.map(member => buildServiceTargetChip(offerTarget, member)).join('')}
+      </div>
     </div>
-    ${offerTarget ? buildServiceTargetSection(offerTarget) : ''}
-    <div class="service-offer-grid">
-      ${state.offers.map(offer => buildServiceOfferCard(offer, state.coins)).join('')}
+  ` : '';
+
+  panel.innerHTML = `
+    <div class="slp-header">
+      <span class="slp-header__label">${icon} 웨이브 코인</span>
+      <strong class="slp-header__coin">${state.coins}</strong>
+      <span class="slp-header__hint">남은 코인은 이 웨이브에서만 유효합니다</span>
     </div>
-  `;
-  const footerHtml = `
-    <div class="service-footer">
-      <button class="service-footer__btn service-footer__btn--ghost" id="service-skip-btn" type="button">
-        ${offerTarget ? '대상 선택 취소' : '선택 종료'}
+    ${targetRow}
+    ${tierRows}
+    <div class="slp-footer">
+      <button class="slp-footer__btn slp-footer__btn--ghost" id="service-skip-btn" type="button">
+        ${offerTarget ? '선택 취소' : '종료'}
       </button>
-      <button class="service-footer__btn" id="service-continue-btn" type="button">
+      <button class="slp-footer__btn" id="service-continue-btn" type="button">
         ${state.coins > 0 ? '다음 웨이브로' : '정산 완료'}
       </button>
     </div>
   `;
 
-  showAdventureModal({
-    title: state.title,
-    sub: state.sub,
-    bodyClass: 'adventure-choice-panel--service',
-    bodyHtml,
-    footerHtml,
-  });
+  panel.classList.remove('hidden');
 
-  document.querySelectorAll('[data-service-offer-id]').forEach(button => {
-    button.addEventListener('click', () => {
-      onServiceOfferClick(button.dataset.serviceOfferId);
-    });
+  panel.querySelectorAll('[data-service-offer-id]').forEach(btn => {
+    btn.addEventListener('click', () => onServiceOfferClick(btn.dataset.serviceOfferId));
   });
-  document.querySelectorAll('[data-service-target-mon-id]').forEach(button => {
-    button.addEventListener('click', () => {
-      onServiceTargetClick(button.dataset.serviceTargetMonId);
-    });
+  panel.querySelectorAll('[data-service-target-mon-id]').forEach(btn => {
+    btn.addEventListener('click', () => onServiceTargetClick(btn.dataset.serviceTargetMonId));
   });
-
-  document.getElementById('service-skip-btn')?.addEventListener('click', () => {
+  panel.querySelector('#service-skip-btn')?.addEventListener('click', () => {
     if (state.pendingTargetOfferId) {
       currentRun.pendingServiceState.pendingTargetOfferId = null;
       persistAdventureSession('service');
-      showServiceModal(currentRun.pendingServiceState);
+      renderServicePanel(currentRun.pendingServiceState);
       return;
     }
     finishServiceEncounter();
   });
-  document.getElementById('service-continue-btn')?.addEventListener('click', finishServiceEncounter);
+  panel.querySelector('#service-continue-btn')?.addEventListener('click', finishServiceEncounter);
 }
 
-function buildServiceOfferCard(offer, coins) {
+function buildServiceOfferChip(offer, coins) {
   const disabled = offer.purchased || offer.cost > coins;
+  const stateText = offer.purchased ? '구매 완료' : offer.targetMode === 'single' ? '대상 지정' : '즉시 적용';
   const classes = [
-    'service-offer-card',
+    'slp-offer-chip',
     `is-cost-${offer.cost}`,
-    disabled ? 'is-disabled' : '',
-    offer.purchased ? 'is-purchased' : '',
+    offer.purchased ? 'is-purchased' : disabled ? 'is-disabled' : '',
   ].filter(Boolean).join(' ');
+
+  const detailHtml = offer.cost === 3
+    ? `<span class="slp-chip-detail">${offer.detail}</span>`
+    : '';
 
   return `
     <button class="${classes}" type="button" data-service-offer-id="${offer.id}" ${disabled ? 'disabled' : ''}>
-      <span class="service-offer-card__cost">${offer.cost} 코인</span>
-      <strong class="service-offer-card__title">${offer.title}</strong>
-      <span class="service-offer-card__detail">${offer.detail}</span>
-      <span class="service-offer-card__state">${offer.purchased ? '구매 완료' : offer.targetMode === 'single' ? '선택 후 대상 지정' : '즉시 적용'}</span>
+      ${offer.icon ? `<img class="slp-chip-icon" src="${offer.icon}" alt="">` : ''}
+      <strong class="slp-chip-title">${offer.title}</strong>
+      ${detailHtml}
+      <span class="slp-chip-state">${stateText}</span>
     </button>
   `;
 }
 
-function buildServiceTargetSection(offer) {
-  const targetButtons = currentRun.party
-    .map(member => {
-      const preview = buildPartyPreview(member);
-      const disabled = !isOfferTargetEligible(offer, member);
-      return `
-        <button class="service-target-card ${disabled ? 'is-disabled' : ''}" type="button"
-          data-service-target-mon-id="${member.monId}" ${disabled ? 'disabled' : ''}>
-          <strong>${preview.name}</strong>
-          <span>Lv.${preview.level} · HP ${preview.hp}/${preview.maxHp}</span>
-          <span>PP ${preview.ppText}</span>
-        </button>
-      `;
-    })
-    .join('');
-
+function buildServiceTargetChip(offer, member) {
+  const preview = buildPartyPreview(member);
+  const disabled = !isOfferTargetEligible(offer, member);
   return `
-    <div class="service-target-box">
-      <div class="service-target-box__title">${offer.title} 대상 선택</div>
-      <div class="service-target-box__sub">${offer.detail}</div>
-      <div class="service-target-list">${targetButtons}</div>
-    </div>
+    <button class="slp-target-chip${disabled ? ' is-disabled' : ''}" type="button"
+      data-service-target-mon-id="${member.monId}" ${disabled ? 'disabled' : ''}>
+      <strong>${preview.name}</strong>
+      <span>Lv.${preview.level}</span>
+      <span>HP ${preview.hp}/${preview.maxHp}</span>
+    </button>
   `;
 }
 
@@ -384,7 +477,7 @@ function onServiceOfferClick(offerId) {
     }
     state.pendingTargetOfferId = offer.id;
     persistAdventureSession('service');
-    showServiceModal(state);
+    renderServicePanel(state);
     return;
   }
 
@@ -412,7 +505,7 @@ function applyServiceOffer(offer, targetMonId = null) {
   state.coins -= offer.cost;
   state.pendingTargetOfferId = null;
   persistAdventureSession('service');
-  showServiceModal(state);
+  renderServicePanel(state);
   showToast(`${offer.title} 적용 완료`);
 }
 
@@ -420,9 +513,9 @@ function applyShopOffer(offer) {
   currentRun.inventory = normalizeRunInventory(currentRun.inventory);
   currentRun.resources = currentRun.resources || {};
 
-  Object.entries(offer.items || {}).forEach(([itemId, count]) => {
-    currentRun.inventory[itemId] = (currentRun.inventory[itemId] ?? 0) + count;
-  });
+  if (offer.itemId && offer.qty) {
+    currentRun.inventory[offer.itemId] = (currentRun.inventory[offer.itemId] ?? 0) + offer.qty;
+  }
   Object.entries(offer.resources || {}).forEach(([resourceId, count]) => {
     currentRun.resources[resourceId] = (currentRun.resources[resourceId] ?? 0) + count;
   });
@@ -440,7 +533,7 @@ function applyRestOffer(offer, targetMonId = null) {
     return;
   }
 
-  if (offer.effect === 'team-hp' || offer.effect === 'team-pp') {
+  if (offer.targetMode === 'team' || offer.effect === 'team-hp' || offer.effect === 'team-pp') {
     currentRun.party = currentRun.party.map(member => rebuildPartyMember(member, offer));
     return;
   }
@@ -457,6 +550,7 @@ function rebuildPartyMember(member, offer) {
   if (levelGain > 0) {
     grantLevels(member.monId, levelGain);
   }
+  grantOfferExp(member.monId, offer);
 
   const nextLevel = getMonLevel(member.monId, member.level ?? 5);
   const template = buildBattleMon(member.monId, nextLevel);
@@ -528,8 +622,30 @@ function grantLevels(monId, levels) {
   if (totalExp > 0) grantExp(monId, totalExp);
 }
 
+function grantOfferExp(monId, offer) {
+  const flatExp = Math.max(0, Math.floor(Number(offer.expGain) || 0));
+  const nextRatio = Math.max(0, Number(offer.expNextRatio) || 0);
+  let totalExp = flatExp;
+
+  if (nextRatio > 0) {
+    const progress = getMonProgress(monId);
+    const required = expToNextLevel(progress.lv);
+    const missing = Math.max(0, required - progress.exp);
+    totalExp += Math.floor(missing * nextRatio);
+  }
+
+  if (totalExp > 0) grantExp(monId, totalExp);
+}
+
 function isOfferTargetEligible(offer, member) {
-  if (offer.reviveOnly) return (member.hp ?? 0) <= 0;
+  const isFainted = (member.hp ?? 0) <= 0;
+  if (offer.reviveOnly) return isFainted;
+  if (isFainted) {
+    // ratio/flat HP 회복은 nextHp > 0 가드로 기절 시 무효 → 대상 불가
+    // reviveTo > 0 또는 healHp === 'full' 인 경우는 실제 부활 효과가 있으므로 허용
+    const healsPartial = offer.healHp === 'ratio' || offer.healHp === 'flat';
+    if (healsPartial && !offer.reviveTo) return false;
+  }
   return true;
 }
 
@@ -554,7 +670,7 @@ function buildPartyPreview(member) {
 function finishServiceEncounter() {
   if (!currentRun) return;
   currentRun.pendingServiceState = null;
-  hideAdventureModal();
+  hideServicePanel();
   persistAdventureSession('starter');
   resolveNonCombatProgression();
 }
@@ -597,7 +713,6 @@ function applyNonCombatEncounter(encounter) {
 }
 
 function buildNonCombatToast(encounter) {
-  if (encounter.type === 'reward') return `${encounter.waveLabelKo}을 지나 다음 전투로 이동한다.`;
   if (encounter.type === 'shop') return '상점을 지나며 장비를 정비했다.';
   if (encounter.type === 'rest') return '휴식 지점을 지나며 HP와 PP를 회복했다.';
   return '다음 구간으로 이동한다.';
@@ -692,8 +807,8 @@ function restoreAdventureSession() {
   }
 
   if (session.screen === 'service' && currentRun.pendingServiceState && currentEncounter && SERVICE_TYPES.has(currentEncounter.type)) {
-    showStarterUI();
-    showServiceModal(currentRun.pendingServiceState);
+    showServiceBattleUI();
+    renderServicePanel(currentRun.pendingServiceState);
     showToast('서비스 웨이브를 복구했다.');
     return true;
   }
@@ -753,8 +868,8 @@ export function initNavEvents() {
     }
 
     if (currentRun?.pendingServiceState && currentEncounter && SERVICE_TYPES.has(currentEncounter.type)) {
-      showStarterUI();
-      showServiceModal(currentRun.pendingServiceState);
+      showServiceBattleUI();
+      renderServicePanel(currentRun.pendingServiceState);
       return;
     }
 

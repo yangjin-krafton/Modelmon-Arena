@@ -186,6 +186,15 @@
           <div class="bf-fx__ball"></div>
         </div>
 
+        <!-- 서비스 모드 오버레이 (shop·rest 웨이브) -->
+        <div class="service-field-overlay hidden" id="service-field-overlay">
+          <span class="sfo-icon" id="sfo-icon"></span>
+          <div class="sfo-body">
+            <div class="sfo-title" id="sfo-title"></div>
+            <div class="sfo-sub" id="sfo-sub"></div>
+          </div>
+        </div>
+
         <!-- 결과 오버레이 -->
         <div class="battle-result hidden" id="battle-result">
           <div class="br-icon">🏆</div>
@@ -237,9 +246,9 @@
                 </div>
               </div>
               <div class="sk-stats">
-                <div class="sk-stat"><span class="sk-stat-lbl">위력</span><span class="sk-stat-val" id="bp-sk-pow-0">—</span></div>
-                <div class="sk-stat"><span class="sk-stat-lbl">명중</span><span class="sk-stat-val" id="bp-sk-acc-0">—</span></div>
-                <div class="sk-stat"><span class="sk-stat-lbl">PP</span><span class="sk-stat-val" id="bp-sk-pp-0">—</span></div>
+                <span class="sk-stat"><span class="sk-stat-lbl">위</span><span class="sk-stat-val" id="bp-sk-pow-0">—</span></span>
+                <span class="sk-stat"><span class="sk-stat-lbl">명</span><span class="sk-stat-val" id="bp-sk-acc-0">—</span></span>
+                <span class="sk-stat"><span class="sk-stat-lbl">PP</span><span class="sk-stat-val" id="bp-sk-pp-0">—</span></span>
               </div>
               <div class="sk-effect" id="bp-sk-eff-0"></div>
             </button>
@@ -253,9 +262,9 @@
                 </div>
               </div>
               <div class="sk-stats">
-                <div class="sk-stat"><span class="sk-stat-lbl">위력</span><span class="sk-stat-val" id="bp-sk-pow-1">—</span></div>
-                <div class="sk-stat"><span class="sk-stat-lbl">명중</span><span class="sk-stat-val" id="bp-sk-acc-1">—</span></div>
-                <div class="sk-stat"><span class="sk-stat-lbl">PP</span><span class="sk-stat-val" id="bp-sk-pp-1">—</span></div>
+                <span class="sk-stat"><span class="sk-stat-lbl">위</span><span class="sk-stat-val" id="bp-sk-pow-1">—</span></span>
+                <span class="sk-stat"><span class="sk-stat-lbl">명</span><span class="sk-stat-val" id="bp-sk-acc-1">—</span></span>
+                <span class="sk-stat"><span class="sk-stat-lbl">PP</span><span class="sk-stat-val" id="bp-sk-pp-1">—</span></span>
               </div>
               <div class="sk-effect" id="bp-sk-eff-1"></div>
             </button>
@@ -269,9 +278,9 @@
                 </div>
               </div>
               <div class="sk-stats">
-                <div class="sk-stat"><span class="sk-stat-lbl">위력</span><span class="sk-stat-val" id="bp-sk-pow-2">—</span></div>
-                <div class="sk-stat"><span class="sk-stat-lbl">명중</span><span class="sk-stat-val" id="bp-sk-acc-2">—</span></div>
-                <div class="sk-stat"><span class="sk-stat-lbl">PP</span><span class="sk-stat-val" id="bp-sk-pp-2">—</span></div>
+                <span class="sk-stat"><span class="sk-stat-lbl">위</span><span class="sk-stat-val" id="bp-sk-pow-2">—</span></span>
+                <span class="sk-stat"><span class="sk-stat-lbl">명</span><span class="sk-stat-val" id="bp-sk-acc-2">—</span></span>
+                <span class="sk-stat"><span class="sk-stat-lbl">PP</span><span class="sk-stat-val" id="bp-sk-pp-2">—</span></span>
               </div>
               <div class="sk-effect" id="bp-sk-eff-2"></div>
             </button>
@@ -283,6 +292,9 @@
 
         <!-- 포스트배틀 선택 패널 (battle-panel과 독립 — 로그 표시 중 위에 오버레이) -->
         <div class="post-action-panel hidden" id="post-action-panel"></div>
+
+        <!-- 서비스 하단 패널 (shop·rest 웨이브 전용) -->
+        <div class="service-lower-panel hidden" id="service-lower-panel"></div>
 
       </div><!-- /battle-lower -->
 

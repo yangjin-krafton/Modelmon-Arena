@@ -23,11 +23,11 @@
     <!-- ══════════ LIST SCREEN ══════════ -->
     <div class="screen" id="screen-list">
 
-      <!-- 탭 오버레이 (전투/팀편성/상점 탭 클릭시) -->
+      <!-- 인게임 오버레이 (인게임 탭 클릭시) -->
       <div class="tab-overlay hidden" id="tab-overlay">
-        <div class="to-icon" id="to-icon">⚔️</div>
-        <div class="to-title" id="to-title">전투</div>
-        <div class="to-sub">준비 중입니다</div>
+        <div class="to-icon">🎮</div>
+        <div class="to-title">인게임</div>
+        <div class="to-sub">게임 진행 중에 해금됩니다</div>
         <button class="to-back" id="to-back-btn">← 도감으로</button>
       </div>
 
@@ -210,21 +210,13 @@
 
   <!-- ── Bottom Navigation ── -->
   <nav class="bottom-nav">
-    <div class="nav-item" data-tab="battle">
-      <span class="nav-icon">⚔️</span>
-      <span class="nav-lbl">전투</span>
-    </div>
-    <div class="nav-item" data-tab="team">
-      <span class="nav-icon">🛡️</span>
-      <span class="nav-lbl">팀편성</span>
-    </div>
-    <div class="nav-item" data-tab="shop">
-      <span class="nav-icon">🛒</span>
-      <span class="nav-lbl">상점</span>
-    </div>
     <div class="nav-item" data-tab="dex" data-active="true">
       <span class="nav-icon">📖</span>
       <span class="nav-lbl">도감</span>
+    </div>
+    <div class="nav-item" data-tab="ingame">
+      <span class="nav-icon">🎮</span>
+      <span class="nav-lbl">인게임</span>
     </div>
   </nav>
 

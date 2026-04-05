@@ -20,12 +20,6 @@ export function showToast(msg) {
 /* ════════════════════════════════════════
    Bottom nav + tab overlay
 ════════════════════════════════════════ */
-const TAB_INFO = {
-  battle: { icon:'⚔️',  title:'전투',   sub:'전투 시스템을 준비 중입니다' },
-  team:   { icon:'🛡️',  title:'팀편성', sub:'팀편성 기능을 준비 중입니다' },
-  shop:   { icon:'🛒',  title:'상점',   sub:'상점을 준비 중입니다' },
-};
-
 export function initNavEvents() {
   const tabOverlay = document.getElementById('tab-overlay');
   const toBack     = document.getElementById('to-back-btn');
@@ -42,10 +36,6 @@ export function initNavEvents() {
       tabOverlay.classList.add('hidden');
       closeDetail();
     } else {
-      const info = TAB_INFO[tab];
-      document.getElementById('to-icon').textContent  = info.icon;
-      document.getElementById('to-title').textContent = info.title;
-      document.querySelector('.to-sub').textContent   = info.sub;
       tabOverlay.classList.remove('hidden');
       closeDetail();
     }

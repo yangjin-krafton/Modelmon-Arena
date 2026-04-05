@@ -3,87 +3,6 @@
 import { MONS, MON_STATE } from '../data/mons.js';
 import { state, SPRITE, typeInfo } from '../core/state.js';
 
-function renderDexListTable() {
-  const panel = document.getElementById('dex-list-table');
-  if (!panel) return;
-
-  const target = state.filteredMons.find(mon => mon.id === state.activeMonId) || state.filteredMons[0];
-  if (!target) {
-    panel.classList.remove('hidden');
-    panel.innerHTML = `
-      <div class="dlt-top">
-        <div>
-          <div class="dlt-title">Dex Table</div>
-          <div class="dlt-name">선택된 모델몬 없음</div>
-          <div class="dlt-meta">검색 결과가 없거나 아직 로딩 중입니다.</div>
-        </div>
-        <div class="dlt-chip">—</div>
-      </div>
-    `;
-    return;
-  }
-
-  panel.classList.remove('hidden');
-  const rows = [
-    ['HP', target.lv1?.hp, target.bs?.hp, target.lv100?.hp],
-    ['ATK', target.lv1?.atk, target.bs?.atk, target.lv100?.atk],
-    ['DEF', target.lv1?.def, target.bs?.def, target.lv100?.def],
-    ['SPD', target.lv1?.spd, target.bs?.spd, target.lv100?.spd],
-    ['SPC', target.lv1?.spc, target.bs?.spc, target.lv100?.spc],
-  ];
-
-  panel.innerHTML = `
-    <div class="dlt-top">
-      <div>
-        <div class="dlt-title">Dex Table</div>
-        <div class="dlt-name">${target.nameKo}</div>
-        <div class="dlt-meta">No.${target.id} · ${target.nameEn}</div>
-      </div>
-      <div class="dlt-chip">${target.evoTier || '—'}</div>
-    </div>
-    <div class="dlt-grid">
-      <div class="dlt-box">
-        <span class="dlt-label">Skill Trick</span>
-        <span class="dlt-value">${target.skillTrick || '—'}</span>
-      </div>
-      <div class="dlt-box">
-        <span class="dlt-label">Evolution Line</span>
-        <span class="dlt-value">${target.evoLineName || '—'}</span>
-      </div>
-      <div class="dlt-box">
-        <span class="dlt-label">BST</span>
-        <span class="dlt-value">${target.bst ?? '—'}</span>
-      </div>
-      <div class="dlt-box">
-        <span class="dlt-label">Core</span>
-        <span class="dlt-value">${target.coreConcept} · ${target.subConcept}</span>
-      </div>
-    </div>
-    <div class="dlt-table-wrap">
-      <table class="dlt-table">
-        <thead>
-          <tr>
-            <th>Stat</th>
-            <th>Lv.1</th>
-            <th>Base</th>
-            <th>Lv.100</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows.map(([name, lv1, base, lv100]) => `
-            <tr>
-              <td class="dlt-stat">${name}</td>
-              <td>${lv1 ?? '—'}</td>
-              <td>${base ?? '—'}</td>
-              <td>${lv100 ?? '—'}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
-}
-
 /** Re-render all list items based on state.filteredMons. */
 export function renderList() {
   const body  = document.getElementById('list-body');
@@ -96,12 +15,10 @@ export function renderList() {
   if (state.filteredMons.length === 0) {
     empty.classList.add('show');
     count.textContent = '0마리';
-    renderDexListTable();
     return;
   }
 
   count.textContent = `${state.filteredMons.length}마리`;
-  renderDexListTable();
 
   state.filteredMons.forEach(mon => {
     const ti  = typeInfo(mon.coreConcept);

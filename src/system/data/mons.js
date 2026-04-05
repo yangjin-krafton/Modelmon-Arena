@@ -26,6 +26,7 @@ async function buildEvoMap() {
   const rows = await loadCSV('./data/gen1-evo-lines.csv');
   const map  = {};
   for (const row of rows) {
+    if (!row.members) continue;
     const members = row.members.split('/').map(s => s.trim());
     for (const id of members) map[id] = members;
   }

@@ -11,4 +11,4 @@ export function init() {
   renderList();
 }
 
-document.addEventListener('DOMContentLoaded', init);
+init();

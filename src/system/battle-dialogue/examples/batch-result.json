@@ -1,0 +1,401 @@
+{
+  "input": "src\\system\\battle-dialogue\\examples\\batch-scenario.json",
+  "generatedAt": "2026-04-05T09:16:25.643Z",
+  "summary": {
+    "jobs": 3,
+    "approved": 3,
+    "revisePending": 0,
+    "rejected": 0
+  },
+  "results": [
+    {
+      "id": "scene-action-repeat-001",
+      "category": "sceneAction",
+      "status": "approved",
+      "attempts": [
+        {
+          "round": 1,
+          "draft": {
+            "id": "scene-action-repeat-001-draft-1",
+            "category": "sceneAction",
+            "text": "{{attacker_name}} 또 간다.",
+            "notes": [
+              "first-pass"
+            ],
+            "row": {
+              "id": "scene-action-repeat-001-draft-1",
+              "weight": "2",
+              "phase": "승|전",
+              "importance": "mid|high",
+              "commentary_role": "transition|highlight",
+              "skill_pattern": "연타",
+              "skill_family": "multi-hit",
+              "status_name": "없음",
+              "momentum": "left|right",
+              "length_band": "long",
+              "usage_bucket": "repeat|spam",
+              "damage_band": "medium|big",
+              "hp_band": "mid|low",
+              "tags": "*",
+              "text": "{{attacker_name}} 또 간다."
+            }
+          },
+          "review": {
+            "decision": "revise",
+            "score": 0.45,
+            "reasonCodes": [
+              "too_short",
+              "placeholder_missing"
+            ],
+            "feedback": "expand length, keep tone, vary the line"
+          },
+          "approved": false
+        },
+        {
+          "round": 2,
+          "draft": {
+            "id": "scene-action-repeat-001-draft-2",
+            "category": "sceneAction",
+            "text": "{{attacker_name}} 쪽 리듬이 한번 붙으니까 {{skill_name}} 박자가 생각보다 길게 이어져요. {{defender_name}}은 첫 타를 막고도 바로 중심을 다시 못 세워서, 같은 기술을 또 봤는데도 체감 부담이 더 커지는 장면이에요.",
+            "notes": [
+              "revised-from-review"
+            ],
+            "row": {
+              "id": "scene-action-repeat-001-draft-2",
+              "weight": "2",
+              "phase": "승|전",
+              "importance": "mid|high",
+              "commentary_role": "transition|highlight",
+              "skill_pattern": "연타",
+              "skill_family": "multi-hit",
+              "status_name": "없음",
+              "momentum": "left|right",
+              "length_band": "long",
+              "usage_bucket": "repeat|spam",
+              "damage_band": "medium|big",
+              "hp_band": "mid|low",
+              "tags": "*",
+              "text": "{{attacker_name}} 쪽 리듬이 한번 붙으니까 {{skill_name}} 박자가 생각보다 길게 이어져요. {{defender_name}}은 첫 타를 막고도 바로 중심을 다시 못 세워서, 같은 기술을 또 봤는데도 체감 부담이 더 커지는 장면이에요."
+            }
+          },
+          "review": {
+            "decision": "approve",
+            "score": 0.92,
+            "reasonCodes": [],
+            "feedback": "approved"
+          },
+          "approved": true
+        }
+      ],
+      "approvedDraft": {
+        "id": "scene-action-repeat-001-draft-2",
+        "category": "sceneAction",
+        "text": "{{attacker_name}} 쪽 리듬이 한번 붙으니까 {{skill_name}} 박자가 생각보다 길게 이어져요. {{defender_name}}은 첫 타를 막고도 바로 중심을 다시 못 세워서, 같은 기술을 또 봤는데도 체감 부담이 더 커지는 장면이에요.",
+        "notes": [
+          "revised-from-review"
+        ],
+        "row": {
+          "id": "scene-action-repeat-001-draft-2",
+          "weight": "2",
+          "phase": "승|전",
+          "importance": "mid|high",
+          "commentary_role": "transition|highlight",
+          "skill_pattern": "연타",
+          "skill_family": "multi-hit",
+          "status_name": "없음",
+          "momentum": "left|right",
+          "length_band": "long",
+          "usage_bucket": "repeat|spam",
+          "damage_band": "medium|big",
+          "hp_band": "mid|low",
+          "tags": "*",
+          "text": "{{attacker_name}} 쪽 리듬이 한번 붙으니까 {{skill_name}} 박자가 생각보다 길게 이어져요. {{defender_name}}은 첫 타를 막고도 바로 중심을 다시 못 세워서, 같은 기술을 또 봤는데도 체감 부담이 더 커지는 장면이에요."
+        }
+      },
+      "approvedRow": {
+        "id": "scene-action-repeat-001-draft-2",
+        "weight": "2",
+        "phase": "승|전",
+        "importance": "mid|high",
+        "commentary_role": "transition|highlight",
+        "skill_pattern": "연타",
+        "skill_family": "multi-hit",
+        "status_name": "없음",
+        "momentum": "left|right",
+        "length_band": "long",
+        "usage_bucket": "repeat|spam",
+        "damage_band": "medium|big",
+        "hp_band": "mid|low",
+        "tags": "*",
+        "text": "{{attacker_name}} 쪽 리듬이 한번 붙으니까 {{skill_name}} 박자가 생각보다 길게 이어져요. {{defender_name}}은 첫 타를 막고도 바로 중심을 다시 못 세워서, 같은 기술을 또 봤는데도 체감 부담이 더 커지는 장면이에요."
+      },
+      "lastReview": {
+        "decision": "approve",
+        "score": 0.92,
+        "reasonCodes": [],
+        "feedback": "approved"
+      }
+    },
+    {
+      "id": "scene-result-control-001",
+      "category": "sceneResult",
+      "status": "approved",
+      "attempts": [
+        {
+          "round": 1,
+          "draft": {
+            "id": "scene-result-control-001-draft-1",
+            "category": "sceneResult",
+            "text": "지금 묶는다.",
+            "notes": [
+              "first-pass"
+            ],
+            "row": {
+              "id": "scene-result-control-001-draft-1",
+              "weight": "2",
+              "phase": "전|결",
+              "importance": "high",
+              "commentary_role": "highlight|climax",
+              "skill_pattern": "행동 제어",
+              "skill_family": "control",
+              "status_name": "속박|지연",
+              "momentum": "left|right",
+              "length_band": "long",
+              "usage_bucket": "fresh|repeat",
+              "damage_band": "small|medium",
+              "hp_band": "low|critical",
+              "tags": "*",
+              "text": "지금 묶는다."
+            }
+          },
+          "review": {
+            "decision": "revise",
+            "score": 0.45,
+            "reasonCodes": [
+              "too_short",
+              "placeholder_missing"
+            ],
+            "feedback": "expand length, keep tone, vary the line"
+          },
+          "approved": false
+        },
+        {
+          "round": 2,
+          "draft": {
+            "id": "scene-result-control-001-draft-2",
+            "category": "sceneResult",
+            "text": "{{skill_name}}는 한 번 세게 때리는 기술이라기보다 {{defender_name}}의 타이밍을 비틀어 두는 쪽에 가까워요. 그래서 맞는 순간보다 그 직후가 더 답답하게 남고, {{attacker_name}}은 그 빈 박자를 이용해서 다음 선택까지 같이 압박할 수 있게 돼요.",
+            "notes": [
+              "revised-from-review"
+            ],
+            "row": {
+              "id": "scene-result-control-001-draft-2",
+              "weight": "2",
+              "phase": "전|결",
+              "importance": "high",
+              "commentary_role": "highlight|climax",
+              "skill_pattern": "행동 제어",
+              "skill_family": "control",
+              "status_name": "속박|지연",
+              "momentum": "left|right",
+              "length_band": "long",
+              "usage_bucket": "fresh|repeat",
+              "damage_band": "small|medium",
+              "hp_band": "low|critical",
+              "tags": "*",
+              "text": "{{skill_name}}는 한 번 세게 때리는 기술이라기보다 {{defender_name}}의 타이밍을 비틀어 두는 쪽에 가까워요. 그래서 맞는 순간보다 그 직후가 더 답답하게 남고, {{attacker_name}}은 그 빈 박자를 이용해서 다음 선택까지 같이 압박할 수 있게 돼요."
+            }
+          },
+          "review": {
+            "decision": "approve",
+            "score": 0.92,
+            "reasonCodes": [],
+            "feedback": "approved"
+          },
+          "approved": true
+        }
+      ],
+      "approvedDraft": {
+        "id": "scene-result-control-001-draft-2",
+        "category": "sceneResult",
+        "text": "{{skill_name}}는 한 번 세게 때리는 기술이라기보다 {{defender_name}}의 타이밍을 비틀어 두는 쪽에 가까워요. 그래서 맞는 순간보다 그 직후가 더 답답하게 남고, {{attacker_name}}은 그 빈 박자를 이용해서 다음 선택까지 같이 압박할 수 있게 돼요.",
+        "notes": [
+          "revised-from-review"
+        ],
+        "row": {
+          "id": "scene-result-control-001-draft-2",
+          "weight": "2",
+          "phase": "전|결",
+          "importance": "high",
+          "commentary_role": "highlight|climax",
+          "skill_pattern": "행동 제어",
+          "skill_family": "control",
+          "status_name": "속박|지연",
+          "momentum": "left|right",
+          "length_band": "long",
+          "usage_bucket": "fresh|repeat",
+          "damage_band": "small|medium",
+          "hp_band": "low|critical",
+          "tags": "*",
+          "text": "{{skill_name}}는 한 번 세게 때리는 기술이라기보다 {{defender_name}}의 타이밍을 비틀어 두는 쪽에 가까워요. 그래서 맞는 순간보다 그 직후가 더 답답하게 남고, {{attacker_name}}은 그 빈 박자를 이용해서 다음 선택까지 같이 압박할 수 있게 돼요."
+        }
+      },
+      "approvedRow": {
+        "id": "scene-result-control-001-draft-2",
+        "weight": "2",
+        "phase": "전|결",
+        "importance": "high",
+        "commentary_role": "highlight|climax",
+        "skill_pattern": "행동 제어",
+        "skill_family": "control",
+        "status_name": "속박|지연",
+        "momentum": "left|right",
+        "length_band": "long",
+        "usage_bucket": "fresh|repeat",
+        "damage_band": "small|medium",
+        "hp_band": "low|critical",
+        "tags": "*",
+        "text": "{{skill_name}}는 한 번 세게 때리는 기술이라기보다 {{defender_name}}의 타이밍을 비틀어 두는 쪽에 가까워요. 그래서 맞는 순간보다 그 직후가 더 답답하게 남고, {{attacker_name}}은 그 빈 박자를 이용해서 다음 선택까지 같이 압박할 수 있게 돼요."
+      },
+      "lastReview": {
+        "decision": "approve",
+        "score": 0.92,
+        "reasonCodes": [],
+        "feedback": "approved"
+      }
+    },
+    {
+      "id": "scene-after-setup-001",
+      "category": "sceneAfter",
+      "status": "approved",
+      "attempts": [
+        {
+          "round": 1,
+          "draft": {
+            "id": "scene-after-setup-001-draft-1",
+            "category": "sceneAfter",
+            "text": "여기 정리해 둔다.",
+            "notes": [
+              "first-pass"
+            ],
+            "row": {
+              "id": "scene-after-setup-001-draft-1",
+              "weight": "1",
+              "phase": "승|전|결",
+              "importance": "high",
+              "commentary_role": "highlight|climax",
+              "skill_pattern": "보호막",
+              "skill_family": "setup",
+              "status_name": "보호",
+              "momentum": "*",
+              "length_band": "long",
+              "usage_bucket": "fresh|repeat",
+              "damage_band": "zero",
+              "hp_band": "mid|high",
+              "tags": "*",
+              "text": "여기 정리해 둔다."
+            }
+          },
+          "review": {
+            "decision": "revise",
+            "score": 0.45,
+            "reasonCodes": [
+              "too_short",
+              "placeholder_missing"
+            ],
+            "feedback": "expand length, keep tone, vary the line"
+          },
+          "approved": false
+        },
+        {
+          "round": 2,
+          "draft": {
+            "id": "scene-after-setup-001-draft-2",
+            "category": "sceneAfter",
+            "text": "{{attacker_name}}은 지금 무리해서 세게 밀지 않아요. 대신 {{skill_name}}로 먼저 판을 정리하면서 다음 교환에서 {{defender_name}}이 같은 방식으로 들어오기 어렵게 만드는 쪽을 택해요. 조용해 보여도 흐름상 꽤 큰 준비 턴이에요.",
+            "notes": [
+              "revised-from-review"
+            ],
+            "row": {
+              "id": "scene-after-setup-001-draft-2",
+              "weight": "1",
+              "phase": "승|전|결",
+              "importance": "high",
+              "commentary_role": "highlight|climax",
+              "skill_pattern": "보호막",
+              "skill_family": "setup",
+              "status_name": "보호",
+              "momentum": "*",
+              "length_band": "long",
+              "usage_bucket": "fresh|repeat",
+              "damage_band": "zero",
+              "hp_band": "mid|high",
+              "tags": "*",
+              "text": "{{attacker_name}}은 지금 무리해서 세게 밀지 않아요. 대신 {{skill_name}}로 먼저 판을 정리하면서 다음 교환에서 {{defender_name}}이 같은 방식으로 들어오기 어렵게 만드는 쪽을 택해요. 조용해 보여도 흐름상 꽤 큰 준비 턴이에요."
+            }
+          },
+          "review": {
+            "decision": "approve",
+            "score": 0.92,
+            "reasonCodes": [],
+            "feedback": "approved"
+          },
+          "approved": true
+        }
+      ],
+      "approvedDraft": {
+        "id": "scene-after-setup-001-draft-2",
+        "category": "sceneAfter",
+        "text": "{{attacker_name}}은 지금 무리해서 세게 밀지 않아요. 대신 {{skill_name}}로 먼저 판을 정리하면서 다음 교환에서 {{defender_name}}이 같은 방식으로 들어오기 어렵게 만드는 쪽을 택해요. 조용해 보여도 흐름상 꽤 큰 준비 턴이에요.",
+        "notes": [
+          "revised-from-review"
+        ],
+        "row": {
+          "id": "scene-after-setup-001-draft-2",
+          "weight": "1",
+          "phase": "승|전|결",
+          "importance": "high",
+          "commentary_role": "highlight|climax",
+          "skill_pattern": "보호막",
+          "skill_family": "setup",
+          "status_name": "보호",
+          "momentum": "*",
+          "length_band": "long",
+          "usage_bucket": "fresh|repeat",
+          "damage_band": "zero",
+          "hp_band": "mid|high",
+          "tags": "*",
+          "text": "{{attacker_name}}은 지금 무리해서 세게 밀지 않아요. 대신 {{skill_name}}로 먼저 판을 정리하면서 다음 교환에서 {{defender_name}}이 같은 방식으로 들어오기 어렵게 만드는 쪽을 택해요. 조용해 보여도 흐름상 꽤 큰 준비 턴이에요."
+        }
+      },
+      "approvedRow": {
+        "id": "scene-after-setup-001-draft-2",
+        "weight": "1",
+        "phase": "승|전|결",
+        "importance": "high",
+        "commentary_role": "highlight|climax",
+        "skill_pattern": "보호막",
+        "skill_family": "setup",
+        "status_name": "보호",
+        "momentum": "*",
+        "length_band": "long",
+        "usage_bucket": "fresh|repeat",
+        "damage_band": "zero",
+        "hp_band": "mid|high",
+        "tags": "*",
+        "text": "{{attacker_name}}은 지금 무리해서 세게 밀지 않아요. 대신 {{skill_name}}로 먼저 판을 정리하면서 다음 교환에서 {{defender_name}}이 같은 방식으로 들어오기 어렵게 만드는 쪽을 택해요. 조용해 보여도 흐름상 꽤 큰 준비 턴이에요."
+      },
+      "lastReview": {
+        "decision": "approve",
+        "score": 0.92,
+        "reasonCodes": [],
+        "feedback": "approved"
+      }
+    }
+  ],
+  "approvedCsvByCategory": {
+    "sceneAction": "id,weight,phase,importance,commentary_role,skill_pattern,skill_family,status_name,momentum,length_band,usage_bucket,damage_band,hp_band,tags,text\nscene-action-repeat-001-draft-2,2,승|전,mid|high,transition|highlight,연타,multi-hit,없음,left|right,long,repeat|spam,medium|big,mid|low,*,\"{{attacker_name}} 쪽 리듬이 한번 붙으니까 {{skill_name}} 박자가 생각보다 길게 이어져요. {{defender_name}}은 첫 타를 막고도 바로 중심을 다시 못 세워서, 같은 기술을 또 봤는데도 체감 부담이 더 커지는 장면이에요.\"",
+    "sceneResult": "id,weight,phase,importance,commentary_role,skill_pattern,skill_family,status_name,momentum,length_band,usage_bucket,damage_band,hp_band,tags,text\nscene-result-control-001-draft-2,2,전|결,high,highlight|climax,행동 제어,control,속박|지연,left|right,long,fresh|repeat,small|medium,low|critical,*,\"{{skill_name}}는 한 번 세게 때리는 기술이라기보다 {{defender_name}}의 타이밍을 비틀어 두는 쪽에 가까워요. 그래서 맞는 순간보다 그 직후가 더 답답하게 남고, {{attacker_name}}은 그 빈 박자를 이용해서 다음 선택까지 같이 압박할 수 있게 돼요.\"",
+    "sceneAfter": "id,weight,phase,importance,commentary_role,skill_pattern,skill_family,status_name,momentum,length_band,usage_bucket,damage_band,hp_band,tags,text\nscene-after-setup-001-draft-2,1,승|전|결,high,highlight|climax,보호막,setup,보호,*,long,fresh|repeat,zero,mid|high,*,{{attacker_name}}은 지금 무리해서 세게 밀지 않아요. 대신 {{skill_name}}로 먼저 판을 정리하면서 다음 교환에서 {{defender_name}}이 같은 방식으로 들어오기 어렵게 만드는 쪽을 택해요. 조용해 보여도 흐름상 꽤 큰 준비 턴이에요."
+  }
+}

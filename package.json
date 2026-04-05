@@ -4,6 +4,8 @@
   "scripts": {
     "dev": "cd src && python -m http.server 8080",
     "dialogue:test": "node src/system/battle-dialogue/run-dialogue-smoke-test.mjs",
+    "dialogue:workflow": "node src/system/battle-dialogue/run-dialogue-workflow.mjs",
+    "dialogue:batch-demo": "node src/system/battle-dialogue/run-dialogue-batch-demo.mjs",
     "build": "echo 'No build step required for static site'",
     "deploy": "gh-pages -d src"
   },

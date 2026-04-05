@@ -1,0 +1,262 @@
+/* 스타터 선택 화면 */
+
+/* ════════════════════════════════
+   화면 전체 레이아웃
+════════════════════════════════ */
+#screen-starter {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* ════════════════════════════════
+   헤더
+════════════════════════════════ */
+.ss-header {
+  flex-shrink: 0;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255,255,255,0.03);
+}
+.ss-title {
+  font-size: 17px;
+  font-weight: 900;
+  color: var(--text);
+  line-height: 1;
+}
+.ss-sub {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text3);
+  margin-top: 3px;
+}
+
+/* ════════════════════════════════
+   스타터 그리드
+════════════════════════════════ */
+.ss-grid-wrap {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  min-height: 0;
+  padding: 10px 10px 0;
+}
+
+.ss-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+/* ── 카드 ── */
+.starter-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px 6px;
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.14s, background 0.14s;
+  position: relative;
+}
+.starter-card:active:not(.locked) {
+  background: rgba(91,141,255,0.1);
+}
+.starter-card.selected {
+  border-color: var(--accent);
+  background: rgba(91,141,255,0.12);
+  box-shadow: 0 0 0 1px rgba(91,141,255,0.3);
+}
+.starter-card.locked {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.sc-sprite {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+.sc-locked-sprite {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: var(--text3);
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+}
+.sc-name {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.sc-locked-name { color: var(--text3); }
+.sc-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.sc-lock-icon {
+  font-size: 12px;
+  position: absolute;
+  top: 5px;
+  right: 6px;
+}
+
+/* ════════════════════════════════
+   상세 패널
+════════════════════════════════ */
+.ss-detail-panel {
+  flex-shrink: 0;
+  border-top: 1px solid var(--line);
+  background: rgba(255,255,255,0.03);
+}
+
+.starter-detail {
+  display: flex;
+  gap: 12px;
+  padding: 10px 14px 6px;
+  align-items: flex-start;
+}
+
+/* 왼쪽: 스프라이트 */
+.sd-left {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.sd-sprite {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 4px 12px rgba(91,141,255,0.25));
+}
+
+/* 오른쪽: 정보 */
+.sd-right {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sd-header-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.sd-name {
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--text);
+}
+.sd-level {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+}
+.sd-type-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 5px;
+}
+.sd-temperament {
+  font-size: 11px;
+  color: var(--text2);
+  line-height: 1.4;
+}
+
+/* 스탯 그리드 */
+.sd-stats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 3px;
+  margin-top: 2px;
+}
+.sd-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255,255,255,0.05);
+  border-radius: 6px;
+  padding: 3px 2px;
+}
+.sd-stat-label {
+  font-size: 8px;
+  font-weight: 600;
+  color: var(--text3);
+}
+.sd-stat-val {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+/* 스킬 칩 */
+.sd-skills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+.sd-skill-chip {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  background: rgba(91,141,255,0.1);
+  border: 1px solid rgba(91,141,255,0.25);
+  border-radius: 5px;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+/* ════════════════════════════════
+   확인 버튼
+════════════════════════════════ */
+.starter-confirm-wrap {
+  padding: 8px 14px 10px;
+}
+.starter-confirm-btn {
+  width: 100%;
+  height: 46px;
+  background: var(--accent);
+  border: none;
+  border-radius: 13px;
+  font-size: 15px;
+  font-weight: 900;
+  color: #fff;
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.15s, transform 0.1s;
+  letter-spacing: 0.5px;
+}
+.starter-confirm-btn:active:not(:disabled) {
+  opacity: 0.8;
+  transform: scale(0.98);
+}
+.starter-confirm-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+  background: var(--text3);
+}

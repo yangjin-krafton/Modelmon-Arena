@@ -12,6 +12,8 @@
   <link rel="stylesheet" href="./system/style/detail.css">
   <link rel="stylesheet" href="./system/style/skill-tree.css">
   <link rel="stylesheet" href="./system/style/nav.css">
+  <link rel="stylesheet" href="./system/style/battle.css">
+  <link rel="stylesheet" href="./system/style/starter.css">
 </head>
 <body>
 
@@ -22,14 +24,6 @@
 
     <!-- ══════════ LIST SCREEN ══════════ -->
     <div class="screen" id="screen-list">
-
-      <!-- 인게임 오버레이 (인게임 탭 클릭시) -->
-      <div class="tab-overlay hidden" id="tab-overlay">
-        <div class="to-icon">🎮</div>
-        <div class="to-title">인게임</div>
-        <div class="to-sub">게임 진행 중에 해금됩니다</div>
-        <button class="to-back" id="to-back-btn">← 도감으로</button>
-      </div>
 
       <!-- 스티키 헤더 -->
       <div class="list-header">
@@ -64,6 +58,164 @@
         </div>
       </div>
     </div><!-- /screen-list -->
+
+    <!-- ══════════ STARTER SCREEN ══════════ -->
+    <div class="screen" id="screen-starter">
+
+      <!-- 헤더 -->
+      <div class="ss-header">
+        <div class="ss-title">스타터 선택</div>
+        <div class="ss-sub">함께할 파트너를 골라주세요</div>
+      </div>
+
+      <!-- 스타터 그리드 (스크롤) -->
+      <div class="ss-grid-wrap">
+        <div class="ss-grid" id="starter-grid">
+          <!-- JS로 채워짐 -->
+        </div>
+      </div>
+
+      <!-- 상세 패널 -->
+      <div class="ss-detail-panel">
+        <div class="starter-detail">
+          <div class="sd-left">
+            <img class="sd-sprite" id="sd-sprite" src="" alt="">
+          </div>
+          <div class="sd-right">
+            <div class="sd-header-row">
+              <span class="sd-name" id="sd-name">—</span>
+              <span class="sd-level" id="sd-level">Lv.15</span>
+              <span class="sd-type-badge" id="sd-type-badge">—</span>
+            </div>
+            <div class="sd-temperament" id="sd-temperament">—</div>
+            <div class="sd-stats">
+              <div class="sd-stat-item">
+                <span class="sd-stat-label">내구</span>
+                <span class="sd-stat-val" id="sd-hp">—</span>
+              </div>
+              <div class="sd-stat-item">
+                <span class="sd-stat-label">출력</span>
+                <span class="sd-stat-val" id="sd-atk">—</span>
+              </div>
+              <div class="sd-stat-item">
+                <span class="sd-stat-label">정렬</span>
+                <span class="sd-stat-val" id="sd-def">—</span>
+              </div>
+              <div class="sd-stat-item">
+                <span class="sd-stat-label">속도</span>
+                <span class="sd-stat-val" id="sd-spd">—</span>
+              </div>
+              <div class="sd-stat-item">
+                <span class="sd-stat-label">추론</span>
+                <span class="sd-stat-val" id="sd-spc">—</span>
+              </div>
+            </div>
+            <div class="sd-skills-row" id="sd-skills"></div>
+          </div>
+        </div>
+        <div class="starter-confirm-wrap">
+          <button class="starter-confirm-btn" id="starter-confirm-btn" disabled>
+            모험 시작!
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /screen-starter -->
+
+    <!-- ══════════ BATTLE SCREEN ══════════ -->
+    <div class="screen" id="screen-battle">
+
+      <!-- 상단 바 -->
+      <div class="battle-topbar">
+        <div class="bt-trainer">
+          <span class="bt-icon">👤</span>
+          <span id="bt-trainer-name">연구원 A</span>
+        </div>
+        <div class="bt-round" id="bt-round">Round 1</div>
+      </div>
+
+      <!-- 배틀 필드 -->
+      <div class="battle-field">
+
+        <!-- 적 (상단) -->
+        <div class="bf-enemy">
+          <div class="bf-monbox enemy-monbox">
+            <div class="bfm-nameline">
+              <span class="bfm-name" id="enemy-mon-name">—</span>
+              <span class="bfm-level" id="enemy-mon-level">Lv.—</span>
+            </div>
+            <div class="bfm-hpbar">
+              <div class="bfm-hpfill hp-high" id="enemy-hpfill" style="width:100%"></div>
+            </div>
+            <div class="bfm-hptext">
+              <span id="enemy-hp-cur">—</span>
+              <span class="hp-sep">/</span>
+              <span id="enemy-hp-max">—</span>
+            </div>
+          </div>
+          <img class="bf-sprite enemy-sprite" id="enemy-sprite" src="" alt="">
+        </div>
+
+        <!-- 플레이어 (하단) -->
+        <div class="bf-player">
+          <img class="bf-sprite player-sprite" id="player-sprite" src="" alt="">
+          <div class="bf-monbox player-monbox">
+            <div class="bfm-nameline">
+              <span class="bfm-name" id="player-mon-name">—</span>
+              <span class="bfm-level" id="player-mon-level">Lv.—</span>
+            </div>
+            <div class="bfm-hpbar">
+              <div class="bfm-hpfill hp-high" id="player-hpfill" style="width:100%"></div>
+            </div>
+            <div class="bfm-hptext">
+              <span id="player-hp-cur">—</span>
+              <span class="hp-sep">/</span>
+              <span id="player-hp-max">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 결과 오버레이 -->
+        <div class="battle-result hidden" id="battle-result">
+          <div class="br-icon">🏆</div>
+          <div class="br-title">승리!</div>
+          <div class="br-sub"></div>
+          <button class="br-retry" id="battle-retry-btn">다시 도전</button>
+        </div>
+
+      </div><!-- /battle-field -->
+
+      <!-- 다이얼로그 -->
+      <div class="battle-log" id="battle-log">
+        <div class="bl-text" id="bl-text">인게임 탭에 오신 것을 환영합니다.</div>
+        <div class="bl-arrow" id="bl-arrow" style="display:none">▼</div>
+      </div>
+
+      <!-- 스킬 버튼 -->
+      <div class="battle-actions hidden" id="battle-actions">
+        <button class="skill-btn" id="skill-btn-0" data-idx="0">
+          <span class="sb-name">—</span>
+          <span class="sb-elem"></span>
+          <span class="sb-pp"></span>
+        </button>
+        <button class="skill-btn" id="skill-btn-1" data-idx="1">
+          <span class="sb-name">—</span>
+          <span class="sb-elem"></span>
+          <span class="sb-pp"></span>
+        </button>
+        <button class="skill-btn" id="skill-btn-2" data-idx="2">
+          <span class="sb-name">—</span>
+          <span class="sb-elem"></span>
+          <span class="sb-pp"></span>
+        </button>
+        <button class="skill-btn" id="skill-btn-3" data-idx="3">
+          <span class="sb-name">—</span>
+          <span class="sb-elem"></span>
+          <span class="sb-pp"></span>
+        </button>
+      </div>
+
+    </div><!-- /screen-battle -->
 
     <!-- ══════════ DETAIL SCREEN ══════════ -->
     <div class="screen" id="screen-detail">

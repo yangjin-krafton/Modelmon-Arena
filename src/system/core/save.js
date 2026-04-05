@@ -18,6 +18,8 @@
 const SAVE_KEY     = 'modelmon-save';
 const SAVE_VERSION = 2;
 
+/* 스타터 해금 (캡처 상태와 별개로 추가 해금된 ID 목록) */
+
 const STARTER_STATE = {
   '001': { state: 'captured', lv: 5 },
   '004': { state: 'captured', lv: 5 },
@@ -52,7 +54,28 @@ export function saveGame() {
   localStorage.setItem(SAVE_KEY, JSON.stringify({
     version: SAVE_VERSION,
     monState: MON_STATE,
+    starterUnlocks: _save.starterUnlocks ?? {},
   }));
+}
+
+/**
+ * 스타터 선택 가능 여부.
+ * - 포획 기록이 있으면 true
+ * - 또는 진화/팀 합류로 별도 해금된 경우 true
+ */
+export function isStarterEligible(monId) {
+  if (MON_STATE[monId]?.state === 'captured') return true;
+  return !!(_save.starterUnlocks ?? {})[monId];
+}
+
+/**
+ * 포획 외 경로(진화 중 팀 합류 등)로 스타터 해금.
+ * battle.js 에서 진화 완료 시 호출.
+ */
+export function unlockStarter(monId) {
+  if (!_save.starterUnlocks) _save.starterUnlocks = {};
+  _save.starterUnlocks[monId] = true;
+  saveGame();
 }
 
 /** 세이브를 삭제하고 페이지를 새로고침. */

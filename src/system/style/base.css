@@ -44,9 +44,23 @@ html, body {
 }
 
 /* 초기 상태 */
-#screen-list  { transform: translateX(0); }
-#screen-detail{ transform: translateX(100%); }
+#screen-list    { transform: translateX(0); }
+#screen-detail  { transform: translateX(100%); }
+#screen-starter { transform: translateX(100%); }
+#screen-battle  { transform: translateX(100%); }
 
-/* 전환 상태 */
+/* 도감 전환 상태 */
 #screen-list.pushed  { transform: translateX(-28%); }
 #screen-detail.open  { transform: translateX(0); }
+
+/* ── 인게임: 스타터 화면 ── */
+.screen-container.ingame-starter #screen-list    { transform: translateX(-100%) !important; }
+.screen-container.ingame-starter #screen-detail  { transform: translateX(100%) !important; }
+.screen-container.ingame-starter #screen-starter { transform: translateX(0) !important; }
+.screen-container.ingame-starter #screen-battle  { transform: translateX(100%) !important; }
+
+/* ── 인게임: 전투 화면 ── */
+.screen-container.ingame-battle  #screen-list    { transform: translateX(-100%) !important; }
+.screen-container.ingame-battle  #screen-detail  { transform: translateX(100%) !important; }
+.screen-container.ingame-battle  #screen-starter { transform: translateX(-100%) !important; }
+.screen-container.ingame-battle  #screen-battle  { transform: translateX(0) !important; }

@@ -1,8 +1,8 @@
-/** Toast notifications, bottom-nav tab switching, and tab-overlay back button. */
+/** Toast, bottom-nav 탭 전환, 스타터 ↔ 전투 화면 전환 */
 
-import { state } from '../core/state.js';
-import { renderList } from './list.js';
 import { closeDetail } from './detail.js';
+import { initStarterScreen, showStarterScreen } from './starter.js';
+import { initBattle, startBattle, getBattlePhase } from './battle.js';
 
 /* ════════════════════════════════════════
    Toast
@@ -18,33 +18,72 @@ export function showToast(msg) {
 }
 
 /* ════════════════════════════════════════
-   Bottom nav + tab overlay
+   화면 전환 헬퍼
 ════════════════════════════════════════ */
+const container = () => document.querySelector('.screen-container');
+
+function showDex() {
+  const c = container();
+  c.classList.remove('ingame-starter', 'ingame-battle');
+  closeDetail();
+}
+
+function showStarterUI() {
+  const c = container();
+  c.classList.remove('ingame-battle');
+  c.classList.add('ingame-starter');
+  showStarterScreen();
+}
+
+function showBattleUI(starterMonId) {
+  const c = container();
+  c.classList.remove('ingame-starter');
+  c.classList.add('ingame-battle');
+  startBattle(starterMonId);
+}
+
+/* ════════════════════════════════════════
+   Bottom nav 초기화
+════════════════════════════════════════ */
+let ingameReady = false;
+
 export function initNavEvents() {
-  const tabOverlay = document.getElementById('tab-overlay');
-  const toBack     = document.getElementById('to-back-btn');
+  // 스타터 선택 완료 → 전투 화면으로
+  initStarterScreen(monId => showBattleUI(monId));
+
+  // 전투 종료 / 재도전 → 스타터 선택으로 복귀
+  initBattle(() => showStarterUI());
 
   document.querySelector('.bottom-nav').addEventListener('click', e => {
     const item = e.target.closest('.nav-item');
     if (!item) return;
     const tab = item.dataset.tab;
 
-    document.querySelectorAll('.nav-item').forEach(n => n.dataset.active = 'false');
-    item.dataset.active = 'true';
+    document.querySelectorAll('.nav-item').forEach(n => {
+      n.dataset.active = n.dataset.tab === tab ? 'true' : 'false';
+    });
 
     if (tab === 'dex') {
-      tabOverlay.classList.add('hidden');
+      showDex();
+    } else if (tab === 'ingame') {
       closeDetail();
-    } else {
-      tabOverlay.classList.remove('hidden');
-      closeDetail();
-    }
-  });
 
-  toBack.addEventListener('click', () => {
-    tabOverlay.classList.add('hidden');
-    document.querySelectorAll('.nav-item').forEach(n => {
-      n.dataset.active = n.dataset.tab === 'dex' ? 'true' : 'false';
-    });
+      if (!ingameReady) {
+        ingameReady = true;
+        // initBattle()은 async이지만 이미 위에서 시작됨 → 완료 후 starter 표시
+        // 로딩 중 화면 전환을 먼저 하고 완료되면 starter가 렌더됨
+        showStarterUI();
+      } else {
+        // 이미 전투 중이면 전투 화면 유지, 그렇지 않으면 스타터 복귀
+        const battlePhase = getBattlePhase();
+        if (battlePhase === 'choosing' || battlePhase === 'animating') {
+          const c = container();
+          c.classList.remove('ingame-starter');
+          c.classList.add('ingame-battle');
+        } else {
+          showStarterUI();
+        }
+      }
+    }
   });
 }

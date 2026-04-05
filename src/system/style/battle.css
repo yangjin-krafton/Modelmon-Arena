@@ -1,0 +1,293 @@
+/* 전투 화면 레이아웃 및 컴포넌트 */
+
+/* ════════════════════════════════
+   전투 화면 래퍼
+════════════════════════════════ */
+#screen-battle {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* ════════════════════════════════
+   상단 바 (트레이너 정보)
+════════════════════════════════ */
+.battle-topbar {
+  flex-shrink: 0;
+  height: 40px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255,255,255,0.03);
+}
+.bt-trainer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+.bt-icon { font-size: 16px; }
+.bt-round {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+  background: rgba(255,255,255,0.06);
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+/* ════════════════════════════════
+   배틀 필드 (스프라이트 + HP)
+════════════════════════════════ */
+.battle-field {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px 12px;
+  min-height: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 70% 25%, rgba(91,141,255,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 30% 75%, rgba(255,100,60,0.07) 0%, transparent 70%);
+}
+
+/* ── 적 (위쪽, 오른쪽 정렬) ── */
+.bf-enemy {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.enemy-sprite {
+  order: 2;
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 4px 12px rgba(91,141,255,0.3));
+}
+
+/* ── 플레이어 (아래쪽, 왼쪽 정렬) ── */
+.bf-player {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+}
+.player-sprite {
+  order: 1;
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 4px 16px rgba(255,100,60,0.3));
+}
+
+/* ── 몬스터 정보 박스 ── */
+.bf-monbox {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 8px 10px;
+  min-width: 140px;
+  max-width: 180px;
+  flex: 1;
+}
+.enemy-monbox { order: 1; }
+.player-monbox { order: 2; }
+
+.bfm-nameline {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.bfm-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bfm-level {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text3);
+  white-space: nowrap;
+}
+.bfm-hpbar {
+  height: 6px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.bfm-hpfill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+.bfm-hpfill.hp-high { background: linear-gradient(90deg, #40c870, #70ff90); }
+.bfm-hpfill.hp-mid  { background: linear-gradient(90deg, #e0b030, #ffd060); }
+.bfm-hpfill.hp-low  { background: linear-gradient(90deg, #e04040, #ff7060); }
+
+.bfm-hptext {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+  display: flex;
+  gap: 1px;
+}
+.hp-sep { color: var(--line); }
+
+/* ════════════════════════════════
+   다이얼로그 로그
+════════════════════════════════ */
+.battle-log {
+  flex-shrink: 0;
+  min-height: 76px;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.04);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.bl-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+.bl-arrow {
+  position: absolute;
+  right: 14px;
+  bottom: 10px;
+  font-size: 11px;
+  color: var(--text3);
+  animation: blink 1s infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.2; }
+}
+
+/* ════════════════════════════════
+   스킬 버튼 그리드
+════════════════════════════════ */
+.battle-actions {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--bg);
+}
+.battle-actions.hidden { display: none; }
+
+.skill-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s, border-color 0.12s;
+  font-family: inherit;
+  text-align: left;
+}
+.skill-btn:active:not(:disabled) {
+  background: rgba(91,141,255,0.15);
+  border-color: rgba(91,141,255,0.4);
+}
+.skill-btn:disabled, .skill-btn.sb-empty {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.sb-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.sb-pp {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text3);
+}
+.sb-elem {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  margin-top: 1px;
+}
+
+/* 원소 색상 (skill-btn의 data-elem에 따라) */
+.skill-btn[data-elem="대화"]    .sb-elem { background: rgba(80,255,140,0.15); color: #70ffb0; }
+.skill-btn[data-elem="추론"]    .sb-elem { background: rgba(180,80,255,0.15); color: #c890ff; }
+.skill-btn[data-elem="생성"]    .sb-elem { background: rgba(255,160,60,0.15); color: #ffb060; }
+.skill-btn[data-elem="검색"]    .sb-elem { background: rgba(80,200,255,0.15); color: #70ccff; }
+.skill-btn[data-elem="코드"]    .sb-elem { background: rgba(255,200,60,0.15); color: #ffd060; }
+.skill-btn[data-elem="에이전트"].sb-elem { background: rgba(60,220,180,0.15); color: #60eebb; }
+.skill-btn[data-elem="멀티모달"].sb-elem { background: rgba(80,180,255,0.15); color: #80ccff; }
+.skill-btn[data-elem="메모리"]  .sb-elem { background: rgba(180,120,255,0.15); color: #cc90ff; }
+.skill-btn[data-elem="정렬"]    .sb-elem { background: rgba(255,120,60,0.15); color: #ff9060; }
+.skill-btn[data-elem="시스템"]  .sb-elem { background: rgba(160,160,180,0.15); color: #b0b0cc; }
+.skill-btn[data-elem="학습"]    .sb-elem { background: rgba(120,220,80,0.15); color: #90ee60; }
+.skill-btn[data-elem="오염"]    .sb-elem { background: rgba(180,60,255,0.15); color: #cc60ff; }
+
+/* ════════════════════════════════
+   결과 오버레이
+════════════════════════════════ */
+.battle-result {
+  position: absolute;
+  inset: 0;
+  background: rgba(10,10,20,0.88);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  z-index: 200;
+}
+.battle-result.hidden { display: none; }
+
+.br-icon  { font-size: 56px; }
+.br-title { font-size: 26px; font-weight: 900; color: var(--text); }
+.br-sub   { font-size: 14px; color: var(--text3); text-align: center; }
+
+.br-retry {
+  margin-top: 12px;
+  height: 44px;
+  padding: 0 28px;
+  background: rgba(91,141,255,0.15);
+  border: 1px solid rgba(91,141,255,0.35);
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+  font-family: inherit;
+  cursor: pointer;
+}

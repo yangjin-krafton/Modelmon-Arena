@@ -12,3 +12,20 @@ scene-intro-010,1,*,low|mid,transition,*,utility,없음|보호|회복,*,short|me
 scene-intro-011,1,승|전,mid|high,transition|highlight,연타,multi-hit,없음,left|right,medium|long,repeat|spam,small|medium|big,mid|low,*,같은 리듬이 계속 이어지면 보는 쪽도 긴장돼요. 이번엔 또 어디서부터 무너지기 시작할지 다들 눈치를 보고 있거든요.
 scene-intro-012,1,*,mid|high,analysis|highlight,보호막,setup,보호,*,medium|long,repeat|spam,zero,*,*,조용히 버티는 턴처럼 보여도 막상 이어서 보면 달라요. 이렇게 방어선을 정리해 둔 쪽이 다음 교환에서 훨씬 덜 흔들려요.
 scene-intro-013,1,승|전|결,high,highlight|climax,보호막,setup,보호,*,medium|long,fresh|repeat,zero,mid|high,*,조용한 턴처럼 보여도 지금은 달라요. 방어선을 어디까지 단단하게 세워 두느냐가 곧 다음 교환의 주도권으로 이어질 수 있어요.
+scene-intro-014,2,결,high,highlight|climax,행동 제어,control,속박|지연,left|right,long,repeat|spam,small|medium,low|critical,*,이제는 피해보다 선택지가 더 빡빡해져요. 한 번 늦는 쪽이 계속 따라가게 되는 장면이라 숨이 더 조여 와요.
+scene-intro-015,2,전|결,high,highlight|climax,충전 공격,charge,지연|없음,left|right,long,fresh|repeat,medium|big,low|critical,*,한 번 모아 둔 힘이 곧 터질 것 같아요. 괜히 조용한 게 아니라 다들 이 타이밍을 보고 있는 거예요.
+scene-intro-016,2,*,mid|high,analysis|highlight,회복,recovery,회복,right,medium|long,fresh|repeat,zero,low|critical,*,이 턴은 조용해 보여도 다시 버티기 위한 준비예요. 숨을 고르면 다음 장면이 훨씬 덜 흔들릴 수 있거든요.
+scene-intro-017,2,*,mid,transition,단일 공격,strike,없음,*,short|medium,fresh|repeat,small|medium,mid|low,*,아직은 크게 터뜨리기보다 한 번 찔러 보는 느낌이에요. 대신 이 타이밍을 놓치면 흐름이 쉽게 넘어가요.
+scene-intro-018,2,전,mid|high,transition|highlight,연타,multi-hit,없음,left|right,medium|long,repeat|spam,medium|big,mid|low,*,같은 박자가 또 보이기 시작했어요. 상대가 이 리듬에 익숙해질 틈을 못 주는 게 핵심이에요.
+scene-intro-019,1,*,low|mid,setup,버프,setup,없음,*,short|medium,fresh,zero,high|mid,*,지금은 세게 치는 게 아니라 기준을 올리는 턴이에요. 이런 장면이 쌓여야 뒤에서 덜 흔들려요.
+scene-intro-020,1,결,high,climax,*,*,*,*,short|medium,repeat|spam,medium|big,low|critical,*,이제 분위기가 확 바뀌었어요. 다음 한 번은 그냥 턴이 아니라 장면을 닫는 쪽으로 읽힐 수 있어요.
+scene-intro-021,2,결,high,highlight|climax,보호막,setup,보호,*,medium|long,repeat|spam,zero,mid|high,*,조용한 것 같아도 방어선을 다시 세우는 중이에요. 뒤에서 보면 이런 턴이 의외로 제일 크게 남아요.
+scene-intro-022,2,*,mid,analysis,회복,recovery,회복,right,medium|long,fresh|repeat,zero,low|critical,*,숨을 고르는 순간 전장도 잠깐 멈춘 것처럼 보여요. 하지만 다음 교환을 버티는 힘은 여기서 다시 붙어요.
+scene-intro-023,2,결,high,highlight|climax,행동 제어,control,속박|지연,left|right,long,repeat|spam,small|medium,low|critical,*,이제는 들어가는 쪽도 쉽게 못 들어와요. 한 번 늦어지면 다음 박자까지 같이 끌려가서 숨이 더 조여 와요.
+scene-intro-024,2,전|결,high,highlight|climax,충전 공격,charge,지연|없음,left|right,long,fresh|repeat,medium|big,low|critical,*,힘을 모으는 장면인데도 공기가 더 조용해졌어요. 다들 이 턴이 끝나면 뭐가 터질지 알고 있는 거예요.
+scene-intro-025,2,*,mid|high,analysis|highlight,회복,recovery,회복,right,medium|long,fresh|repeat,zero,low|critical,*,지금은 숫자보다 호흡이 먼저예요. 한 번 숨을 붙여 두면 뒤쪽 장면이 훨씬 덜 흔들려요.
+scene-intro-026,2,*,mid,transition,단일 공격,strike,없음,*,short|medium,fresh|repeat,small|medium,mid|low,*,일단 한 번 찔러 보는 타이밍이에요. 크게 터뜨리진 않아도 흐름을 확인하기엔 충분해요.
+scene-intro-027,2,전,mid|high,transition|highlight,연타,multi-hit,없음,left|right,medium|long,repeat|spam,medium|big,mid|low,*,같은 박자가 다시 보이면 상대도 바로 긴장해요. 여기서 끊기면 다음 흐름이 전부 달라져요.
+scene-intro-028,1,*,low|mid,setup,버프,setup,없음,*,short|medium,fresh,zero,high|mid,*,지금은 딜보다 기준을 올리는 턴이에요. 이런 쪽이 뒤에서 훨씬 크게 느껴져요.
+scene-intro-029,1,결,high,climax,*,*,*,*,short|medium,repeat|spam,medium|big,low|critical,*,이제는 탐색이 끝났어요. 다음 한 번은 장면을 닫는 쪽으로 읽혀도 이상하지 않아요.
+scene-intro-030,2,결,high,highlight|climax,보호막,setup,보호,*,medium|long,repeat|spam,zero,mid|high,*,방어선을 다시 세우는 순간이 제일 조용해 보여요. 근데 뒤에서 보면 이런 턴이 정말 크게 남아요.

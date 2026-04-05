@@ -55,3 +55,28 @@ function splitCsvLine(line) {
   result.push(current);
   return result;
 }
+
+export function stringifyCsv(rows, headers = null) {
+  const normalizedRows = Array.isArray(rows) ? rows : [];
+  if (!normalizedRows.length && !headers) {
+    return "";
+  }
+
+  const headerList = headers || Object.keys(normalizedRows[0] || {});
+  const lines = [headerList.map(escapeCsvCell).join(",")];
+
+  for (const row of normalizedRows) {
+    lines.push(headerList.map((header) => escapeCsvCell(row?.[header] ?? "")).join(","));
+  }
+
+  return lines.join("\n");
+}
+
+function escapeCsvCell(value) {
+  const text = String(value ?? "");
+  if (!/[",\r\n]/.test(text)) {
+    return text;
+  }
+
+  return `"${text.replaceAll('"', '""')}"`;
+}

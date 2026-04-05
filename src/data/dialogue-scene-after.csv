@@ -12,3 +12,20 @@ scene-after-010,1,*,mid|high,analysis|highlight,보호막,setup,보호,*,medium|
 scene-after-011,1,*,mid,transition,*,utility,없음|보호|회복,*,medium,fresh|repeat,zero|small,*,*,겉으로는 조용한데 전장 해석은 바뀌었어요. 이제부터는 누가 더 편하게 다음 수를 고를 수 있는지가 핵심이에요.
 scene-after-012,1,결,high,climax,단일 공격|연타,strike|multi-hit,없음,left|right,long,repeat|spam,big,critical,*,여기까지 오면 모두가 알아요. 다음 한 번은 그냥 공격이 아니라 끝을 정하는 문장처럼 읽힐 수 있다는 걸요.
 scene-after-013,1,승|전|결,high,highlight|climax,보호막,setup,보호,*,medium|long,fresh|repeat,zero,mid|high,*,지금 세운 방어선은 단순 버티기가 아니에요. 다음 교환에서 상대가 같은 방식으로 들어오면 손익이 전혀 다르게 계산될 가능성이 커졌어요.
+scene-after-014,2,결,high,highlight|climax,행동 제어,control,속박|지연,left|right,long,repeat|spam,small|medium,low|critical,*,이제는 맞고 끝나는 턴이 아니에요. {{status_name}}이 남아서 다음 선택까지 같이 무거워지는 게 더 큰 문제예요.
+scene-after-015,2,*,mid|high,analysis|highlight,회복,recovery,회복,right,medium|long,fresh|repeat,zero,low|critical,*,회복이 들어간 뒤부터는 다시 계산이 가능해져요. 조용해 보이지만 이 턴이 다음 교환을 버티게 해요.
+scene-after-016,2,전|결,high,highlight|climax,충전 공격,charge,지연|없음,left|right,long,fresh|repeat,medium|big,low|critical,*,방금 큰 기술이 들어가고 나서 전장 공기가 확 달라졌어요. 다음 판단을 바로 내리기 어려울 만큼 무게가 실렸어요.
+scene-after-017,2,*,mid,analysis,버프|보호막,setup,보호,*,medium|long,repeat|spam,zero,*,*,버티는 선택이 괜히 들어간 게 아니에요. 이런 장면이 뒤에 가서 훨씬 크게 느껴질 수 있어요.
+scene-after-018,2,결,high,climax,단일 공격|연타,strike|multi-hit,없음,left|right,long,repeat|spam,medium|big,low|critical,*,지금은 단순히 맞고 넘어가는 흐름이 아니에요. 끝까지 몰아붙이려는 쪽이 더 선명해진 장면이에요.
+scene-after-019,1,*,low,setup,*,*,없음,*,short,fresh,*,*,*,일단 숨은 붙었어요. 그걸로도 다음 판은 달라져요.
+scene-after-020,1,결,high,climax,*,utility,없음|보호|회복,*,medium|long,repeat|spam,zero|small,low|critical,*,정리해 보면 이번 턴은 작지 않았어요. 숫자보다 흐름이 더 크게 남은 장면이에요.
+scene-after-021,2,결,high,highlight|climax,보호막,setup,보호,*,medium|long,repeat|spam,zero,mid|high,*,지금 세워 둔 벽이 한번 더 시간을 벌어 줘요. 뒤쪽 장면에서 왜 이게 중요했는지 바로 느껴질 거예요.
+scene-after-022,2,*,mid|high,analysis|highlight,회복,recovery,회복,right,medium|long,fresh|repeat,zero,low|critical,*,회복은 숫자보다 분위기예요. 다시 버틸 수 있다는 감각이 돌아오면 다음 선택이 훨씬 덜 흔들려요.
+scene-after-023,2,결,high,highlight|climax,행동 제어,control,속박|지연,left|right,long,repeat|spam,small|medium,low|critical,*,{{status_name}}가 붙은 뒤엔 선택이 더 이상 가볍지 않아요. 다음 턴까지 무겁게 끌고 가는 게 이 장면의 핵심이에요.
+scene-after-024,2,전|결,high,highlight|climax,충전 공격,charge,지연|없음,left|right,long,fresh|repeat,medium|big,low|critical,*,큰 기술이 지나간 뒤엔 전장 분위기가 바로 바뀌어요. 다음 판단을 쉽게 못 하게 만드는 여운이 남아요.
+scene-after-025,2,*,mid|high,analysis|highlight,회복,recovery,회복,right,medium|long,fresh|repeat,zero,low|critical,*,회복은 단순 정리처럼 보여도 꽤 중요해요. 다시 버틸 수 있다는 감각이 돌아오면 다음 교환이 달라져요.
+scene-after-026,2,*,low|mid,setup,버프,setup,없음,*,medium,*,zero,high|mid,*,지금은 딜보다 바닥을 깔아 둔 턴이에요. 이런 준비가 쌓이면 뒤에서 훨씬 편해져요.
+scene-after-027,2,전,mid|high,transition|highlight,연타,multi-hit,없음,left|right,long,repeat|spam,medium|big,mid|low,*,계속 같은 박자가 이어지면 상대는 더 빨리 조급해져요. 끊어내지 못하면 손해가 길어져요.
+scene-after-028,1,*,low,setup,단일 공격,strike,없음,*,short,fresh,small,high|mid,*,짧게 끝난 장면인데도 의미는 남아요. 흐름을 먼저 잡은 쪽이 훨씬 편해요.
+scene-after-029,1,결,high,climax,보호막,setup,보호,*,medium|long,repeat|spam,zero,mid|high,*,벽을 다시 세운 장면은 조용해도 오래 가요. 다음 턴에서 왜 중요했는지 바로 보일 수 있어요.
+scene-after-030,2,*,mid|high,analysis|highlight,회복,recovery,회복,right,medium|long,fresh|repeat,zero,low|critical,*,숨을 다시 붙여 둔 순간부터 다음 선택이 달라져요. 이런 턴이 뒤쪽 승부를 살려요.

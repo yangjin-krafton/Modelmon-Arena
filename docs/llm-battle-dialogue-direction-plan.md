@@ -34,7 +34,9 @@
 - `src/system/battle-dialogue/battle-dialogue-generator.js`
 - `src/system/battle-dialogue/template-engine.js`
 - `src/system/battle-dialogue/csv.js`
+- `src/system/battle-dialogue/dialogue-batch-pipeline.js`
 - `src/system/battle-dialogue/run-dialogue-smoke-test.mjs`
+- `src/system/battle-dialogue/run-dialogue-batch-demo.mjs`
 
 ## 데이터 위치
 
@@ -259,6 +261,88 @@
 - `fallback hit rate`: 15% 이하
 - `empty rate`: 0%
 
+## 대량 작성 워크플로우
+
+현재 `src/system/battle-dialogue`에는 두 단계의 authoring workflow가 있다.
+
+### 1. 단건 승인 루프
+
+파일:
+
+- `src/system/battle-dialogue/dialogue-workflow.js`
+- `src/system/battle-dialogue/run-dialogue-workflow.mjs`
+
+용도:
+
+- 한 개 job에 대해
+- `writer -> reviewer -> revise -> approve/reject`
+- 흐름을 가장 단순하게 검증할 때 사용
+
+핵심 입력:
+
+- `job.id`
+- `job.category`
+- `job.rowDefaults`
+- `job.requiredPlaceholders`
+- `job.promptHints`
+
+핵심 출력:
+
+- `approvedDraft`
+- `approvedRow`
+- `attempts`
+- `lastReview`
+
+### 2. 대량 배치 루프
+
+파일:
+
+- `src/system/battle-dialogue/dialogue-batch-pipeline.js`
+- `src/system/battle-dialogue/run-dialogue-batch-demo.mjs`
+
+용도:
+
+- 여러 개의 대사 작성 job을 순서대로 돌릴 때 사용
+- 나중에 실제 writer agent 1개, reviewer agent 1개를 외부 함수로 붙이기 쉽게 설계됨
+
+상태 전이:
+
+- `queued`
+- `writing`
+- `reviewing`
+- `needs_revision`
+- `approved`
+- `rejected`
+
+검수 결정:
+
+- `approve`
+- `revise`
+
+권장 검수 코드:
+
+- `too_similar_recently`
+- `placeholder_missing`
+- `too_short`
+- `tone_mismatch`
+
+### 실제 연결 방식
+
+실서비스에서는 아래처럼 붙이는 것을 권장한다.
+
+1. writer agent
+   - 카테고리와 제약 조건을 받아 draft row 생성
+2. reviewer agent
+   - draft row를 받아 점수, 이슈, rewrite prompt 반환
+3. workflow module
+   - approve면 승인 row 보존
+   - revise면 rewrite prompt를 다음 writer 호출에 전달
+4. 승인 row 누적
+   - 카테고리별 CSV append 후보로 저장
+
+즉 코드 레벨에서는 특정 LLM SDK를 고정하지 않고,
+`writer()`와 `reviewer()` callback만 바꿔 끼우면 되도록 유지하는 것이 핵심이다.
+
 ## 테스트 방법
 
 현재는 CSV 데이터 밀도와 시스템 분기를 빠르게 확인할 수 있도록 스모크 테스트 스크립트를 둔다.
@@ -267,6 +351,8 @@
 
 ```bash
 npm run dialogue:test
+npm run dialogue:workflow
+npm run dialogue:batch-demo
 ```
 
 이 스크립트는 아래를 출력한다.
@@ -276,6 +362,8 @@ npm run dialogue:test
 - 여러 전투 시나리오에서 실제 생성된 `system / explain / quote / story`
 - 각 턴의 계산된 컨텍스트
 - 어떤 scene 또는 fallback 행이 선택됐는지에 대한 debug 정보
+- 단건 writer/reviewer 승인 루프 결과
+- 배치 writer/reviewer revise -> approve 상태 전이 결과
 
 현재 포함된 시나리오는 아래를 검증한다.
 
@@ -285,6 +373,52 @@ npm run dialogue:test
 - 행동 제어와 상태이상 부여
 - 회복 턴
 - 충전형 마무리 기술
+
+## 대량 작성 워크플로우
+
+대량 CSV 작업은 `writer -> reviewer -> approve/revise` 2단계로 돌린다.
+
+핵심 모듈:
+
+- `createDialogueBatchJob()`
+  - 카테고리와 목표 행 수를 가진 작업 단위 생성
+- `createDialogueBatchWorkflow()`
+  - 작성과 검수를 이어 붙이는 오케스트레이터
+
+상태 전이:
+
+- `queued`
+- `writing`
+- `reviewing`
+- `needs_revision`
+- `approved` 또는 `rejected`
+
+최소 작업 필드:
+
+- `jobId`
+- `category`
+- `requestedCount`
+- `constraints`
+- `reviewPolicy`
+- `seedRows`
+
+최소 검수 결과 필드:
+
+- `decision`
+  - `approve` 또는 `revise`
+- `score`
+- `summary`
+- `issues`
+- `rewritePrompt`
+
+승인된 행은 그대로 CSV에 반영하고  
+`revise`가 나오면 reviewer의 `rewritePrompt`를 writer에게 다시 넘겨 다음 시도로 이어 간다.
+
+데모 실행:
+
+```bash
+npm run dialogue:batch-demo
+```
 
 ## 현재 운영 권장
 

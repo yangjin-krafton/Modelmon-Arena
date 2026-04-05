@@ -12,3 +12,23 @@ explain-010,1,*,mid|high,analysis|highlight,보호막,setup,보호,*,medium|long
 explain-011,1,전|결,high,highlight|climax,단일 공격,strike,없음,left|right,medium|long,repeat|spam,big,low|critical,*,한 번 세게 맞은 것도 맞는데 더 큰 문제는 {{defender_name}}이 바로 반응을 못 하고 있다는 점이에요. 그래서 이 한 턴이 다음 턴까지 길게 끌고 가요.
 explain-012,1,*,mid,transition,*,utility,없음|보호|회복,*,medium,fresh|repeat,zero|small,*,*,당장 화려한 장면은 아닌데 전장 계산이 조금씩 바뀌고 있어요. 이런 턴이 쌓이면 나중에 손해가 한꺼번에 보여요.
 explain-013,1,승|전|결,high,highlight|climax,보호막,setup,보호,*,medium|long,fresh|repeat,zero,mid|high,*,쉽게 보면 이건 수비적인 턴인데도 흐름상 꽤 커요. 지금 벽을 제대로 세워 두면 상대가 다음에 들어올 각도 자체가 많이 줄어들어요.
+explain-014,1,결,high,climax,회복,recovery,회복,right,medium|long,fresh|repeat,zero,low|critical,*,쉽게 보면 지금은 체력 숫자만 보는 순간이 아니에요. 끊길 뻔한 흐름을 다시 이어 붙였다는 데 의미가 있어요.
+explain-015,1,결,high,climax,충전 공격,charge,지연|없음,left|right,long,repeat|spam,medium|big,low|critical,*,쉽게 보면 지금 한 방은 준비가 길었던 만큼 무게도 더 커요. 그래서 맞는 쪽은 피해량보다도 분위기 쪽에서 먼저 밀릴 수 있어요.
+explain-016,1,전|결,high,highlight|climax,행동 제어,control,속박|지연,left|right,medium|long,repeat|spam,small|medium|big,low|critical,*,쉽게 보면 이건 그냥 상태이상 하나가 아니에요. 다음 선택지를 같이 묶어 버리니까 체감 압박이 훨씬 길게 가요.
+explain-017,1,전,mid|high,analysis|highlight,회복,recovery,회복,right,medium|long,fresh|repeat,zero,low|critical,*,쉽게 보면 회복은 숫자보다 타이밍이 중요해요. 지금 붙여 둔 숨이 다음 교환까지 버티게 해 주는지 보는 구간이에요.
+explain-018,1,결,high,highlight|climax,보호막,setup,보호,*,long,fresh|repeat,zero,mid|high,*,쉽게 보면 벽은 그냥 안 맞는 게 아니에요. 상대가 어떤 각도로 들어와도 예전만큼 편하게 못 밀어붙이게 기준을 바꾸는 거예요.
+explain-019,1,전|결,high,highlight|climax,연타,multi-hit,없음,left|right,long,repeat|spam,medium|big,mid|low,*,쉽게 보면 연타는 처음 맞는 순간보다 그 뒤가 더 중요해요. 첫 박자에 흔들리면 뒤쪽 타격을 버티는 힘이 확 줄어들거든요.
+explain-020,1,결,high,climax,단일 공격,strike,없음,left|right,medium|long,repeat|spam,medium|big,low|critical,*,쉽게 보면 한 방이 세다보다 더 큰 건 그 한 방 때문에 상대가 바로 반응하지 못하는 거예요. 그 순간이 다음 턴까지 이어져요.
+explain-021,1,결,high,climax,충전 공격|회복,charge|recovery,지연|회복,right,long,repeat|spam,medium|big,low|critical,*,쉽게 보면 지금은 공격이든 회복이든 한쪽만 보면 안 돼요. 모으고 버티는 걸 같이 보면서 승부를 이어 가는 장면이에요.
+explain-022,1,*,mid|high,analysis|highlight,보호막|회복,setup|recovery,보호|회복,right,medium|long,fresh|repeat,zero,mid|critical,*,쉽게 보면 조용한 턴도 겹치면 무시 못 해요. 이런 턴이 쌓이면 뒤에서부터 판이 달라져요.
+explain-023,1,전|결,high,highlight|climax,행동 제어|회복,control|recovery,속박|지연|회복,left|right,long,repeat|spam,small|medium|big,low|critical,*,쉽게 보면 지금은 때리고 끝나는 판이 아니에요. 묶고 버티고 다시 계산하는 쪽이 더 오래 살아남아요.
+explain-024,1,결,high,climax,충전 공격,charge,지연|없음,left|right,long,repeat|spam,medium|big,low|critical,*,쉽게 보면 지금은 한 박자 모아 두는 쪽이 이득이에요. 바로 터뜨리기보다 터질 위치를 정확히 잡는 게 더 중요해요.
+explain-025,1,*,mid|high,analysis|highlight,보호막,setup,보호,*,medium|long,fresh|repeat,zero,mid|high,*,쉽게 보면 벽은 그냥 버티기용이 아니에요. 다음 턴 손익을 바꾸는 기준선이에요.
+explain-026,1,*,mid,analysis,단일 공격,strike,없음,*,short|medium,fresh|repeat,small|medium,mid|low,*,쉽게 보면 딱 한 번만 정확히 찔러도 흐름이 바뀌어요. 지금은 그런 한 타가 중요해요.
+explain-027,1,전|결,high,highlight|climax,행동 제어,control,속박|지연,left|right,long,repeat|spam,small|medium|big,low|critical,*,쉽게 보면 데미지보다 선택지를 묶는 게 더 무서워요. 상대가 늦는 순간 뒤쪽 장면까지 같이 밀려요.
+explain-028,1,*,mid|high,analysis|highlight,회복,recovery,회복,right,medium|long,fresh|repeat,zero,low|critical,*,쉽게 보면 회복은 체력만 채우는 게 아니에요. 다음 턴을 포기하지 않게 만드는 장치예요.
+explain-029,1,결,high,climax,utility,utility,없음|보호|회복,*,medium|long,repeat|spam,zero|small,low|critical,*,쉽게 보면 지금 이 턴은 표면보다 여파가 커요. 조용해도 뒤에서 계산이 계속 바뀌고 있어요.
+explain-030,1,*,mid|high,analysis|highlight,control|charge,control|charge,속박|지연,left|right,long,repeat|spam,small|medium|big,low|critical,*,쉽게 보면 묶고 밀어붙이는 흐름은 한 번만 넘어가도 위험해져요. 상대가 숨 돌릴 틈이 점점 줄어들어요.
+explain-031,1,*,high,highlight|climax,setup,setup,보호,*,medium|long,fresh|repeat,zero,mid|high,*,쉽게 보면 준비 턴이 다음 공격보다 더 크게 보일 때가 있어요. 그만큼 기준이 올라간 거예요.
+explain-032,1,결,high,climax,recovery,recovery,회복,right,medium|long,fresh|repeat,zero,low|critical,*,쉽게 보면 회복은 여기서 끝이 아니에요. 다음 교환을 버티는지 아닌지를 가르는 분기점이에요.
+explain-033,1,*,mid,transition,utility,utility,없음|보호|회복,*,short|medium,fresh|repeat,zero|small,*,*,쉽게 보면 조용한 턴도 전투를 바꾸는 재료예요. 이런 장면이 들어가야 뒤쪽 숫자가 덜 허전해져요.

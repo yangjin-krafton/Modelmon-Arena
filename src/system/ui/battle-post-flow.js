@@ -132,10 +132,10 @@ export function createCaptureStep(capture) {
       icon: '포획',
       title: `${capture.candidate.name} 포획 성공`,
       sub: capture.needsTeamChoice
-        ? '팀 슬롯이 가득 찼다. 교체할 몬스터를 선택해야 한다.'
-        : '포획한 몬스터를 어떻게 처리할지 결정한다.',
-      buttonLabel: '선택 필요',
-      requiresDecision: true,
+        ? '팀이 가득 찼다. 내보낼 멤버를 선택하세요.'
+        : `${capture.candidate.name}이(가) 팀에 합류한다.`,
+      buttonLabel: capture.needsTeamChoice ? '선택 필요' : '확인',
+      requiresDecision: capture.needsTeamChoice, // 팀 여유 시 자동 합류
       capture,
       resolved: false,
     };

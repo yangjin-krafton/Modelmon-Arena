@@ -58,13 +58,11 @@ export function createBattleLayoutController(el) {
 
   /**
    * 포스트배틀 선택 카드 표시.
-   * card  : { icon, title, sub } — 카드 헤더 (선택)
-   * buttons : HTMLButtonElement[]  — 선택지 버튼 배열
-   *
-   * battle-panel 에는 일절 손대지 않음.
-   * battle-log 는 이미 'log' 모드로 표시 중이어야 함.
+   * card    : { icon, title, sub }  — 카드 헤더 (선택)
+   * rows    : HTMLElement[]         — 카드와 버튼 사이에 삽입할 요소 (팀 교체 목록 등)
+   * buttons : HTMLButtonElement[]   — 하단 선택지 버튼 배열
    */
-  function showPostActionPanel({ card, buttons = [] } = {}) {
+  function showPostActionPanel({ card, rows = [], buttons = [] } = {}) {
     const panel = getPostActionPanel();
     if (!panel) return;
 
@@ -103,7 +101,10 @@ export function createBattleLayoutController(el) {
       panel.appendChild(cardEl);
     }
 
-    // 선택지 버튼
+    // 중간 콘텐츠 행 (팀 교체 목록 등)
+    rows.forEach(row => panel.appendChild(row));
+
+    // 하단 선택지 버튼
     if (buttons.length) {
       const actionsEl = document.createElement('div');
       actionsEl.className = 'pap-actions';

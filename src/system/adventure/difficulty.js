@@ -38,16 +38,16 @@ export function computeDifficultyProfile({ run, biome, waveSlot, metaProgress })
     familiarityBonus
   ).toFixed(2));
 
-  const recommendedLevel = Math.max(
-    1,
-    Math.round(
-      leadLevel
-      - 1
-      + (runDepth - 1) * 2
-      + (localWave - 1) * 0.45
-      + slotBias * 1.2,
-    ),
-  );
+  const waveLevel =
+    4 +
+    (runDepth - 1) * 3 +
+    (localWave - 1) * 0.6 +
+    slotBias * 0.9 +
+    Math.max(0, baseDanger - 1) * 0.45;
+
+  // Keep progression wave-driven and only partially react to player over/under-leveling.
+  const leadAdjustment = (leadLevel - waveLevel) * 0.35;
+  const recommendedLevel = Math.max(1, Math.round(waveLevel + leadAdjustment));
 
   const encounterBudget = Math.max(
     8,

@@ -100,7 +100,7 @@ function createTrainerNpcEncounter({ run, biome, waveSlot, database, difficulty 
   const sourceIds = picked?.partyMonIds || [];
   const enemies = buildNpcParty(run, sourceIds, partySize, {
     baseLevel: difficulty.recommendedLevel,
-    levelBonus: tier === 'elite' ? 2 : 0,
+    levelBonus: tier === 'elite' ? 1 : 0,
     roleTag: picked?.templateTag || tier,
     rarity: tier,
   });
@@ -135,7 +135,7 @@ function createBossNpcEncounter({ run, biome, waveSlot, database, difficulty }) 
   const partySize = picked?.partySize || 1;
   const sourceIds = picked?.partyMonIds || [];
   const enemies = buildNpcParty(run, sourceIds, partySize, {
-    baseLevel: difficulty.recommendedLevel + (picked?.waveBonus || 0),
+    baseLevel: difficulty.recommendedLevel + Math.ceil((picked?.waveBonus || 0) * 0.5),
     levelBonus: 0,
     roleTag: picked?.tier || 'boss',
     rarity: 'boss',
@@ -173,7 +173,7 @@ function buildNpcParty(run, sourceIds, partySize, { baseLevel, levelBonus, roleT
       ? sourceIds[randomInt(run, 0, sourceIds.length - 1)]
       : run.party[0]?.monId;
     enemies.push(buildEnemySummary(monId, {
-      level: baseLevel + levelBonus + i,
+      level: baseLevel + levelBonus + Math.floor(i / 2),
       roleTag,
       rarity,
     }));

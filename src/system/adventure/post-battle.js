@@ -32,7 +32,9 @@ export function attemptCapture(defeatedEnemy, encounter, teamMons, catchMultipli
 }
 
 export function resolvePostBattle({ teamMons, defeatedEnemy, encounter, preCapture = null }) {
-  const growth = teamMons.map(mon => resolveMonGrowth(mon, defeatedEnemy));
+  const defeatedEnemies = getDefeatedEnemies(defeatedEnemy, encounter);
+  const battleExp = getBattleExpReward(defeatedEnemies, encounter);
+  const growth = teamMons.map(mon => resolveMonGrowth(mon, battleExp));
   // 포획은 볼 투척으로만 가능 (포켓몬 원작 방식)
   // preCapture 없이 처치만 한 경우 자동 포획 없음
   const capture = preCapture ?? null;
@@ -44,12 +46,11 @@ export function resolvePostBattle({ teamMons, defeatedEnemy, encounter, preCaptu
   };
 }
 
-function resolveMonGrowth(mon, defeatedEnemy) {
+function resolveMonGrowth(mon, gainedExp) {
   const beforeId = mon.id;
   const beforeName = mon.name;
   const beforeLevel = mon.level;
   const beforeSkills = getSkillsAtLevel(beforeId, beforeLevel).map(entry => entry.no);
-  const gainedExp = 8 + Math.max(0, defeatedEnemy.level - 4) * 3;
   const expResult = grantExp(beforeId, gainedExp);
 
   let finalId = beforeId;
@@ -100,6 +101,41 @@ function resolveMonGrowth(mon, defeatedEnemy) {
   };
 }
 
+function getDefeatedEnemies(defeatedEnemy, encounter) {
+  const enemies = Array.isArray(encounter?.enemies) && encounter.enemies.length
+    ? encounter.enemies
+    : defeatedEnemy
+      ? [defeatedEnemy]
+      : [];
+
+  return enemies.filter(Boolean);
+}
+
+function getBattleExpReward(defeatedEnemies, encounter) {
+  if (!defeatedEnemies.length) return 0;
+
+  const encounterTypeBonus = encounter?.npcType === 'boss'
+    ? 3
+    : encounter?.npcType === 'trainer'
+      ? 1
+      : 0;
+
+  return defeatedEnemies.reduce((total, enemy) => {
+    const stage = Number(enemy.stage ?? MON_BY_ID.get(enemy.monId)?.stage ?? 1);
+    const rarityBonus = enemy.rarity === 'boss'
+      ? 4
+      : enemy.rarity === 'elite'
+        ? 3
+        : enemy.rarity === 'rare'
+          ? 2
+          : enemy.rarity === 'uncommon'
+            ? 1
+            : 0;
+
+    return total + 5 + Number(enemy.level || 1) + Math.max(0, stage - 1) * 2 + rarityBonus + encounterTypeBonus;
+  }, 0);
+}
+
 
 function buildSummaryLines(growth, capture) {
   const lines = [];
@@ -133,13 +169,17 @@ export function applyCaptureDecision({ teamIds, capture, decision, replaceIndex 
 
   captureMon(capture.candidate.monId, capture.candidate.level);
 
-  if (decision === 'skip') return teamIds;
-
+  // 팀원 교체 (풀 팀에서 선택)
   if (decision === 'replace' && replaceIndex >= 0 && replaceIndex < teamIds.length) {
     const next = [...teamIds];
     next[replaceIndex] = capture.candidate.monId;
     return next;
   }
 
-  return [...teamIds, capture.candidate.monId];
+  // 팀에 추가 (슬롯 6개 한도)
+  if (teamIds.length < 6) {
+    return [...teamIds, capture.candidate.monId];
+  }
+
+  return teamIds;
 }

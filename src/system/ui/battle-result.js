@@ -77,11 +77,25 @@ export function renderCurrentPostBattleStep() {
   if (step.type === 'capture' && step.requiresDecision && !step.resolved) {
     const { capture } = step;
     const card = {
-      icon:  capture.success ? '🎉' : '❌',
+      icon:  '🎉',
       title: step.title,
       sub:   step.sub,
     };
-    _showPostActionPanel({ card, buttons: buildCaptureDecisionButtons(step) });
+    // 팀 풀: 교체할 멤버 선택 (보관 없음)
+    const { rows } = buildTeamChoiceUI(step);
+    _showPostActionPanel({ card, rows, buttons: [] });
+    return;
+  }
+
+  // 팀 여유: requiresDecision = false → 자동 합류 처리
+  if (step.type === 'capture' && !step.requiresDecision && !step.resolved) {
+    const { capture } = step;
+    S.resolvedTeamIds = applyCaptureDecision({
+      teamIds: S.resolvedTeamIds,
+      capture,
+      decision: 'add',
+    });
+    finalizePostBattleDecision(step, `${capture.candidate.name}이(가) 팀에 합류했다!`);
     return;
   }
 
@@ -96,46 +110,52 @@ function ensureResultFeedEntry(step) {
   step.feedLogged = true;
 }
 
-function buildCaptureDecisionButtons(step) {
-  const buttons = [];
+/**
+ * 팀이 가득 찼을 때 — 교체할 팀원 선택 목록 (보관 없음)
+ * 팀 슬롯은 6개 고정, 반드시 한 명을 내보내야 함.
+ */
+function buildTeamChoiceUI(step) {
   const { capture } = step;
+  const listWrap = document.createElement('div');
+  listWrap.className = 'ptc-list';
 
-  if (!capture.needsTeamChoice) {
-    buttons.push(createChoiceButton('팀에 추가', () => {
-      S.resolvedTeamIds = applyCaptureDecision({
-        teamIds: S.resolvedTeamIds,
-        capture,
-        decision: 'add',
-      });
-      finalizePostBattleDecision(step, `${capture.candidate.name}을(를) 팀에 추가했다.`);
-    }));
-  }
+  S.teamMons.forEach((mon, index) => {
+    const row = document.createElement('div');
+    row.className = 'ptc-row';
 
-  buttons.push(createChoiceButton('보관', () => {
-    S.resolvedTeamIds = applyCaptureDecision({
-      teamIds: S.resolvedTeamIds,
-      capture,
-      decision: 'skip',
-    });
-    finalizePostBattleDecision(step, `${capture.candidate.name}을 보관함 목록으로 보냈다.`);
-  }));
+    const pct     = Math.max(0, (mon.hp / mon.maxHp) * 100);
+    const hpClass = pct > 50 ? 'hp-high' : pct > 25 ? 'hp-mid' : 'hp-low';
+    const fainted = mon.hp <= 0;
 
-  if (!capture.needsTeamChoice) return buttons;
+    row.innerHTML = `
+      <img class="ptc-sprite" src="${mon.sprite}" alt="${mon.name}"
+           onerror="this.style.opacity=0" ${fainted ? 'style="opacity:0.2"' : ''}>
+      <div class="ptc-info">
+        <span class="ptc-name">${mon.name}</span>
+        <span class="ptc-lv">Lv.${mon.level}</span>
+        <div class="ptc-hpbar">
+          <div class="ptc-hpfill ${hpClass}" style="width:${pct}%"></div>
+        </div>
+      </div>
+      <button class="ptc-swap-btn" ${fainted ? 'disabled' : ''}>내보내기</button>`;
 
-  S.resolvedTeamIds.forEach((monId, index) => {
-    const mon = S.teamMons[index];
-    buttons.push(createChoiceButton(`${mon?.name || monId} 교체`, () => {
+    row.querySelector('.ptc-swap-btn').addEventListener('click', () => {
       S.resolvedTeamIds = applyCaptureDecision({
         teamIds: S.resolvedTeamIds,
         capture,
         decision: 'replace',
         replaceIndex: index,
       });
-      finalizePostBattleDecision(step, `${capture.candidate.name}이(가) ${mon?.name || monId} 대신 팀에 추가됐다.`);
-    }));
+      finalizePostBattleDecision(
+        step,
+        `${mon.name}을(를) 내보내고 ${capture.candidate.name}이(가) 팀에 합류했다!`,
+      );
+    });
+
+    listWrap.appendChild(row);
   });
 
-  return buttons;
+  return { rows: [listWrap] };
 }
 
 function createChoiceButton(label, onClick) {

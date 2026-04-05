@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "cd src && python -m http.server 8080",
+    "dialogue:test": "node src/system/battle-dialogue/run-dialogue-smoke-test.mjs",
     "build": "echo 'No build step required for static site'",
     "deploy": "gh-pages -d src"
   },

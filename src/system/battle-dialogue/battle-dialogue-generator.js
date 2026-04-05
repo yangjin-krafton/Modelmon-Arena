@@ -1,7 +1,11 @@
 import { createTemplateVariables, renderTemplate } from "./template-engine.js";
 
-const STORY_FALLBACK_CATEGORIES = ["opening", "build", "impact", "reaction", "closing"];
-const STORY_FRAGMENT_CATEGORIES = ["sceneIntro", "sceneAction", "sceneResult", "sceneAfter"];
+const STORY_FRAGMENT_CONFIG = [
+  { category: "sceneIntro", fallback: "opening" },
+  { category: "sceneAction", fallback: "build" },
+  { category: "sceneResult", fallback: "impact" },
+  { category: "sceneAfter", fallback: "closing" }
+];
 
 const NO_STATUS = "\uC5C6\uC74C";
 const PHASE_OPEN = "\uAE30";
@@ -17,51 +21,45 @@ export function createBattleDialogueTurn(context, library, options = {}) {
 }
 
 export function createBattleDialogueSession(config = {}) {
-  const state = {
-    recent: [],
-    maxRecentItems: config.maxRecentItems ?? 80,
-    exactCooldownTurns: config.exactCooldownTurns ?? 40,
-    phraseCooldownTurns: config.phraseCooldownTurns ?? 16,
-    lastSkillName: "",
-    skillStreak: 0
-  };
+  const state = createSessionState(config);
 
   return {
     state,
     reset() {
-      state.recent = [];
-      state.lastSkillName = "";
-      state.skillStreak = 0;
+      resetSessionState(state);
     },
     generateTurn(context, library, options = {}) {
-      const normalized = normalizeBattleDialogueContext(context, state);
-      const rng = options.rng || Math.random;
-      const variables = createTemplateVariables(normalized);
-
-      const system = selectLine("system", normalized, library, rng, variables, state);
-      const explain = selectLine("explain", normalized, library, rng, variables, state);
-      const quote = selectLine("quote", normalized, library, rng, variables, state);
-      const storyParagraphs = buildStoryParagraphs(normalized, library, rng, variables, state);
-
-      const result = {
-        context: normalized,
-        system,
-        explain,
-        quote,
-        storyParagraphs,
-        story: storyParagraphs.join("\n\n"),
-        scenes: buildScenes({ system, explain, quote, storyParagraphs })
-      };
-
-      rememberTurnOutput(result, normalized.turn, state);
-      state.lastSkillName = normalized.skillName || "";
-      state.skillStreak = normalized.skillUseStreak || 0;
-      return result;
+      return generateTurnWithState(context, library, state, options);
     }
   };
 }
 
-function normalizeBattleDialogueContext(context, sessionState = null) {
+export function createBattleDialogueEngine(config = {}) {
+  const session = createBattleDialogueSession(config.sessionOptions);
+  let library = config.library || null;
+
+  return {
+    session,
+    setLibrary(nextLibrary) {
+      library = nextLibrary;
+    },
+    getLibrary() {
+      return library;
+    },
+    reset() {
+      session.reset();
+    },
+    generateTurn(context, options = {}) {
+      if (!library) {
+        throw new Error("Battle dialogue library is not set.");
+      }
+
+      return session.generateTurn(context, library, options);
+    }
+  };
+}
+
+export function normalizeBattleDialogueContext(context, sessionState = null) {
   const attackerHpRatio = safeRatio(context.attackerHp, context.attackerMaxHp);
   const defenderHpRatio = safeRatio(context.defenderHp, context.defenderMaxHp);
   const lowerRatio = Math.min(attackerHpRatio ?? 1, defenderHpRatio ?? 1);
@@ -83,7 +81,18 @@ function normalizeBattleDialogueContext(context, sessionState = null) {
   const usageBucket = context.usageBucket || deriveUsageBucket(skillUseStreak);
   const damageBand = context.damageBand || deriveDamageBand(damage);
   const hpBand = context.hpBand || deriveHpBand(lowerRatio);
-  const tags = context.tags || deriveTags({ phase, importance, commentaryRole, momentum: context.momentum, statusName, usageBucket, damageBand, hpBand });
+  const tags =
+    context.tags ||
+    deriveTags({
+      phase,
+      importance,
+      commentaryRole,
+      momentum: context.momentum,
+      statusName,
+      usageBucket,
+      damageBand,
+      hpBand
+    });
 
   return {
     ...context,
@@ -114,6 +123,86 @@ export function deriveTags({ phase, importance, commentaryRole, momentum, status
     .join("|");
 }
 
+function createSessionState(config = {}) {
+  return {
+    recent: [],
+    maxRecentItems: config.maxRecentItems ?? 80,
+    exactCooldownTurns: config.exactCooldownTurns ?? 40,
+    phraseCooldownTurns: config.phraseCooldownTurns ?? 16,
+    lastSkillName: "",
+    skillStreak: 0
+  };
+}
+
+function resetSessionState(state) {
+  state.recent = [];
+  state.lastSkillName = "";
+  state.skillStreak = 0;
+}
+
+function generateTurnWithState(context, library, state, options = {}) {
+  const normalized = normalizeBattleDialogueContext(context, state);
+  const rng = options.rng || Math.random;
+  const variables = createTemplateVariables(normalized);
+
+  const systemEntry = selectEntry("system", normalized, library, rng, variables, state);
+  const explainEntry = selectEntry("explain", normalized, library, rng, variables, state);
+  const quoteEntry = selectEntry("quote", normalized, library, rng, variables, state);
+  const storyEntries = buildStoryEntries(normalized, library, rng, variables, state);
+
+  const result = {
+    context: normalized,
+    system: systemEntry.text,
+    explain: explainEntry.text,
+    quote: quoteEntry.text,
+    storyParagraphs: storyEntries.map((entry) => entry.text),
+    story: storyEntries.map((entry) => entry.text).join("\n\n"),
+    scenes: buildScenes({
+      system: systemEntry.text,
+      explain: explainEntry.text,
+      quote: quoteEntry.text,
+      storyParagraphs: storyEntries.map((entry) => entry.text)
+    })
+  };
+
+  if (options.debug) {
+    result.debug = {
+      context: {
+        phase: normalized.phase,
+        importance: normalized.importance,
+        commentaryRole: normalized.commentaryRole,
+        skillFamily: normalized.skillFamily,
+        lengthBand: normalized.lengthBand,
+        usageBucket: normalized.usageBucket,
+        damageBand: normalized.damageBand,
+        hpBand: normalized.hpBand,
+        tags: normalized.tags
+      },
+      selected: {
+        system: toDebugEntry(systemEntry),
+        explain: toDebugEntry(explainEntry),
+        quote: toDebugEntry(quoteEntry),
+        story: storyEntries.map((entry) => toDebugEntry(entry))
+      }
+    };
+  }
+
+  rememberTurnOutput(
+    {
+      system: systemEntry,
+      explain: explainEntry,
+      quote: quoteEntry,
+      storyEntries
+    },
+    normalized.turn,
+    state
+  );
+
+  state.lastSkillName = normalized.skillName || "";
+  state.skillStreak = normalized.skillUseStreak || 0;
+  return result;
+}
+
 function buildScenes(parts) {
   return [
     { key: "system", title: "System", body: parts.system },
@@ -127,44 +216,109 @@ function buildScenes(parts) {
   ].filter((item) => item.body);
 }
 
-function buildStoryParagraphs(context, library, rng, variables, state) {
-  const fragments = STORY_FRAGMENT_CATEGORIES
-    .map((category) => selectLine(category, context, library, rng, variables, state))
-    .filter(Boolean);
+function buildStoryEntries(context, library, rng, variables, state) {
+  const entries = STORY_FRAGMENT_CONFIG
+    .map(({ category, fallback }) => {
+      const primary = selectEntry(category, context, library, rng, variables, state);
+      if (primary.text) {
+        return primary;
+      }
+      const backup = selectEntry(fallback, context, library, rng, variables, state);
+      if (backup.text) {
+        return {
+          ...backup,
+          requestedCategory: category,
+          fallbackCategory: fallback,
+          usedFallback: true
+        };
+      }
+      return backup;
+    })
+    .filter((entry) => entry.text);
 
-  if (fragments.length) {
-    return combineFragmentsIntoParagraphs(fragments, context.lengthBand);
+  if (!entries.length) {
+    return [];
   }
 
-  return STORY_FALLBACK_CATEGORIES
-    .map((category) => selectLine(category, context, library, rng, variables, state))
-    .filter(Boolean);
+  return combineEntriesIntoParagraphs(entries, context.lengthBand);
 }
 
-function combineFragmentsIntoParagraphs(fragments, lengthBand) {
+function combineEntriesIntoParagraphs(entries, lengthBand) {
+  const merged = entries.map((entry) => ({ ...entry }));
+
   if (lengthBand === "short") {
-    return [fragments.slice(0, 2).join(" ")].filter(Boolean);
+    return [mergeEntries(merged.slice(0, 2))].filter((entry) => entry.text);
   }
 
   if (lengthBand === "medium") {
     return [
-      fragments.slice(0, 2).join(" "),
-      fragments.slice(2).join(" ")
-    ].filter(Boolean);
+      mergeEntries(merged.slice(0, 2)),
+      mergeEntries(merged.slice(2))
+    ].filter((entry) => entry.text);
   }
 
-  return fragments;
+  return merged;
 }
 
-function selectLine(category, context, library, rng, variables, state) {
+function mergeEntries(entries) {
+  const validEntries = entries.filter((entry) => entry && entry.text);
+  return {
+    category: validEntries.map((entry) => entry.category).filter(Boolean).join("|"),
+    rowId: validEntries.map((entry) => entry.rowId).filter(Boolean).join("|"),
+    phraseKey: validEntries.map((entry) => entry.phraseKey).filter(Boolean).join("|"),
+    candidateCount: validEntries.reduce((sum, entry) => sum + (entry.candidateCount || 0), 0),
+    sourceEntries: validEntries.map((entry) => ({
+      category: entry.category || "",
+      requestedCategory: entry.requestedCategory || entry.category || "",
+      fallbackCategory: entry.fallbackCategory || "",
+      usedFallback: Boolean(entry.usedFallback),
+      rowId: entry.rowId || "",
+      candidateCount: entry.candidateCount || 0
+    })),
+    text: validEntries.map((entry) => entry.text).join(" ")
+  };
+}
+
+function selectEntry(category, context, library, rng, variables, state) {
   const rows = library?.[category] || [];
   const candidates = rows.filter((row) => rowMatchesContext(row, context));
   if (!candidates.length) {
-    return "";
+    return createEmptyEntry(category, candidates.length);
   }
 
   const selected = weightedPick(candidates, context.turn, rng, state);
-  return renderTemplate(selected.text, variables);
+  const text = renderTemplate(selected.text, variables);
+
+  return {
+    category,
+    rowId: String(selected.id || ""),
+    phraseKey: normalizePhraseKey(selected.text),
+    candidateCount: candidates.length,
+    text
+  };
+}
+
+function createEmptyEntry(category = "", candidateCount = 0) {
+  return {
+    category,
+    rowId: "",
+    phraseKey: "",
+    candidateCount,
+    text: ""
+  };
+}
+
+function toDebugEntry(entry) {
+  return {
+    category: entry.category || "",
+    requestedCategory: entry.requestedCategory || entry.category || "",
+    fallbackCategory: entry.fallbackCategory || "",
+    usedFallback: Boolean(entry.usedFallback),
+    rowId: entry.rowId || "",
+    candidateCount: entry.candidateCount || 0,
+    sourceEntries: entry.sourceEntries || [],
+    text: entry.text || ""
+  };
 }
 
 function rowMatchesContext(row, context) {
@@ -244,11 +398,11 @@ function getSelectionScore(row, turn, state) {
       continue;
     }
 
-    if (item.id === rowId && distance <= state.exactCooldownTurns) {
+    if (rowId && item.rowId === rowId && distance <= state.exactCooldownTurns) {
       score *= distance <= 8 ? 0 : 0.05;
     }
 
-    if (item.phraseKey === phraseKey && distance <= state.phraseCooldownTurns) {
+    if (phraseKey && item.phraseKey === phraseKey && distance <= state.phraseCooldownTurns) {
       score *= distance <= 4 ? 0.1 : 0.45;
     }
   }
@@ -256,21 +410,18 @@ function getSelectionScore(row, turn, state) {
   return score;
 }
 
-function rememberTurnOutput(result, turn, state) {
+function rememberTurnOutput(resultEntries, turn, state) {
   const outputs = [
-    { id: "system", text: result.system },
-    { id: "explain", text: result.explain },
-    { id: "quote", text: result.quote },
-    ...result.storyParagraphs.map((text, index) => ({
-      id: `story-${index + 1}`,
-      text
-    }))
-  ].filter((item) => item.text);
+    resultEntries.system,
+    resultEntries.explain,
+    resultEntries.quote,
+    ...resultEntries.storyEntries
+  ].filter((entry) => entry && entry.text);
 
-  for (const item of outputs) {
+  for (const entry of outputs) {
     state.recent.unshift({
-      id: `${item.id}:${hashText(item.text)}`,
-      phraseKey: normalizePhraseKey(item.text),
+      rowId: entry.rowId,
+      phraseKey: entry.phraseKey || normalizePhraseKey(entry.text),
       turn
     });
   }
@@ -284,15 +435,6 @@ function normalizePhraseKey(text) {
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, 56);
-}
-
-function hashText(text) {
-  let hash = 0;
-  const input = String(text || "");
-  for (let index = 0; index < input.length; index += 1) {
-    hash = (hash * 31 + input.charCodeAt(index)) >>> 0;
-  }
-  return hash.toString(16);
 }
 
 function getWeight(value) {

@@ -1,6 +1,7 @@
 /** Renders the mon list, applies search/filter, and wires list screen events. */
 
-import { MONS, MON_STATE } from '../data/mons.js';
+import { MONS } from '../data/mons.js';
+import { MON_STATE } from '../core/save.js';
 import { state, SPRITE, typeInfo } from '../core/state.js';
 
 /** Re-render all list items based on state.filteredMons. */
@@ -60,6 +61,8 @@ export function renderList() {
 export function applyFilter() {
   const q = state.searchQuery.trim().toLowerCase();
   state.filteredMons = MONS.filter(mon => {
+    const ms = MON_STATE[mon.id];
+    if (!ms || ms.state === 'unknown') return false;
     const typeOk   = !state.currentFilter || mon.coreConcept === state.currentFilter;
     const searchOk = !q || [
       mon.nameKo, mon.nameEn, mon.coreConcept,

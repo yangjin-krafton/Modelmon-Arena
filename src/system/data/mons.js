@@ -92,18 +92,3 @@ const [monRows, evoMap] = await Promise.all([
 /** 전체 모델몬 목록 */
 export const MONS = transformMons(monRows, evoMap);
 
-/* ─── 유저 언락 상태 (런타임 전용) ─────────────────
-   state : 'unknown' | 'encountered' | 'captured'
-   lv    : 보유 레벨 (스킬 트리 공개 범위 기준)
-────────────────────────────────────────────────── */
-export const MON_STATE = {
-  '001': { state: 'captured',    lv: 25  },
-  '002': { state: 'encountered', lv: 1   },
-  '003': { state: 'captured',    lv: 40  },
-  '004': { state: 'captured',    lv: 100 },
-  '005': { state: 'captured',    lv: 62  },
-  '006': { state: 'unknown',     lv: 1   },
-  '007': { state: 'encountered', lv: 1   },
-  '008': { state: 'captured',    lv: 35  },
-  '009': { state: 'unknown',     lv: 1   },
-};

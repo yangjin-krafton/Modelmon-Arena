@@ -1,6 +1,7 @@
 /** Opens/closes the detail screen, renders mon data, and wires detail events. */
 
-import { MONS, MON_STATE } from '../data/mons.js';
+import { MONS } from '../data/mons.js';
+import { MON_STATE } from '../core/save.js';
 import { state, SPRITE, typeInfo, BS_META, calcStat, calcStatMax, bsValCls } from '../core/state.js';
 import { renderSkillTree } from './skill-tree.js';
 import { renderList } from './list.js';
@@ -42,7 +43,6 @@ export function applyLocks(monId) {
 
   setLock('lo-spec',   !enc);
   setLock('lo-stats',  !cap);
-  setLock('lo-dex-table', !cap);
   setLock('lo-evo',    !cap);
   setLock('lo-motif',  !cap);
   setLock('lo-flavor', !cap);
@@ -52,43 +52,6 @@ export function applyLocks(monId) {
   if (stRange && cap) {
     stRange.textContent = lv >= 100 ? 'Lv.1 → 100 (전체 공개)' : `Lv.1 → ${lv} 공개 중`;
   }
-}
-
-function renderDexTables(mon) {
-  const metaGrid = document.getElementById('dex-meta-grid');
-  const statBody = document.getElementById('dex-stat-table-body');
-  if (!metaGrid || !statBody) return;
-
-  const metaItems = [
-    ['진화 계층', mon.evoTier || '—'],
-    ['스킬 트릭', mon.skillTrick || '—'],
-    ['진화 라인', mon.evoLineName || '—'],
-    ['BST', mon.bst ?? '—'],
-  ];
-
-  metaGrid.innerHTML = metaItems.map(([label, value]) => `
-    <div class="dex-mini-card">
-      <span class="dex-mini-label">${label}</span>
-      <span class="dex-mini-value">${value}</span>
-    </div>
-  `).join('');
-
-  const rows = [
-    ['HP', mon.lv1?.hp, mon.bs?.hp, mon.lv100?.hp],
-    ['ATK', mon.lv1?.atk, mon.bs?.atk, mon.lv100?.atk],
-    ['DEF', mon.lv1?.def, mon.bs?.def, mon.lv100?.def],
-    ['SPD', mon.lv1?.spd, mon.bs?.spd, mon.lv100?.spd],
-    ['SPC', mon.lv1?.spc, mon.bs?.spc, mon.lv100?.spc],
-  ];
-
-  statBody.innerHTML = rows.map(([name, lv1, base, lv100]) => `
-    <tr>
-      <td class="dex-stat-name">${name}</td>
-      <td>${lv1 ?? '—'}</td>
-      <td>${base ?? '—'}</td>
-      <td>${lv100 ?? '—'}</td>
-    </tr>
-  `).join('');
 }
 
 /* ════════════════════════════════════════
@@ -204,8 +167,6 @@ export function openDetail(monId) {
   document.getElementById('fc-temp').textContent   = mon.temperament;
   document.getElementById('fc-motif').textContent  = mon.motif;
   document.getElementById('fc-flavor').textContent = mon.flavor;
-  renderDexTables(mon);
-
   // Evolution line
   const evoRow = document.getElementById('evo-row');
   evoRow.innerHTML = '';

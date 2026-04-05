@@ -16,7 +16,7 @@
  */
 
 const SAVE_KEY     = 'modelmon-save';
-const SAVE_VERSION = 3;
+const SAVE_VERSION = 4;
 
 /* 스타터 해금 (캡처 상태와 별개로 추가 해금된 ID 목록) */
 
@@ -43,6 +43,7 @@ function createNewSave() {
     version: SAVE_VERSION,
     monState: { ...STARTER_STATE },
     metaProgress: { biomeSeenCounts: {}, biomeClearCounts: {} },
+    adventureSession: null,
   };
   localStorage.setItem(SAVE_KEY, JSON.stringify(data));
   return data;
@@ -141,6 +142,23 @@ export function getMetaProgress() {
   return _save.metaProgress;
 }
 
+export function getAdventureSession() {
+  return _save.adventureSession ?? null;
+}
+
+export function setAdventureSession(session) {
+  _save.adventureSession = session
+    ? JSON.parse(JSON.stringify(session))
+    : null;
+  saveGame();
+  return _save.adventureSession;
+}
+
+export function clearAdventureSession() {
+  _save.adventureSession = null;
+  saveGame();
+}
+
 export function recordBiomeSeen(biomeId) {
   const meta = getMetaProgress();
   meta.biomeSeenCounts[biomeId] = (meta.biomeSeenCounts[biomeId] ?? 0) + 1;
@@ -160,6 +178,7 @@ export function saveGame() {
     monState: MON_STATE,
     starterUnlocks: _save.starterUnlocks ?? {},
     metaProgress: getMetaProgress(),
+    adventureSession: _save.adventureSession ?? null,
   }));
 }
 

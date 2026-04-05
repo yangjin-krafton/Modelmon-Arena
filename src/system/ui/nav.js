@@ -1,34 +1,35 @@
-/** Toast, bottom-nav 탭 전환, 스타터 ↔ 전투 화면 전환 */
-
 import { closeDetail } from './detail.js';
 import { initStarterScreen, showStarterScreen } from './starter.js';
 import { initBattle, startBattle, getBattlePhase } from './battle.js';
 import { loadAdventureSystem } from '../adventure/index.js';
-import { getMetaProgress, getMonLevel, recordBiomeClear, recordBiomeSeen } from '../core/save.js';
+import {
+  clearAdventureSession,
+  getAdventureSession,
+  getMetaProgress,
+  getMonLevel,
+  recordBiomeClear,
+  recordBiomeSeen,
+  setAdventureSession,
+} from '../core/save.js';
 
 const adventure = await loadAdventureSystem();
+const COMBAT_TYPES = new Set(['wild', 'standard', 'elite', 'boss']);
 
-/* ════════════════════════════════════════
-   Toast
-════════════════════════════════════════ */
 let toastTimer;
-
-export function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
-}
-
-/* ════════════════════════════════════════
-   화면 전환 헬퍼
-════════════════════════════════════════ */
-const container = () => document.querySelector('.screen-container');
+let ingameReady = false;
 let currentBattleTeamIds = [];
 let currentRun = null;
 let currentEncounter = null;
-const COMBAT_TYPES = new Set(['wild', 'standard', 'elite', 'boss']);
+
+const container = () => document.querySelector('.screen-container');
+
+export function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
+}
 
 function showDex() {
   const c = container();
@@ -49,7 +50,9 @@ function showBattleUI(teamIds, encounter = null) {
   c.classList.remove('ingame-starter');
   c.classList.add('ingame-battle');
   currentBattleTeamIds = Array.isArray(teamIds) ? [...teamIds] : [teamIds];
-  startBattle(teamIds, encounter);   // 팀 배열 전체 전달
+  currentEncounter = encounter;
+  persistAdventureSession('battle');
+  startBattle(currentBattleTeamIds, currentEncounter);
 }
 
 function startAdventureRun(teamIds) {
@@ -59,26 +62,21 @@ function startAdventureRun(teamIds) {
     starterLevel: getMonLevel(teamIds[0], 5),
     seed: Date.now(),
   });
-  currentRun.party = teamIds.map(monId => ({
-    monId,
-    level: getMonLevel(monId, 5),
-    slot: 'active',
-  }));
+  currentRun.party = buildPartyState(currentBattleTeamIds);
   recordBiomeSeen(currentRun.biomeId);
+  persistAdventureSession('starter');
   launchNextEncounter();
 }
 
 function launchNextEncounter() {
   if (!currentRun) return;
-  currentRun.party = currentBattleTeamIds.map(monId => ({
-    monId,
-    level: getMonLevel(monId, 5),
-    slot: 'active',
-  }));
+
+  currentRun.party = buildPartyState(currentBattleTeamIds);
   currentEncounter = adventure.createEncounter({
     run: currentRun,
     metaProgress: getMetaProgress(),
   });
+  persistAdventureSession(COMBAT_TYPES.has(currentEncounter.type) ? 'battle' : currentEncounter.type);
 
   if (!COMBAT_TYPES.has(currentEncounter.type)) {
     showToast(buildNonCombatToast(currentEncounter));
@@ -87,6 +85,7 @@ function launchNextEncounter() {
       result: { victory: true },
       metaProgress: getMetaProgress(),
     });
+    persistAdventureSession('starter');
 
     if (progression.kind === 'advanced') {
       launchNextEncounter();
@@ -99,9 +98,7 @@ function launchNextEncounter() {
       return;
     }
 
-    currentBattleTeamIds = [];
-    currentRun = null;
-    currentEncounter = null;
+    clearAdventureState();
     showStarterUI();
     return;
   }
@@ -111,9 +108,7 @@ function launchNextEncounter() {
 
 function handleBattleFinished(result = {}) {
   if (result.outcome !== 'win') {
-    currentBattleTeamIds = [];
-    currentRun = null;
-    currentEncounter = null;
+    clearAdventureState();
     showStarterUI();
     return;
   }
@@ -127,6 +122,7 @@ function handleBattleFinished(result = {}) {
     result: { victory: true },
     metaProgress: getMetaProgress(),
   });
+  persistAdventureSession('starter');
 
   if (progression.kind === 'advanced') {
     launchNextEncounter();
@@ -139,15 +135,18 @@ function handleBattleFinished(result = {}) {
     return;
   }
 
-  currentBattleTeamIds = [];
-  currentRun = null;
-  currentEncounter = null;
+  clearAdventureState();
   showStarterUI();
 }
 
 function showBiomeChoiceModal(choices) {
   const modal = document.getElementById('adventure-choice-modal');
   const list = document.getElementById('adventure-choice-list');
+
+  currentEncounter = null;
+  currentRun.pendingBiomeChoices = choices;
+  persistAdventureSession('biome-choice');
+
   modal.classList.remove('hidden');
   list.innerHTML = choices.map(choice => `
     <button class="adventure-choice-btn" data-biome-id="${choice.biomeId}">
@@ -156,12 +155,13 @@ function showBiomeChoiceModal(choices) {
     </button>
   `).join('');
 
-  list.querySelectorAll('[data-biome-id]').forEach((button) => {
+  list.querySelectorAll('[data-biome-id]').forEach(button => {
     button.addEventListener('click', () => {
       const biomeId = button.dataset.biomeId;
       adventure.chooseNextBiome({ run: currentRun, biomeId });
       recordBiomeSeen(biomeId);
       hideBiomeChoiceModal();
+      persistAdventureSession('starter');
       launchNextEncounter();
     });
   });
@@ -179,48 +179,119 @@ function buildNonCombatToast(encounter) {
   return '다음 구간으로 이동한다.';
 }
 
-/* ════════════════════════════════════════
-   Bottom nav 초기화
-════════════════════════════════════════ */
-let ingameReady = false;
+function buildPartyState(teamIds) {
+  return teamIds.map(monId => ({
+    monId,
+    level: getMonLevel(monId, 5),
+    slot: 'active',
+  }));
+}
+
+function persistAdventureSession(screen = 'starter') {
+  if (!currentRun || !currentBattleTeamIds.length) {
+    clearAdventureSession();
+    return;
+  }
+
+  setAdventureSession({
+    screen,
+    battleTeamIds: [...currentBattleTeamIds],
+    run: currentRun,
+    encounter: currentEncounter,
+    pendingBiomeChoices: currentRun.pendingBiomeChoices ?? null,
+    savedAt: Date.now(),
+  });
+}
+
+function clearAdventureState() {
+  currentBattleTeamIds = [];
+  currentRun = null;
+  currentEncounter = null;
+  clearAdventureSession();
+}
+
+function restoreAdventureSession() {
+  const session = getAdventureSession();
+  if (!session?.run || !Array.isArray(session.battleTeamIds) || !session.battleTeamIds.length) {
+    return false;
+  }
+
+  currentRun = session.run;
+  currentBattleTeamIds = [...session.battleTeamIds];
+  currentEncounter = session.encounter ?? null;
+  currentRun.pendingBiomeChoices = session.pendingBiomeChoices ?? currentRun.pendingBiomeChoices ?? null;
+  ingameReady = true;
+
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.dataset.active = item.dataset.tab === 'ingame' ? 'true' : 'false';
+  });
+
+  closeDetail();
+
+  if (session.screen === 'biome-choice' && currentRun.pendingBiomeChoices?.length) {
+    const c = container();
+    c.classList.remove('ingame-battle');
+    c.classList.add('ingame-starter');
+    showStarterScreen();
+    showBiomeChoiceModal(currentRun.pendingBiomeChoices);
+    showToast('이전 모험 진행을 복구했다.');
+    return true;
+  }
+
+  if (session.screen === 'battle' && currentEncounter && COMBAT_TYPES.has(currentEncounter.type)) {
+    showBattleUI(currentBattleTeamIds, currentEncounter);
+    showToast('이전 전투 지점을 복구했다.');
+    return true;
+  }
+
+  launchNextEncounter();
+  showToast('이전 모험 진행을 복구했다.');
+  return true;
+}
 
 export function initNavEvents() {
-  // 스타터 팀 선택 완료 → 전투 화면으로 (teamIds 배열)
   initStarterScreen(teamIds => startAdventureRun(teamIds));
-
-  // 전투 종료 / 재도전 → 스타터 선택으로 복귀
   initBattle(handleBattleFinished);
+  restoreAdventureSession();
 
-  document.querySelector('.bottom-nav').addEventListener('click', e => {
-    const item = e.target.closest('.nav-item');
+  document.querySelector('.bottom-nav').addEventListener('click', event => {
+    const item = event.target.closest('.nav-item');
     if (!item) return;
-    const tab = item.dataset.tab;
 
-    document.querySelectorAll('.nav-item').forEach(n => {
-      n.dataset.active = n.dataset.tab === tab ? 'true' : 'false';
+    const tab = item.dataset.tab;
+    document.querySelectorAll('.nav-item').forEach(navItem => {
+      navItem.dataset.active = navItem.dataset.tab === tab ? 'true' : 'false';
     });
 
     if (tab === 'dex') {
       showDex();
-    } else if (tab === 'ingame') {
-      closeDetail();
-
-      if (!ingameReady) {
-        ingameReady = true;
-        // initBattle()은 async이지만 이미 위에서 시작됨 → 완료 후 starter 표시
-        // 로딩 중 화면 전환을 먼저 하고 완료되면 starter가 렌더됨
-        showStarterUI();
-      } else {
-        // 이미 전투 중이면 전투 화면 유지, 그렇지 않으면 스타터 복귀
-        const battlePhase = getBattlePhase();
-        if (battlePhase === 'choosing' || battlePhase === 'animating') {
-          const c = container();
-          c.classList.remove('ingame-starter');
-          c.classList.add('ingame-battle');
-        } else {
-          showStarterUI();
-        }
-      }
+      return;
     }
+
+    if (tab !== 'ingame') return;
+
+    closeDetail();
+
+    if (!ingameReady) {
+      ingameReady = true;
+      showStarterUI();
+      return;
+    }
+
+    const battlePhase = getBattlePhase();
+    if (battlePhase === 'choosing' || battlePhase === 'animating') {
+      const c = container();
+      c.classList.remove('ingame-starter');
+      c.classList.add('ingame-battle');
+      return;
+    }
+
+    if (currentRun && currentRun.pendingBiomeChoices?.length) {
+      showStarterUI();
+      showBiomeChoiceModal(currentRun.pendingBiomeChoices);
+      return;
+    }
+
+    showStarterUI();
   });
 }

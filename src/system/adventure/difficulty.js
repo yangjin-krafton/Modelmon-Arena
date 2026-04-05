@@ -27,6 +27,7 @@ export function computeDifficultyProfile({ run, biome, waveSlot, metaProgress })
   const slotBias = Number(waveSlot?.difficultyBias || 0);
   const playerPower = getPlayerPowerScore(run);
   const familiarityBonus = getBiomeFamiliarityBonus(metaProgress, biome.id);
+  const leadLevel = run.party[0]?.level ?? 5;
 
   const dangerScore = Number((
     baseDanger +
@@ -38,8 +39,14 @@ export function computeDifficultyProfile({ run, biome, waveSlot, metaProgress })
   ).toFixed(2));
 
   const recommendedLevel = Math.max(
-    run.party[0]?.level ?? 5,
-    Math.round(4 + runDepth * 5 + localWave * 1.5 + slotBias * 2),
+    1,
+    Math.round(
+      leadLevel
+      - 1
+      + (runDepth - 1) * 2
+      + (localWave - 1) * 0.45
+      + slotBias * 1.2,
+    ),
   );
 
   const encounterBudget = Math.max(

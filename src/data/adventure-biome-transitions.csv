@@ -1,0 +1,9 @@
+from_biome_id,to_biome_id,weight,route_tag,min_clears,max_clears
+starter_zone,inference_wilds,55,aggressive,1,99
+starter_zone,protocol_city,55,stable,1,99
+inference_wilds,multimodal_ruins,60,greedy,2,99
+inference_wilds,safety_district,45,recovery,2,99
+protocol_city,multimodal_ruins,35,greedy,2,99
+protocol_city,safety_district,70,stable,2,99
+multimodal_ruins,frontier_core,100,final,3,99
+safety_district,frontier_core,100,final,3,99

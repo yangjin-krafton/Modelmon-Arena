@@ -1,0 +1,18 @@
+biome_id,trainer_id,name_ko,template_tag,tier,min_wave,max_wave,party_mon_ids,party_size_min,party_size_max,weight
+starter_zone,prompt_kid,프롬프트 키드,balanced,standard,1,10,001|004|007|010|013,1,2,12
+starter_zone,starter_coach,스타터 코치,tempo,standard,4,10,002|005|008,2,2,8
+starter_zone,onboarding_ace,온보딩 에이스,ace,elite,8,10,002|005|008|011|014,2,3,5
+inference_wilds,reasoning_scout,추론 스카우트,setup,standard,11,20,002|008|035|030,2,3,10
+inference_wilds,data_hunter,데이터 헌터,burst,standard,11,20,035|036|038|031,2,3,8
+inference_wilds,inference_veteran,추론 베테랑,elite_reasoning,elite,16,20,002|036|031|038,3,4,5
+protocol_city,policy_officer,폴리시 오피서,control,standard,11,20,004|005|027|032,2,3,10
+protocol_city,refactor_clerk,리팩터 클럭,code,standard,11,20,005|028|033|034,2,3,8
+protocol_city,compliance_veteran,컴플라이언스 베테랑,elite_control,elite,16,20,004|006|028|034,3,4,5
+multimodal_ruins,ruins_curator,루인 큐레이터,multimodal,standard,21,30,029|030|037|039,2,3,9
+multimodal_ruins,render_bandit,렌더 밴딧,burst_visual,standard,21,30,037|038|039|031,2,3,8
+multimodal_ruins,ruins_overseer,루인 오버시어,elite_multimodal,elite,26,30,030|031|038|039,3,4,5
+safety_district,safety_mediator,세이프티 미디에이터,stall,standard,21,30,004|005|027|029,2,3,9
+safety_district,response_guard,리스폰스 가드,control,standard,21,30,005|028|029|030,2,3,8
+safety_district,district_chief,디스트릭트 치프,elite_stall,elite,26,30,006|028|029|030,3,4,5
+frontier_core,prime_agent,프라임 에이전트,frontier,standard,31,40,003|006|009|028,3,4,7
+frontier_core,core_architect,코어 아키텍트,frontier_reasoning,elite,31,40,006|009|031|036,3,4,6

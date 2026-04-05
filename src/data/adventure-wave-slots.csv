@@ -1,0 +1,11 @@
+local_wave,slot_type,slot_label_ko,difficulty_bias,reward_bias
+1,wild,첫 야생 조우,0.00,0.00
+2,wild,야생 연속전,0.25,0.00
+3,reward,전투 후 보상,0.00,1.00
+4,trainer,중간 트레이너,0.75,0.25
+5,shop,상점,0.00,0.00
+6,wild,중반 야생 조우,0.45,0.10
+7,rest,휴식,0.00,0.00
+8,trainer,후반 트레이너,1.10,0.35
+9,elite,엘리트 체크,1.55,0.65
+10,boss,관장 또는 지역 보스,2.10,1.20

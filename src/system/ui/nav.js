@@ -35,11 +35,11 @@ function showStarterUI() {
   showStarterScreen();
 }
 
-function showBattleUI(starterMonId) {
+function showBattleUI(teamIds) {
   const c = container();
   c.classList.remove('ingame-starter');
   c.classList.add('ingame-battle');
-  startBattle(starterMonId);
+  startBattle(teamIds);   // 팀 배열 전체 전달
 }
 
 /* ════════════════════════════════════════
@@ -48,8 +48,8 @@ function showBattleUI(starterMonId) {
 let ingameReady = false;
 
 export function initNavEvents() {
-  // 스타터 선택 완료 → 전투 화면으로
-  initStarterScreen(monId => showBattleUI(monId));
+  // 스타터 팀 선택 완료 → 전투 화면으로 (teamIds 배열)
+  initStarterScreen(teamIds => showBattleUI(teamIds));
 
   // 전투 종료 / 재도전 → 스타터 선택으로 복귀
   initBattle(() => showStarterUI());

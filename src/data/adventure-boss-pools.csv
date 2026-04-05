@@ -1,0 +1,7 @@
+biome_id,boss_id,name_ko,tier,min_wave,max_wave,party_mon_ids,party_size,wave_bonus,weight
+starter_zone,starter_gym_leader,입문 관장,gym,10,10,002|005|008,3,1,10
+inference_wilds,reasoning_gym_leader,추론 관장,gym,20,20,002|036|031|038,4,2,10
+protocol_city,protocol_gym_leader,프로토콜 관장,gym,20,20,005|006|028|034,4,2,10
+multimodal_ruins,ruins_gym_leader,멀티모달 관장,gym,30,30,030|031|038|039,4,2,10
+safety_district,safety_gym_leader,세이프티 관장,gym,30,30,006|028|029|030,4,2,10
+frontier_core,agent_prime,에이전트 프라임,final,40,40,003|006|009|028|031|036,6,4,10

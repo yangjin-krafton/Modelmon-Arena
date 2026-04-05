@@ -114,6 +114,13 @@
           </div>
         </div>
         <div class="starter-confirm-wrap">
+          <!-- 선택된 팀 슬롯 -->
+          <div class="team-bar">
+            <div class="team-slots" id="team-slots">
+              <!-- JS로 채워짐 -->
+            </div>
+            <span class="team-count" id="team-count">0 / 6</span>
+          </div>
           <button class="starter-confirm-btn" id="starter-confirm-btn" disabled>
             모험 시작!
           </button>
@@ -187,15 +194,15 @@
         <!-- 통합 조작 패널 (choosing 시 표시) -->
         <div class="battle-panel hidden" id="battle-panel">
 
-          <!-- 교체 (좌우 스크롤 방식) -->
-          <div class="bp-scroll-row">
+          <!-- 교체 — 팀 그리드 (최대 5칸) -->
+          <div class="team-switch-row" id="bp-row-switch">
             <span class="bp-row-tag">교체</span>
-            <button class="bp-arrow" disabled>‹</button>
-            <span class="bp-row-val">— 준비 중 —</span>
-            <button class="bp-arrow" disabled>›</button>
+            <div class="team-switch-grid" id="team-switch-grid">
+              <!-- JS로 채워짐 -->
+            </div>
           </div>
 
-          <!-- 아이템 (좌우 스크롤 방식) -->
+          <!-- 아이템 (준비 중) -->
           <div class="bp-scroll-row">
             <span class="bp-row-tag">아이템</span>
             <button class="bp-arrow" disabled>‹</button>

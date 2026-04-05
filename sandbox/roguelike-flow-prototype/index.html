@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modelmon Roguelike Flow Prototype</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Sandbox Prototype</p>
+          <h1>Modelmon Adventure Flow</h1>
+          <p class="hero-copy">
+            전투는 생략하고, 런 기반 로그라이크 순환 구조만 빠르게 체감하는 샘플.
+          </p>
+        </div>
+        <div class="hero-actions">
+          <button id="start-run-btn" class="primary">새 런 시작</button>
+          <button id="reset-meta-btn" class="ghost">메타 초기화</button>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="panel summary-panel">
+          <h2>런 상태</h2>
+          <div id="run-summary" class="summary-grid"></div>
+        </section>
+
+        <section class="panel map-panel">
+          <div class="panel-head">
+            <h2>맵 경로</h2>
+            <p id="map-caption" class="muted"></p>
+          </div>
+          <div id="map-view" class="map-view"></div>
+        </section>
+
+        <section class="panel event-panel">
+          <div class="panel-head">
+            <h2>현재 노드</h2>
+            <p id="current-node-label" class="muted">런을 시작해 주세요.</p>
+          </div>
+          <div id="event-view" class="event-view empty">
+            좌측 상단의 <strong>새 런 시작</strong>을 눌러 샘플을 시작합니다.
+          </div>
+        </section>
+
+        <section class="panel log-panel">
+          <div class="panel-head">
+            <h2>런 로그</h2>
+            <button id="clear-log-btn" class="ghost small">로그 비우기</button>
+          </div>
+          <div id="run-log" class="run-log"></div>
+        </section>
+
+        <section class="panel meta-panel">
+          <h2>메타 진행</h2>
+          <div id="meta-view" class="meta-view"></div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

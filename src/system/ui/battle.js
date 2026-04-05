@@ -8,6 +8,7 @@ import { buildBattleMon, resolveTurn, pickEnemySkill } from '../core/battle-engi
 import {
   loadBattleDialogueLibrary,
   createBattleDialogueEngine,
+  renderBattleDialogueMarkup,
 } from '../battle-dialogue/index.js';
 import { STARTER_LEVEL } from './starter.js';
 
@@ -36,9 +37,9 @@ const el = id => document.getElementById(id);
 export async function initBattle(onBattleEnd) {
   _onBattleEnd = onBattleEnd;
 
-  // 이벤트 리스너는 await 전에 동기적으로 등록
-  el('battle-log').addEventListener('click', onLogClick);
-  el('battle-actions').addEventListener('click', onActionClick);
+  // 이벤트 리스너 — await 전에 동기 등록
+  el('battle-lower').addEventListener('click', onLowerClick);
+  el('battle-panel').addEventListener('click', onPanelClick);
   el('battle-retry-btn').addEventListener('click', onRetry);
 
   if (libraryLoaded) return;
@@ -77,8 +78,9 @@ export function startBattle(starterMonId) {
   if (dialogueEngine) dialogueEngine.reset();
 
   el('battle-result').classList.add('hidden');
-  el('battle-actions').classList.add('hidden');
+  hidePanel();
   el('bl-arrow').style.display = 'none';
+  el('battle-lower').classList.remove('is-talking');
 
   renderField();
 
@@ -113,33 +115,59 @@ function renderHP(side) {
 
   const fill = el(`${side}-hpfill`);
   fill.style.width = `${pct}%`;
-  fill.className = 'bfm-hpfill' + (pct > 50 ? ' hp-high' : pct > 25 ? ' hp-mid' : ' hp-low');
+  fill.className = 'bfm-hpfill ' + (pct > 50 ? 'hp-high' : pct > 25 ? 'hp-mid' : 'hp-low');
 
-  el(`${side}-hp-cur`).textContent = mon.hp;
-  el(`${side}-hp-max`).textContent = mon.maxHp;
+  // HP 숫자는 플레이어만 표시 (적은 바만)
+  if (side === 'player') {
+    el('player-hp-cur').textContent = mon.hp;
+    el('player-hp-max').textContent = mon.maxHp;
+  }
 }
 
-function renderSkillButtons() {
+function renderPanel() {
   for (let i = 0; i < 4; i++) {
-    const btn   = el(`skill-btn-${i}`);
+    const card  = el(`bp-skill-${i}`);
     const skill = playerMon.skills[i];
 
     if (skill) {
-      btn.querySelector('.sb-name').textContent = skill.name;
-      btn.querySelector('.sb-pp').textContent   = `PP ${skill.pp}/${skill.maxPp}`;
-      btn.querySelector('.sb-elem').textContent = skill.element;
-      btn.disabled = skill.pp <= 0;
-      btn.classList.remove('sb-empty');
-      btn.dataset.elem = skill.element;
+      const ppEmpty = skill.pp <= 0;
+      card.disabled     = ppEmpty;
+      card.dataset.elem = skill.element;
+
+      el(`bp-sk-name-${i}`).textContent = skill.name;
+      el(`bp-sk-elem-${i}`).textContent = skill.element;
+      el(`bp-sk-pat-${i}`).textContent  = skill.pattern || '';
+      el(`bp-sk-pow-${i}`).textContent  = skill.power === '—' || !skill.power ? '—' : skill.power;
+      el(`bp-sk-acc-${i}`).textContent  = skill.accuracy === '무한' || skill.accuracy === '—' ? '—' : skill.accuracy;
+      el(`bp-sk-pp-${i}`).textContent   = `${skill.pp}/${skill.maxPp}`;
+      el(`bp-sk-eff-${i}`).textContent  = skill.effect || '';
     } else {
-      btn.querySelector('.sb-name').textContent = '—';
-      btn.querySelector('.sb-pp').textContent   = '';
-      btn.querySelector('.sb-elem').textContent = '';
-      btn.disabled = true;
-      btn.classList.add('sb-empty');
-      btn.dataset.elem = '';
+      card.disabled     = true;
+      card.dataset.elem = '';
+      el(`bp-sk-name-${i}`).textContent = '—';
+      el(`bp-sk-elem-${i}`).textContent = '';
+      el(`bp-sk-pat-${i}`).textContent  = '';
+      el(`bp-sk-pow-${i}`).textContent  = '—';
+      el(`bp-sk-acc-${i}`).textContent  = '—';
+      el(`bp-sk-pp-${i}`).textContent   = '—';
+      el(`bp-sk-eff-${i}`).textContent  = '';
     }
   }
+}
+
+/* ════════════════════════════════════════
+   패널 표시 제어
+════════════════════════════════════════ */
+function hidePanel() {
+  el('battle-panel').classList.add('hidden');
+}
+
+function showPanel() {
+  renderPanel();
+  el('battle-panel').classList.remove('hidden');
+  el('battle-lower').classList.remove('is-talking');
+  el('bl-text').textContent = '행동을 선택하세요.';
+  el('bl-arrow').style.display = 'none';
 }
 
 /* ════════════════════════════════════════
@@ -166,37 +194,40 @@ function showNextMessage() {
     renderHP('enemy');
   }
 
-  el('bl-text').textContent = msg.text;
-  el('bl-arrow').style.display = msgQueue.length ? 'block' : 'none';
+  el('bl-text').innerHTML = renderBattleLogHtml(msg.text, msg.highlight);
+  const hasMore = msgQueue.length > 0;
+  el('bl-arrow').style.display = hasMore ? 'block' : 'none';
+  // 메시지 남아있을 때 하단 전체가 탭 가능함을 시각적으로 표시
+  el('battle-lower').classList.toggle('is-talking', hasMore);
 }
 
 function onQueueEmpty() {
+  el('battle-lower').classList.remove('is-talking');
+
   if (playerMon.hp <= 0) { showEndScreen(false); return; }
   if (enemyMon.hp  <= 0) { showEndScreen(true);  return; }
 
   phase = 'choosing';
-  renderSkillButtons();
-  el('battle-actions').classList.remove('hidden');
-  el('bl-arrow').style.display = 'none';
-  el('bl-text').textContent = '기술을 선택하세요...';
+  showPanel();
 }
 
 /* ════════════════════════════════════════
    이벤트 핸들러
 ════════════════════════════════════════ */
-function onLogClick() {
+function onLowerClick(e) {
+  // 버튼 클릭은 각 핸들러가 처리 — 대화 진행만 여기서
   if (phase !== 'animating') return;
+  if (e.target.closest('button')) return;
   showNextMessage();
 }
 
-function onActionClick(e) {
-  const btn = e.target.closest('.skill-btn');
-  if (!btn || phase !== 'choosing' || btn.disabled) return;
-  onSkillSelect(parseInt(btn.dataset.idx));
+function onPanelClick(e) {
+  const card = e.target.closest('.bp-skill-card');
+  if (!card || phase !== 'choosing' || card.disabled) return;
+  onSkillSelect(parseInt(card.dataset.idx));
 }
 
 function onRetry() {
-  // 다시 도전 → 스타터 선택 화면으로 복귀
   phase = 'idle';
   el('battle-result').classList.add('hidden');
   if (_onBattleEnd) _onBattleEnd();
@@ -209,7 +240,7 @@ function onSkillSelect(idx) {
   const skill = playerMon.skills[idx];
   if (!skill) return;
 
-  el('battle-actions').classList.add('hidden');
+  hidePanel();
   phase = 'animating';
   turn++;
 
@@ -255,20 +286,63 @@ function buildMessages(events, playerSkill, enemySkill) {
             momentum: playerMon.hp >= enemyMon.hp ? 'player_ahead' : 'enemy_ahead',
           };
           const result = dialogueEngine.generateTurn(ctx);
-          if (result.system) actionMsgs.push(result.system);
-          if (result.quote)  actionMsgs.push(result.quote);
+          const dialogueLines = [
+            result.system,
+            result.explain,
+            result.quote,
+            ...(result.storyParagraphs || [])
+          ].filter(Boolean);
+
+          for (const line of uniqueDialogueLines(dialogueLines)) {
+            actionMsgs.push(line);
+          }
         } catch (_) {}
       }
     }
 
     const hpSnap = { playerHp: evt.playerHp, enemyHp: evt.enemyHp };
-    msgs.push({ text: actionMsgs[0], hpSnap });
+    const highlight = buildMessageHighlight(evt);
+    msgs.push({ text: actionMsgs[0], hpSnap, highlight });
     for (let mi = 1; mi < actionMsgs.length; mi++) {
-      msgs.push({ text: actionMsgs[mi] });
+      msgs.push({ text: actionMsgs[mi], highlight });
     }
   }
 
   return msgs;
+}
+
+function uniqueDialogueLines(lines) {
+  const seen = new Set();
+  const result = [];
+
+  for (const line of lines) {
+    const normalized = String(line || "").trim();
+    if (!normalized) continue;
+
+    const key = normalized.replace(/\s+/g, " ");
+    if (seen.has(key)) continue;
+
+    seen.add(key);
+    result.push(normalized);
+  }
+
+  return result;
+}
+
+function renderBattleLogHtml(text, highlight = null) {
+  return renderBattleDialogueMarkup(text, {
+    allyNames: playerMon ? [playerMon.name, playerMon.brand] : [],
+    enemyNames: enemyMon ? [enemyMon.name, enemyMon.brand] : [],
+    allySkills: highlight?.allySkills || [],
+    enemySkills: highlight?.enemySkills || []
+  });
+}
+
+function buildMessageHighlight(evt) {
+  const skillName = evt?.skillName ? [evt.skillName] : [];
+  return evt?.side === 'player'
+    ? { allySkills: skillName, enemySkills: [] }
+    : { allySkills: [], enemySkills: skillName };
 }
 
 /* ════════════════════════════════════════
@@ -282,7 +356,7 @@ export function debugWin() {
   msgQueue = [];
   enemyMon.hp = 0;
   renderHP('enemy');
-  el('battle-actions').classList.add('hidden');
+  hidePanel();
   showEndScreen(true);
 }
 
@@ -294,7 +368,7 @@ export function debugLose() {
   msgQueue = [];
   playerMon.hp = 0;
   renderHP('player');
-  el('battle-actions').classList.add('hidden');
+  hidePanel();
   showEndScreen(false);
 }
 
@@ -330,7 +404,7 @@ export function debugState() {
 ════════════════════════════════════════ */
 function showEndScreen(win) {
   phase = 'ended';
-  el('battle-actions').classList.add('hidden');
+  hidePanel();
   el('bl-arrow').style.display = 'none';
 
   const resultEl = el('battle-result');

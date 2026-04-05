@@ -125,52 +125,42 @@
     <!-- ══════════ BATTLE SCREEN ══════════ -->
     <div class="screen" id="screen-battle">
 
-      <!-- 상단 바 -->
-      <div class="battle-topbar">
-        <div class="bt-trainer">
-          <span class="bt-icon">👤</span>
-          <span id="bt-trainer-name">연구원 A</span>
-        </div>
-        <div class="bt-round" id="bt-round">Round 1</div>
-      </div>
-
-      <!-- 배틀 필드 -->
+      <!-- ① 배틀 필드 (flex:1 — 나머지 공간 채움) -->
       <div class="battle-field">
 
-        <!-- 적 (상단) -->
-        <div class="bf-enemy">
+        <!-- 적 존 -->
+        <div class="bf-enemy-zone">
           <div class="bf-monbox enemy-monbox">
             <div class="bfm-nameline">
               <span class="bfm-name" id="enemy-mon-name">—</span>
               <span class="bfm-level" id="enemy-mon-level">Lv.—</span>
             </div>
-            <div class="bfm-hpbar">
-              <div class="bfm-hpfill hp-high" id="enemy-hpfill" style="width:100%"></div>
-            </div>
-            <div class="bfm-hptext">
-              <span id="enemy-hp-cur">—</span>
-              <span class="hp-sep">/</span>
-              <span id="enemy-hp-max">—</span>
+            <div class="bfm-hprow">
+              <span class="bfm-hplabel">HP</span>
+              <div class="bfm-hpbar">
+                <div class="bfm-hpfill hp-high" id="enemy-hpfill" style="width:100%"></div>
+              </div>
             </div>
           </div>
           <img class="bf-sprite enemy-sprite" id="enemy-sprite" src="" alt="">
         </div>
 
-        <!-- 플레이어 (하단) -->
-        <div class="bf-player">
+        <!-- 플레이어 존 -->
+        <div class="bf-player-zone">
           <img class="bf-sprite player-sprite" id="player-sprite" src="" alt="">
           <div class="bf-monbox player-monbox">
             <div class="bfm-nameline">
               <span class="bfm-name" id="player-mon-name">—</span>
               <span class="bfm-level" id="player-mon-level">Lv.—</span>
             </div>
-            <div class="bfm-hpbar">
-              <div class="bfm-hpfill hp-high" id="player-hpfill" style="width:100%"></div>
+            <div class="bfm-hprow">
+              <span class="bfm-hplabel">HP</span>
+              <div class="bfm-hpbar">
+                <div class="bfm-hpfill hp-high" id="player-hpfill" style="width:100%"></div>
+              </div>
             </div>
             <div class="bfm-hptext">
-              <span id="player-hp-cur">—</span>
-              <span class="hp-sep">/</span>
-              <span id="player-hp-max">—</span>
+              <span id="player-hp-cur">—</span><span class="hp-sep">/</span><span id="player-hp-max">—</span>
             </div>
           </div>
         </div>
@@ -180,40 +170,111 @@
           <div class="br-icon">🏆</div>
           <div class="br-title">승리!</div>
           <div class="br-sub"></div>
-          <button class="br-retry" id="battle-retry-btn">다시 도전</button>
+          <button class="br-retry" id="battle-retry-btn">다음 여정</button>
         </div>
 
       </div><!-- /battle-field -->
 
-      <!-- 다이얼로그 -->
-      <div class="battle-log" id="battle-log">
-        <div class="bl-text" id="bl-text">인게임 탭에 오신 것을 환영합니다.</div>
-        <div class="bl-arrow" id="bl-arrow" style="display:none">▼</div>
-      </div>
+      <!-- ② 하단 조작 패널 (고정 높이 — 화면 중하단 고정) -->
+      <div class="battle-lower" id="battle-lower">
 
-      <!-- 스킬 버튼 -->
-      <div class="battle-actions hidden" id="battle-actions">
-        <button class="skill-btn" id="skill-btn-0" data-idx="0">
-          <span class="sb-name">—</span>
-          <span class="sb-elem"></span>
-          <span class="sb-pp"></span>
-        </button>
-        <button class="skill-btn" id="skill-btn-1" data-idx="1">
-          <span class="sb-name">—</span>
-          <span class="sb-elem"></span>
-          <span class="sb-pp"></span>
-        </button>
-        <button class="skill-btn" id="skill-btn-2" data-idx="2">
-          <span class="sb-name">—</span>
-          <span class="sb-elem"></span>
-          <span class="sb-pp"></span>
-        </button>
-        <button class="skill-btn" id="skill-btn-3" data-idx="3">
-          <span class="sb-name">—</span>
-          <span class="sb-elem"></span>
-          <span class="sb-pp"></span>
-        </button>
-      </div>
+        <!-- 대화 로그 (항상 표시, 하단 전체 탭으로 진행) -->
+        <div class="battle-log" id="battle-log">
+          <div class="bl-text" id="bl-text">—</div>
+          <div class="bl-arrow" id="bl-arrow" style="display:none">▼</div>
+        </div>
+
+        <!-- 통합 조작 패널 (choosing 시 표시) -->
+        <div class="battle-panel hidden" id="battle-panel">
+
+          <!-- 교체 (좌우 스크롤 방식) -->
+          <div class="bp-scroll-row">
+            <span class="bp-row-tag">교체</span>
+            <button class="bp-arrow" disabled>‹</button>
+            <span class="bp-row-val">— 준비 중 —</span>
+            <button class="bp-arrow" disabled>›</button>
+          </div>
+
+          <!-- 아이템 (좌우 스크롤 방식) -->
+          <div class="bp-scroll-row">
+            <span class="bp-row-tag">아이템</span>
+            <button class="bp-arrow" disabled>‹</button>
+            <span class="bp-row-val">— 준비 중 —</span>
+            <button class="bp-arrow" disabled>›</button>
+          </div>
+
+          <!-- 스킬 목록 (4개 상세 카드) -->
+          <div class="bp-skill-list" id="bp-skill-list">
+
+            <button class="bp-skill-card" id="bp-skill-0" data-idx="0">
+              <div class="sk-card-top">
+                <span class="sk-name" id="bp-sk-name-0">—</span>
+                <div class="sk-chips">
+                  <span class="sk-chip" id="bp-sk-elem-0"></span>
+                  <span class="sk-pattern-chip" id="bp-sk-pat-0"></span>
+                </div>
+              </div>
+              <div class="sk-stats">
+                <div class="sk-stat"><span class="sk-stat-lbl">위력</span><span class="sk-stat-val" id="bp-sk-pow-0">—</span></div>
+                <div class="sk-stat"><span class="sk-stat-lbl">명중</span><span class="sk-stat-val" id="bp-sk-acc-0">—</span></div>
+                <div class="sk-stat"><span class="sk-stat-lbl">PP</span><span class="sk-stat-val" id="bp-sk-pp-0">—</span></div>
+              </div>
+              <div class="sk-effect" id="bp-sk-eff-0"></div>
+            </button>
+
+            <button class="bp-skill-card" id="bp-skill-1" data-idx="1">
+              <div class="sk-card-top">
+                <span class="sk-name" id="bp-sk-name-1">—</span>
+                <div class="sk-chips">
+                  <span class="sk-chip" id="bp-sk-elem-1"></span>
+                  <span class="sk-pattern-chip" id="bp-sk-pat-1"></span>
+                </div>
+              </div>
+              <div class="sk-stats">
+                <div class="sk-stat"><span class="sk-stat-lbl">위력</span><span class="sk-stat-val" id="bp-sk-pow-1">—</span></div>
+                <div class="sk-stat"><span class="sk-stat-lbl">명중</span><span class="sk-stat-val" id="bp-sk-acc-1">—</span></div>
+                <div class="sk-stat"><span class="sk-stat-lbl">PP</span><span class="sk-stat-val" id="bp-sk-pp-1">—</span></div>
+              </div>
+              <div class="sk-effect" id="bp-sk-eff-1"></div>
+            </button>
+
+            <button class="bp-skill-card" id="bp-skill-2" data-idx="2">
+              <div class="sk-card-top">
+                <span class="sk-name" id="bp-sk-name-2">—</span>
+                <div class="sk-chips">
+                  <span class="sk-chip" id="bp-sk-elem-2"></span>
+                  <span class="sk-pattern-chip" id="bp-sk-pat-2"></span>
+                </div>
+              </div>
+              <div class="sk-stats">
+                <div class="sk-stat"><span class="sk-stat-lbl">위력</span><span class="sk-stat-val" id="bp-sk-pow-2">—</span></div>
+                <div class="sk-stat"><span class="sk-stat-lbl">명중</span><span class="sk-stat-val" id="bp-sk-acc-2">—</span></div>
+                <div class="sk-stat"><span class="sk-stat-lbl">PP</span><span class="sk-stat-val" id="bp-sk-pp-2">—</span></div>
+              </div>
+              <div class="sk-effect" id="bp-sk-eff-2"></div>
+            </button>
+
+            <button class="bp-skill-card" id="bp-skill-3" data-idx="3">
+              <div class="sk-card-top">
+                <span class="sk-name" id="bp-sk-name-3">—</span>
+                <div class="sk-chips">
+                  <span class="sk-chip" id="bp-sk-elem-3"></span>
+                  <span class="sk-pattern-chip" id="bp-sk-pat-3"></span>
+                </div>
+              </div>
+              <div class="sk-stats">
+                <div class="sk-stat"><span class="sk-stat-lbl">위력</span><span class="sk-stat-val" id="bp-sk-pow-3">—</span></div>
+                <div class="sk-stat"><span class="sk-stat-lbl">명중</span><span class="sk-stat-val" id="bp-sk-acc-3">—</span></div>
+                <div class="sk-stat"><span class="sk-stat-lbl">PP</span><span class="sk-stat-val" id="bp-sk-pp-3">—</span></div>
+              </div>
+              <div class="sk-effect" id="bp-sk-eff-3"></div>
+            </button>
+
+          </div>
+
+        </div><!-- /battle-panel -->
+
+      </div><!-- /battle-lower -->
 
     </div><!-- /screen-battle -->
 

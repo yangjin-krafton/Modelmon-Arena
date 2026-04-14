@@ -144,7 +144,12 @@ export function playMonEnter(target) {
   sprite.classList.remove('fx-hidden');
   void sprite.offsetWidth;
   sprite.classList.add(cls);
-  sprite.addEventListener('animationend', () => sprite.classList.remove(cls), { once: true });
+  if (_prefersReducedMotion()) {
+    // 모션 감소 시 animationend 가 발생하지 않으므로 즉시 클래스 제거
+    sprite.classList.remove(cls);
+  } else {
+    sprite.addEventListener('animationend', () => sprite.classList.remove(cls), { once: true });
+  }
 }
 
 /**
@@ -391,6 +396,10 @@ function _clearMonAnim(sprite) {
     'fx-mon-faint', 'fx-mon-recall', 'fx-capture',
     'fx-shake', 'fx-flash', 'fx-recoil',
   );
+}
+
+function _prefersReducedMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
 function _clearNpcAnim() {

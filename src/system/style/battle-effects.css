@@ -623,17 +623,33 @@
 
 /* ════════════════════════════════════════════════════════
    접근성: 모션 감소 설정
+   이펙트 레이어는 숨기되, 몬스터 스프라이트는 최종 상태를 즉시 적용
 ════════════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
+  /* 이펙트 레이어 — 장식용이므로 숨김 */
   .bf-fx__beam,
   .bf-fx__impact,
   .bf-fx__self,
   .bf-fx__field,
   .bf-fx__ball,
   .bf-npc,
-  .fx-shake, .fx-recoil, .fx-flash,
-  .fx-mon-enter-enemy, .fx-mon-enter-player,
-  .fx-mon-faint, .fx-mon-recall, .fx-capture {
+  .fx-shake, .fx-recoil, .fx-flash {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+
+  /* 몬스터 등장 — 애니메이션 없이 즉시 표시 */
+  .fx-mon-enter-enemy,
+  .fx-mon-enter-player {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  /* 몬스터 기절/퇴장/포획 — 애니메이션 없이 즉시 숨김 */
+  .fx-mon-faint,
+  .fx-mon-recall,
+  .fx-capture {
     animation: none !important;
     opacity: 0 !important;
   }

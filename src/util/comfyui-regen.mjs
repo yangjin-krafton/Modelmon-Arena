@@ -24,13 +24,15 @@ const __dirname = path.dirname(__filename);
 // 설정
 // ============================================================
 const COMFYUI_URL = process.env.COMFYUI_URL || 'http://100.66.10.225:8188';
-const SPRITES_DIR = path.resolve(__dirname, '..', 'asset', 'sprites');
+const SPRITES_DIR = path.resolve(__dirname, '..', '..', 'sandbox', 'originals');
 const OUTPUT_DIR = path.resolve(__dirname, '..', 'asset', 'sprites_ci');
 const CSV_PATH = path.resolve(__dirname, '..', 'data', 'gen1-evo-lines.csv');
 const WORKFLOW_PATH = path.resolve(__dirname, '..', 'asset', 'image_flux2_klein_image_edit_9b_distilled.json');
 const POLL_INTERVAL_MS = 2000;
 const MAX_POLL_ATTEMPTS = 150; // 5분
 const DEFAULT_VARIANTS = 8; // 몬스터당 생성 장수
+const DEFAULT_STEPS = 4;   // 샘플링 스텝 수 (높을수록 스타일 변환 강함, 원본: 4)
+const DEFAULT_CFG = 1.0;    // CFG 강도 (높을수록 프롬프트 반영 강함, 원본: 1)
 
 // ============================================================
 // 브랜드별 CI 프롬프트 정의
@@ -403,7 +405,7 @@ async function uploadImage(imagePath, filename) {
   const header = [
     `--${boundary}`,
     `Content-Disposition: form-data; name="image"; filename="${filename}"`,
-    'Content-Type: image/webp',
+    'Content-Type: image/png',
     '',
   ].join(CRLF);
 
@@ -427,8 +429,10 @@ async function uploadImage(imagePath, filename) {
   return await resp.json();
 }
 
-function buildWorkflow(baseWorkflow, inputImageName, promptText, seed) {
+function buildWorkflow(baseWorkflow, inputImageName, promptText, seed, opts = {}) {
   const wf = JSON.parse(JSON.stringify(baseWorkflow));
+  const steps = opts.steps ?? DEFAULT_STEPS;
+  const cfg = opts.cfg ?? DEFAULT_CFG;
 
   // 입력 이미지 설정 (node 76)
   wf['76'].inputs.image = inputImageName;
@@ -438,6 +442,12 @@ function buildWorkflow(baseWorkflow, inputImageName, promptText, seed) {
 
   // 시드 설정 (node 75:73)
   wf['75:73'].inputs.noise_seed = seed ?? Math.floor(Math.random() * 1e15);
+
+  // 스텝 수 (node 75:62 Flux2Scheduler) — 높을수록 스타일 변환 강함
+  wf['75:62'].inputs.steps = steps;
+
+  // CFG 강도 (node 75:63 CFGGuider) — 높을수록 프롬프트 반영 강함
+  wf['75:63'].inputs.cfg = cfg;
 
   return wf;
 }
@@ -494,15 +504,26 @@ async function downloadImage(imageInfo, outputPath) {
 }
 
 // ============================================================
+// 시스템 프롬프트 (공통 스타일 지시)
+// ============================================================
+const SYSTEM_PROMPT = [
+  'Transform this monster sprite into a brand-themed redesign.',
+  'Completely recolor and restyle the creature to match the target brand identity.',
+  'Change the body colors, markings, patterns, and visual accents to reflect the brand palette.',
+  'Add brand-inspired design elements: glowing effects, textures, or iconic shapes from the brand.',
+  'Maintain the original monster silhouette and pose but make the visual style dramatically different.',
+  'Pixel art style, 2D game sprite, clean edges, solid colors, white background, centered.',
+].join(' ');
+
+// ============================================================
 // 프롬프트 생성
 // ============================================================
 function buildPromptForBrand(brand, dexNum) {
   const ci = BRAND_CI_PROMPTS[brand];
-  if (ci) {
-    return `${ci.prompt}, pixel art sprite monster character, game asset, white background, centered composition, high quality`;
-  }
-  // 알 수 없는 브랜드 → 기본 프롬프트
-  return `${brand} brand style corporate colors, pixel art sprite monster character, game asset, white background, centered composition, high quality`;
+  const brandPrompt = ci
+    ? ci.prompt
+    : `${brand} brand style corporate colors`;
+  return `${SYSTEM_PROMPT} Brand style: ${brandPrompt}`;
 }
 
 // ============================================================
@@ -517,6 +538,12 @@ async function main() {
   // 몬스터당 생성 장수
   const variantsIdx = args.indexOf('--variants');
   const numVariants = variantsIdx >= 0 ? parseInt(args[variantsIdx + 1], 10) : DEFAULT_VARIANTS;
+
+  // 스타일 변환 강도 옵션
+  const stepsIdx = args.indexOf('--steps');
+  const steps = stepsIdx >= 0 ? parseInt(args[stepsIdx + 1], 10) : DEFAULT_STEPS;
+  const cfgIdx = args.indexOf('--cfg');
+  const cfg = cfgIdx >= 0 ? parseFloat(args[cfgIdx + 1]) : DEFAULT_CFG;
 
   // 필터 파싱
   let filterRange = null;
@@ -560,7 +587,7 @@ async function main() {
     if (filterBrand && !info.brand.toLowerCase().includes(filterBrand.toLowerCase())) continue;
 
     const dexStr = String(dex).padStart(3, '0');
-    const spritePath = path.join(SPRITES_DIR, `${dexStr}.webp`);
+    const spritePath = path.join(SPRITES_DIR, `${dexStr}.png`);
 
     if (!fs.existsSync(spritePath)) {
       console.warn(`[SKIP] ${dexStr} - 스프라이트 파일 없음: ${spritePath}`);
@@ -579,7 +606,8 @@ async function main() {
   const totalJobs = targets.length * numVariants;
   console.log(`\n=== Modelmon 스프라이트 CI 재생성 ===`);
   console.log(`ComfyUI: ${COMFYUI_URL}`);
-  console.log(`대상: ${targets.length}마리 × ${numVariants}장 = 총 ${totalJobs}장\n`);
+  console.log(`대상: ${targets.length}마리 × ${numVariants}장 = 총 ${totalJobs}장`);
+  console.log(`스타일 강도: steps=${steps}, cfg=${cfg}\n`);
 
   if (dryRun) {
     console.log('--- DRY RUN (매핑만 출력) ---\n');
@@ -632,7 +660,7 @@ async function main() {
     console.log(`[${i + 1}/${targets.length}] #${t.dexStr} ${t.evoLine} → ${t.brand}`);
 
     // 이미지 업로드 (몬스터당 1번)
-    const uploadName = `modelmon_${t.dexStr}.webp`;
+    const uploadName = `modelmon_${t.dexStr}.png`;
     try {
       await uploadImage(t.spritePath, uploadName);
     } catch (e) {
@@ -662,7 +690,7 @@ async function main() {
           ? baseSeed + t.dex * 100 + v
           : Math.floor(Math.random() * 1e15);
 
-        const workflow = buildWorkflow(baseWorkflow, uploadName, promptText, seed);
+        const workflow = buildWorkflow(baseWorkflow, uploadName, promptText, seed, { steps, cfg });
 
         const { prompt_id } = await queuePrompt(workflow);
         process.stdout.write(`  시드 ${v}/${numVariants} (seed=${seed}) 생성중...`);
